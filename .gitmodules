@@ -1,0 +1,3 @@
+[submodule "docs/pstools-cookbook"]
+	path = docs/pstools-cookbook
+	url = https://github.com/saberyoung/pstools-cookbook.git

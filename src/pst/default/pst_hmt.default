@@ -1,0 +1,57 @@
+[telescope] ;-------------- define telescope parameters
+name:	hmt
+		;telescope name
+lat:	0
+		;Latitude:
+lon:	0
+		;Longitude, format as above
+alt:	0
+		;Altitude (in meter)
+fovw:	1.00
+		;field of view in widtw (in deg)
+fovh:	1.00
+		;field of view in height (in deg)
+exptime:	60.00
+		; exposure time per frame (in second)
+rottime:	60.00
+		; estimated time for pointing reassignment (in second)
+resolution:	1.00
+		; image resolution (arcsec/pixel)
+
+[pointings] ;-------------- define pointing parameters
+dbfile:	
+		; database mode: store pointings into dbfile.npz - ra,dec,id,score,info 
+		; next time, read  pointings and score 
+		; fill with hmt.db to open, otherwise, leave blacked 
+radecfile:	
+		; radec mode: next time, input only ra,dec, without score 
+scheduler:	T
+		; scheduler: [T]iling; [G]alaxy; [M]cmc
+limra:	0,360
+		; exposure per frame
+limdec:	-90,90
+		; average time for pointing reassignment
+ob:	1*1
+		;generate Observing Blocks, for tiling
+nob:	1
+		;calculate visibility every nob*tf time
+		;suggest: 1 for 3*3 OB mode; 10 for galaxy search
+limnob:	100
+		;maximum OB that can be done diring night
+		;for telescope which has limitation on time, otherwise, leave blanket, or very large, e.g.9999
+
+[files] ;-------------- define file name
+fskip:	
+		; file of skipping pointing list
+		; for bright stars or repeating fields before, etc
+vskip:	1.
+		; seperation in degree
+schfile:	pst_hmt.txt
+		; output scheduler file format
+[scheduler]  ;  ------------- scheduler
+dither:	0
+		; dither (e.g. 5, in arcsec)
+repeat:	0
+		; repeat per field, if dither, at lease 1
+filter:	r
+		; filter

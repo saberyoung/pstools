@@ -1,0 +1,317 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>pstools tutorial &#8212; pstools  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation procedure for PSTools" href="install.html" />
+    <link rel="prev" title="Welcome to the pstools documentation" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="pstools-tutorial">
+<h1>pstools tutorial<a class="headerlink" href="#pstools-tutorial" title="Permalink to this headline">¶</a></h1>
+<p>Choose the <code class="docutils literal notranslate"><span class="pre">iraf27</span></code> channel of <code class="docutils literal notranslate"><span class="pre">astroconda</span></code> for the python excuter</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>import matplotlib.pyplot as plt
+
+%matplotlib inline
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">healpy</span> <span class="kn">as</span> <span class="nn">hp</span>
+</pre></div>
+</div>
+<div class="section" id="nside-and-ordering">
+<h2>NSIDE and ordering<a class="headerlink" href="#nside-and-ordering" title="Permalink to this headline">¶</a></h2>
+<p>Maps are simply numpy arrays, where each array element refers to a
+location in the sky as defined by the Healpix pixelization schemes (see
+the <a class="reference external" href="https://healpix.jpl.nasa.gov/">healpix website</a>).</p>
+<p>Note: Running the code below in a regular Python session will not
+display the maps; it’s recommended to use an IPython shell or a Jupyter
+notebook.</p>
+<p>The resolution of the map is defined by the <em>NSIDE</em> parameter, which is
+generally a power of 2.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">NSIDE</span> <span class="o">=</span> <span class="mi">32</span>
+<span class="k">print</span><span class="p">(</span>
+    <span class="s2">&quot;Approximate resolution at NSIDE {} is {:.2} deg&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">NSIDE</span><span class="p">,</span> <span class="n">hp</span><span class="o">.</span><span class="n">nside2resol</span><span class="p">(</span><span class="n">NSIDE</span><span class="p">,</span> <span class="n">arcmin</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="o">/</span> <span class="mi">60</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The function <code class="docutils literal notranslate"><span class="pre">healpy.pixelfunc.nside2npix</span></code> gives the number of pixels
+<em>NPIX</em> of the map:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">NPIX</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">nside2npix</span><span class="p">(</span><span class="n">NSIDE</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">NPIX</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The same pixels in the map can be ordered in 2 ways, either RING, where
+they are numbered in the array in horizontal rings starting from the
+North pole:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">NPIX</span><span class="p">)</span>
+<span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Mollview image RING&quot;</span><span class="p">)</span>
+<span class="n">hp</span><span class="o">.</span><span class="n">graticule</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The standard coordinates are the <strong>colatitude</strong> <span class="math notranslate nohighlight">\(\theta\)</span>,
+<span class="math notranslate nohighlight">\(0\)</span> at the North Pole, <span class="math notranslate nohighlight">\(\pi/2\)</span> at the equator and
+<span class="math notranslate nohighlight">\(\pi\)</span> at the South Pole and the <strong>longitude</strong> <span class="math notranslate nohighlight">\(\phi\)</span> between
+<span class="math notranslate nohighlight">\(0\)</span> and <span class="math notranslate nohighlight">\(2\pi\)</span> eastward, in a Mollview projection,
+<span class="math notranslate nohighlight">\(\phi=0\)</span> is at the center and increases eastward toward the left
+of the map.</p>
+<p>We can also use vectors to represent coordinates, for example <code class="docutils literal notranslate"><span class="pre">vec</span></code> is
+the normalized vector that points to <span class="math notranslate nohighlight">\(\theta=\pi/2, \phi=3/4\pi\)</span>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">vec</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">ang2vec</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">vec</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can find the indices of all the pixels within <span class="math notranslate nohighlight">\(10\)</span> degrees of
+that point and then change the value of the map at those indices:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">ipix_disc</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">query_disc</span><span class="p">(</span><span class="n">nside</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">vec</span><span class="o">=</span><span class="n">vec</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">NPIX</span><span class="p">)</span>
+<span class="n">m</span><span class="p">[</span><span class="n">ipix_disc</span><span class="p">]</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+<span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Mollview image RING&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can retrieve colatitude and longitude of each pixel using
+<code class="docutils literal notranslate"><span class="pre">pix2ang</span></code>, in this case we notice that the first 4 pixels cover the
+North Pole with pixel centers just ~<span class="math notranslate nohighlight">\(1.5\)</span> degrees South of the
+Pole all at the same latitude. The fifth pixel is already part of
+another ring of pixels.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">degrees</span><span class="p">(</span><span class="n">hp</span><span class="o">.</span><span class="n">pix2ang</span><span class="p">(</span><span class="n">nside</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">ipix</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]))</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">theta</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">phi</span>
+</pre></div>
+</div>
+<p>The RING ordering is necessary for the Spherical Harmonics transforms,
+the other option is NESTED ordering which is very efficient for map
+domain operations because scaling up and down maps is achieved just
+multiplying and rounding pixel indices. See below how pixel are ordered
+in the NESTED scheme, notice the structure of the 12 HEALPix base pixels
+(NSIDE 1):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">NPIX</span><span class="p">)</span>
+<span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nest</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Mollview image NESTED&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>All <code class="docutils literal notranslate"><span class="pre">healpy</span></code> routines assume RING ordering, in fact as soon as you
+read a map with <code class="docutils literal notranslate"><span class="pre">read_map</span></code>, even if it was stored as NESTED, it is
+transformed to RING. However, you can work in NESTED ordering passing
+the <code class="docutils literal notranslate"><span class="pre">nest=True</span></code> argument to most <code class="docutils literal notranslate"><span class="pre">healpy</span></code> routines.</p>
+</div>
+<div class="section" id="reading-and-writing-maps-to-file">
+<h2>Reading and writing maps to file<a class="headerlink" href="#reading-and-writing-maps-to-file" title="Permalink to this headline">¶</a></h2>
+<p>For the following section, it is required to download larger maps by
+executing from the terminal the bash script <code class="docutils literal notranslate"><span class="pre">healpy_get_wmap_maps.sh</span></code>
+which should be available in your path.</p>
+<p>This will download the higher resolution WMAP data into the current
+directory.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>!healpy_get_wmap_maps.sh
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">wmap_map_I</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">read_map</span><span class="p">(</span><span class="s2">&quot;wmap_band_iqumap_r9_7yr_W_v4.fits&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>By default, input maps are converted to <em>RING</em> ordering, if they are in
+<em>NESTED</em> ordering. You can otherwise specify <code class="docutils literal notranslate"><span class="pre">nest=True</span></code> to retrieve a
+map is NESTED ordering, or <code class="docutils literal notranslate"><span class="pre">nest=None</span></code> to keep the ordering unchanged.</p>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">read_map</span></code> loads the first column, for reading other
+columns you can specify the <code class="docutils literal notranslate"><span class="pre">field</span></code> keyword.</p>
+<p><code class="docutils literal notranslate"><span class="pre">write_map</span></code> writes a map to disk in FITS format, if the input map is a
+list of 3 maps, they are written to a single file as I,Q,U polarization
+components:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">hp</span><span class="o">.</span><span class="n">write_map</span><span class="p">(</span><span class="s2">&quot;my_map.fits&quot;</span><span class="p">,</span> <span class="n">wmap_map_I</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="visualization">
+<h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this headline">¶</a></h2>
+<p>As shown above, mollweide projection with <code class="docutils literal notranslate"><span class="pre">mollview</span></code> is the most
+common visualization tool for HEALPIX maps. It also supports coordinate
+transformation, <code class="docutils literal notranslate"><span class="pre">coord</span></code> does Galactic to ecliptic coordinate
+transformation, <code class="docutils literal notranslate"><span class="pre">norm='hist'</span></code> sets a histogram equalized color scale
+and <code class="docutils literal notranslate"><span class="pre">xsize</span></code> increases the size of the image. <code class="docutils literal notranslate"><span class="pre">graticule</span></code> adds
+meridians and parallels.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span>
+    <span class="n">wmap_map_I</span><span class="p">,</span>
+    <span class="n">coord</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="p">,</span> <span class="s2">&quot;E&quot;</span><span class="p">],</span>
+    <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Histogram equalized Ecliptic&quot;</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;mK&quot;</span><span class="p">,</span>
+    <span class="n">norm</span><span class="o">=</span><span class="s2">&quot;hist&quot;</span><span class="p">,</span>
+    <span class="nb">min</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+    <span class="nb">max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">hp</span><span class="o">.</span><span class="n">graticule</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">gnomview</span></code> instead provides gnomonic projection around a position
+specified by <code class="docutils literal notranslate"><span class="pre">rot</span></code>, for example you can plot a projection of the
+galactic center, <code class="docutils literal notranslate"><span class="pre">xsize</span></code> and <code class="docutils literal notranslate"><span class="pre">ysize</span></code> change the dimension of the sky
+patch.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">hp</span><span class="o">.</span><span class="n">gnomview</span><span class="p">(</span><span class="n">wmap_map_I</span><span class="p">,</span> <span class="n">rot</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">],</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;GnomView&quot;</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;mK&quot;</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%.2g</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">mollzoom</span></code> is a powerful tool for interactive inspection of a map, it
+provides a mollweide projection where you can click to set the center of
+the adjacent gnomview panel. ## Masked map, partial maps</p>
+<p>By convention, HEALPIX uses <span class="math notranslate nohighlight">\(-1.6375 * 10^{30}\)</span> to mark invalid or
+unseen pixels. This is stored in healpy as the constant <code class="docutils literal notranslate"><span class="pre">UNSEEN</span></code>.</p>
+<p>All <code class="docutils literal notranslate"><span class="pre">healpy</span></code> functions automatically deal with maps with <code class="docutils literal notranslate"><span class="pre">UNSEEN</span></code>
+pixels, for example <code class="docutils literal notranslate"><span class="pre">mollview</span></code> marks in grey those sections of a map.</p>
+<p>There is an alternative way of dealing with UNSEEN pixel based on the
+numpy<code class="docutils literal notranslate"><span class="pre">MaskedArray</span></code> class, <code class="docutils literal notranslate"><span class="pre">hp.ma</span></code> loads a map as a masked array,
+by convention the mask is 0 where the data are masked, while numpy
+defines data masked when the mask is True, so it is necessary to flip
+the mask.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">read_map</span><span class="p">(</span><span class="s2">&quot;wmap_temperature_analysis_mask_r9_7yr_v4.fits&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+<span class="n">wmap_map_I_masked</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">ma</span><span class="p">(</span><span class="n">wmap_map_I</span><span class="p">)</span>
+<span class="n">wmap_map_I_masked</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Filling a masked array fills in the <code class="docutils literal notranslate"><span class="pre">UNSEEN</span></code> value and return a
+standard array that can be used by <code class="docutils literal notranslate"><span class="pre">mollview</span></code>. <code class="docutils literal notranslate"><span class="pre">compressed()</span></code>
+instead removes all the masked pixels and returns a standard array that
+can be used for examples by the matplotlib <code class="docutils literal notranslate"><span class="pre">hist()</span></code> function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span><span class="n">wmap_map_I_masked</span><span class="o">.</span><span class="n">filled</span><span class="p">())</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">wmap_map_I_masked</span><span class="o">.</span><span class="n">compressed</span><span class="p">(),</span> <span class="n">bins</span><span class="o">=</span><span class="mi">1000</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="spherical-harmonics-transforms">
+<h2>Spherical Harmonics transforms<a class="headerlink" href="#spherical-harmonics-transforms" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">healpy</span></code> provides bindings to the C++ HEALPIX library for performing
+spherical harmonic transforms. <code class="docutils literal notranslate"><span class="pre">hp.anafast</span></code> computes the angular power
+spectrum of a map:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">LMAX</span> <span class="o">=</span> <span class="mi">1024</span>
+<span class="n">cl</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">anafast</span><span class="p">(</span><span class="n">wmap_map_I_masked</span><span class="o">.</span><span class="n">filled</span><span class="p">(),</span> <span class="n">lmax</span><span class="o">=</span><span class="n">LMAX</span><span class="p">)</span>
+<span class="n">ell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cl</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>therefore we can plot a normalized CMB spectrum and write it to disk:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ell</span><span class="p">,</span> <span class="n">ell</span> <span class="o">*</span> <span class="p">(</span><span class="n">ell</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">cl</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;$\ell$&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;$\ell(\ell+1)C_{\ell}$&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">()</span>
+<span class="n">hp</span><span class="o">.</span><span class="n">write_cl</span><span class="p">(</span><span class="s2">&quot;cl.fits&quot;</span><span class="p">,</span> <span class="n">cl</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Gaussian beam map smoothing is provided by <code class="docutils literal notranslate"><span class="pre">hp.smoothing</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">wmap_map_I_smoothed</span> <span class="o">=</span> <span class="n">hp</span><span class="o">.</span><span class="n">smoothing</span><span class="p">(</span><span class="n">wmap_map_I</span><span class="p">,</span> <span class="n">fwhm</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mf">1.</span><span class="p">))</span>
+<span class="n">hp</span><span class="o">.</span><span class="n">mollview</span><span class="p">(</span><span class="n">wmap_map_I_smoothed</span><span class="p">,</span> <span class="nb">min</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Map smoothed 1 deg&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For more information see the <a class="reference external" href="https://healpix.jpl.nasa.gov/pdf/intro.pdf">HEALPix
+primer</a></p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">pstools</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">pstools tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation procedure for PSTools</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="license.html">Licenses</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to the pstools documentation</a></li>
+      <li>Next: <a href="install.html" title="next chapter">Installation procedure for PSTools</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;CC/BY/4.0/International.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/tutorial.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
