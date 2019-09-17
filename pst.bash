@@ -7,5 +7,5 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 echo "... pstools package@${DIR}- start version ${pst_version} ..."
 
 export PYTHONPATH="${DIR}/src/"
-alias pstools="python ${DIR}/bin/pstools.py"
-alias slack="python ${DIR}/bin/slack.py"
+alias pstools="python ${DIR}/bin/pstools"
+alias slack="python ${DIR}/bin/slack"

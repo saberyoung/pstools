@@ -37,7 +37,8 @@
   <div class="section" id="usage">
 <h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h1>
 <p>Once the PSTools pipeline is correctly initialized,
-you will have two available commands, i.e. pstools and slack.</p>
+you will have two available commands, i.e. pstools
+and slack, see <a class="reference external" href="https://pstools-documentation.readthedocs.io/en/latest/ref.html">procedures</a>.</p>
 <div class="section" id="pstools">
 <h2>pstools<a class="headerlink" href="#pstools" title="Permalink to this headline">¶</a></h2>
 <p>There’s an available helper of <code class="docutils literal notranslate"><span class="pre">pstools</span></code>. One could activate
@@ -45,7 +46,7 @@ it by typing:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pstools -h
 </pre></div>
 </div>
-<p>and return following in terminal</p>
+<p>and would return the following lines</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: pstools.py <span class="o">[</span>-h<span class="o">]</span> <span class="o">[</span>-f FITS<span class="o">]</span> <span class="o">[</span>-t TEL<span class="o">]</span> <span class="o">[</span>-x XML<span class="o">]</span>
               <span class="o">[</span>-s <span class="o">{</span>local,eApps,Atlantic_2,Atlantic_3,Linode<span class="o">}]</span>
               <span class="o">[</span>-p <span class="o">{</span>PUBLIC,PRIVATE<span class="o">}]</span> <span class="o">[</span>-v<span class="o">]</span> <span class="o">[</span>-l<span class="o">]</span>
@@ -72,17 +73,18 @@ optional arguments:
   -l                    Recording task progress report <span class="o">(</span>default: False<span class="o">)</span>
 </pre></div>
 </div>
-<p>As shown, currenlt there’re 5 options from <code class="docutils literal notranslate"><span class="pre">pstools</span></code>:</p>
+<p>As shown, there’re 5 options for <code class="docutils literal notranslate"><span class="pre">pstools</span></code>:</p>
 <ul class="simple">
-<li>serve alert:</li>
-<li>Monitor alert:</li>
-<li>Manual input map</li>
-<li>Generate configure file</li>
-<li>Tutorial</li>
+<li>Serve alert: For a test purpose, you can serve xml via the local server, afterwards hire PSTools to monitor the local server alerts.</li>
+<li>Monitor alert: You can activate PSTools to monitor a server/port, so that, the sudden alert would activate the prioritization process.</li>
+<li>Manual input map: This option would ask users to input a trigger map in healpix format, and the prioritization was subsequently performed.</li>
+<li>Generate configure file: Since there’re so many parameters and options in the process, in order to provide users a clear view, let users fast revise them, there’re a list of configure files, which stored the parameters, would be used. There’s a general configure file, named pstools.default, together with few telescope configure files, named pst_[<cite>tel name</cite>].default.</li>
+<li>Tutorial: will show the tutrial.</li>
 </ul>
 </div>
 <div class="section" id="slack">
 <h2>slack<a class="headerlink" href="#slack" title="Permalink to this headline">¶</a></h2>
+<p>to be done</p>
 </div>
 </div>
 

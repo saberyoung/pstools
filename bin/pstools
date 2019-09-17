@@ -93,9 +93,9 @@ if __name__ == "__main__":
         for _teli in _tel: pst.configure.config_init(_teli)        
 
     elif _mode == 5:  # - web tutorial
-        if _verbose: print ('https://pstool-cookbook.readthedocs.io/en/latest/')
+        if _verbose: print ('https://pstool-cookbook.readthedocs.io/en/latest/')        
+        import webbrowser
         _html = '%s/../../docs/_build/html/index.html'%pst.__path__[0]
-        import webbrowser       
         webbrowser.open(_html, new=2)
 
 print("-"*80)

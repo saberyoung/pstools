@@ -2,7 +2,8 @@ Usage
 =================
 
 Once the PSTools pipeline is correctly initialized, 
-you will have two available commands, i.e. pstools and slack.
+you will have two available commands, i.e. pstools 
+and slack, see `procedures <https://pstools-documentation.readthedocs.io/en/latest/ref.html>`_.
 
 pstools
 ------------------
@@ -14,7 +15,7 @@ it by typing:
 
     pstools -h
 
-and return following in terminal
+and would return the following lines
 
 .. code-block:: bash
 
@@ -43,15 +44,20 @@ and return following in terminal
       -v                    Enable task progress report (default: False)
       -l                    Recording task progress report (default: False)
 
-As shown, currenlt there're 5 options from ``pstools``:
+As shown, there're 5 options for ``pstools``:
 
-- serve alert: 
-- Monitor alert:
-- Manual input map
-- Generate configure file
-- Tutorial
+- Serve alert: For a test purpose, you can serve xml via the local server, afterwards hire PSTools to monitor the local server alerts.
+
+- Monitor alert: You can activate PSTools to monitor a server/port, so that, the sudden alert would activate the prioritization process.
+
+- Manual input map: This option would ask users to input a trigger map in healpix format, and the prioritization was subsequently performed.
+
+- Generate configure file: Since there're so many parameters and options in the process, in order to provide users a clear view, let users fast revise them, there're a list of configure files, which stored the parameters, would be used. There's a general configure file, named pstools.default, together with few telescope configure files, named pst_[`tel name`].default.
+
+- Tutorial: will show the tutrial.
 
 
 slack
 --------------------------------
 
+to be done
