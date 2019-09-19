@@ -1,0 +1,250 @@
+[priorization] ;  ------------- what infos used for priorization 
+
+trigger:	True
+		; include trigger prob into score
+
+mass:		True
+		; include galaxy mass into score
+
+dist:		False
+		; include galaxy distance into score
+
+number:		False
+		; include galaxy counts into score
+
+nside:		1024
+		; nside of priorization map
+		; Note: will change according to trigger healpix map
+		; 
+
+[react]  ;  ------------- for trigger search, when/how to response
+
+type:		1,2
+		;react to which type of VOEvent
+		; 1. GW
+		; 2. GRB
+		; 3. AMON
+		; TBD
+
+test:		False
+		;for GW, there're always test alerts for testing
+		; True: Respond also to test alerts
+		; False: No
+
+[data]  ;  ------------- define directory for putting data
+
+dir:		./
+		; define a directory for putting yields
+
+schfile:	all.txt
+		; output scheduler file name
+
+[observe] ;------------- observation estimate
+
+telescope:	VST,schmidt
+		; which telescopes used
+		; essential for auto search
+
+obstime:	now
+		; define the start time for schedule
+		;  [1] now
+		;  [2] time in utc, e.g.1999-01-01T00:00:00.1234
+		;  [3] +/- x minutes, e.g. -30 (30 mins before); +30 (30 mins later)
+
+timelast:	10
+		; force stop schedule after how much time
+		; if it's long, the schedule will stop till no visible fields
+
+order:		1
+		; Ranking algorithms: 
+		;  [1]greedy algorithm: rank with priority 
+		;  [2]conservative algorithm: rank from west to east 
+		;  [3]optimal algorithm: consider slewing angle, start from westest pointing 
+		;  [4]optimal algorithm: consider slewing angle, start from highest ranking 
+
+cov:
+		; observing coverage
+		; if a float num (0-1), e.g. 0.9, given, force network to cover 
+		;   the top 90% prob
+		;   otherwise, auto set, depending on the trigger size and FoV
+
+limsun:		-12
+		; limitation on the height of sun
+		; less will be considered as safe
+		; otherwise, considered as the end of schedule
+
+limmoon:	auto
+		; limitation on the area of moon
+		; e.g. 30 (unit in deg) or auto
+		; if a number set: pointings within such radius will be removed
+		; if auto set: do removement accoring to the lunar phase
+
+limsobj:	jupiter,venus
+		; avoid objects inside solor system, divided with comma
+		; options: mercury,venus,moon,mars,jupiter,saturn,uranus,neptune
+
+limsobjr:	2
+		; limit radius
+		; pointings within such radius (unit in deg) will be removed
+
+limalt:		2.0
+		; limitation on height/airmass
+		; avoid telescope being too low
+
+threshold:	
+		;pixel threshold (e.g. 1e-3):
+		;remain fields only when their corresponding probs is above the threshold
+		;leave blanket, I will automatically do thresholding based on map size and FoV of telescope
+
+template:	
+		; search if available templates
+		; e.g. VST,DES,PS,SDSS
+
+[galaxies] ;  ------------- galaxy selection
+
+cachefile:	
+		; cache mode: store galaxies into $dir/cache, only if the number of galaxies is large
+
+catalog:	GLADE
+		; galaxy cat: GLADE/GWGC/2MASS 
+
+filter:		B
+		; filter for galaxy absolute magniture 
+
+size:		-1
+		; galaxy catalog size number, -1 for full size
+
+dist:		0,9999
+		; galaxy distance range
+		; if trigger (CBC GW, or?) distance available, ;
+		; auto select galaxy range; otherwise, applied settings here
+		; in principle, one should select all galaxies, 
+		; and then wait for a 3D prob, in case, 
+		; some one wants to concentrate only local volume
+		; Notice: GWGC is only valid within 100 Mpc, 
+		; GLADE will go up to 300Mpc however, not complete
+
+limra:		0,360
+		; Ra range (in deg) for galaxy selection
+
+limdec:		-90,90
+		; Dec range (in deg) for galaxy selection
+
+limmag:		-18
+		; absolute limiting magnitude
+		; remian galaxies only when they are brighter than this number
+
+limebv:		False
+		; ebv cut
+		; if not False: remove pointings located in high ebv (e.g. $limebv<2.5) area 
+
+radius:		5
+		; FWHM for galaxy smoothing (in arcmin)
+		; False: no smoothing
+
+[plot] ;  ------------- plotting parameters
+
+verbose:	False
+		; verbose mode: show detialed infors, plots, etc
+
+showmap:	trigger,cum
+		; if verbose, which plot to show: trigger,galaxy,cum
+
+interactive:	False
+		; Once verbose, interactive mode will enable user to set plots 
+
+rot_theta:	0
+		;default paramater for healpix view
+
+rot_phi:	0
+		;default paramater for healpix view
+
+ordering:	False
+		;default paramater for healpix view
+
+coord:		C
+		;default paramater for healpix view
+		; default: Equatorial, don't change
+
+norm:		hist
+		;default paramater for healpix view
+
+[email] ;  ------------- email setting
+
+sendemail:	False
+		;send email or not
+
+email:	
+		;if yes, set email sender account
+
+emailpass:	
+		;if yes, set email sender password
+
+emailsmtp:	
+		;if yes, set email sender host and port
+
+emailto:	
+		;if yes, set email receiver account
+
+emailsub:	GW alerts:
+		;if yes, set email subject format
+
+[phone] ;  ------------- phone message setting
+
+activate:	False
+		;send message or not
+
+account:	
+		;twilio account
+
+token:	
+		;twilio token
+
+to:	
+		;set message receiver
+
+from:	
+		;set message sender
+
+[database] ;-------------- define database configuration
+
+activate:	False
+		; activate database injection
+		; configure in src/sqlconn.py
+
+[web] ;-------------- define web configuration
+
+activate:	False
+		; activate file transfer or not
+
+ssh:	
+		; if empty, local dir, else, remote dir, transfer files via ssh
+		; user:password@server:port
+
+dir:	
+		; transfer files to web dir
+
+refresh:	update.py
+		; excute python file in web dir, if using html indtead of php,etc
+
+[wechat] ;-------------- define wechat configuration
+
+activate:	False
+		; activate or not
+
+friends:	
+		; send msg to whom
+
+groups:	
+		; send msg to which group
+
+[slack] ;-------------- define slack configuration
+
+activate:	False
+		; activate file transfer or not
+
+SLACK_BOT_TOKEN:xoxb-418728624791-637128267495-B6ry0WaibOwhxawkkOW06pZG
+
+BOT_ID:		UJR3S7VEK
+
+channel:	DJBRPHUD8

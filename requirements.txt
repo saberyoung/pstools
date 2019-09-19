@@ -2,3 +2,5 @@ astropy
 numpy
 pandas
 matplotlib
+healpy
+voevent-parse

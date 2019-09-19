@@ -35,7 +35,7 @@ and would return the following lines
       -h, --help            show this help message and exit
       -f FITS               handle healpix fits file (default: None)
       -t TEL                specific telescopes, if multiple divided with `,`
-                            options:['CI', 'schmidt', 'VST', 'sv', 'REM']
+                            options:['VST', 'REM', ... ...]
                             (default: None)
       -x XML                xml file that would be served locally (default: None)
       -s {local,eApps,Atlantic_2,Atlantic_3,Linode}

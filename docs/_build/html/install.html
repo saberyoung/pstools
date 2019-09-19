@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Installation &#8212; pstools  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -13,10 +11,10 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Reference" href="ref.html" />
+    <link rel="next" title="Usage" href="usage.html" />
     <link rel="prev" title="Welcome to the pstools documentation" href="index.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
@@ -121,11 +119,11 @@ then run:</p>
 <h2>Check<a class="headerlink" href="#check" title="Permalink to this headline">¶</a></h2>
 <p>PSTools would provide two excutable command, i.e. pstools/slack, if you installed
 it correctly. To check if they’re working:</p>
-<dl class="docutils">
-<dt><code class="docutils literal notranslate"><span class="pre">pstools</span></code>:</dt>
-<dd>pstools -h</dd>
-<dt><code class="docutils literal notranslate"><span class="pre">slack</span></code>:</dt>
-<dd>after a proper <a class="reference external" href="https://pstool-cookbook.readthedocs.io/en/latest/usage.html#slack">setup</a> process, go and type sth in the specific slack channel by mentioning the slack bot, e.g. &#64;gwhelp status. If there’re sth return in slack chat, it’s alive, and you can then follow its instructions.</dd>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">pstools</span></code>:</dt><dd><p>pstools -h</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">slack</span></code>:</dt><dd><p>after a proper <a class="reference external" href="https://pstool-cookbook.readthedocs.io/en/latest/usage.html#slack">setup</a> process, go and type sth in the specific slack channel by mentioning the slack bot, e.g. &#64;gwhelp status. If there’re sth return in slack chat, it’s alive, and you can then follow its instructions.</p>
+</dd>
 </dl>
 </div>
 </div>
@@ -158,9 +156,10 @@ it correctly. To check if they’re working:</p>
 <li class="toctree-l2"><a class="reference internal" href="#check">Check</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="ref.html">Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ref.html">Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="example.html">Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="errors.html">Errors may happen</a></li>
 </ul>
 
 <div class="relations">
@@ -168,7 +167,7 @@ it correctly. To check if they’re working:</p>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
       <li>Previous: <a href="index.html" title="previous chapter">Welcome to the pstools documentation</a></li>
-      <li>Next: <a href="ref.html" title="next chapter">Reference</a></li>
+      <li>Next: <a href="usage.html" title="next chapter">Usage</a></li>
   </ul></li>
 </ul>
 </div>
@@ -178,20 +177,10 @@ it correctly. To check if they’re working:</p>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
-
-
-
-
-
-
-
-
         </div>
       </div>
       <div class="clearer"></div>
@@ -200,8 +189,8 @@ it correctly. To check if they’re working:</p>
       &copy;CC/BY/4.0/International.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
       
       |
       <a href="_sources/install.rst.txt"

@@ -26,8 +26,7 @@ if __name__ == "__main__":
     parser.add_argument("-f", dest="fits",\
         help='handle healpix fits file')      
     parser.add_argument("-t", dest="tel",\
-        help='specific telescopes, if multiple divided with `,`'+\
-        '\t options:%s'%str(pst.configure.tel_list.keys()))
+        help='specific telescopes, if multiple divided with `,`')
     parser.add_argument("-x",dest='xml',\
         help='xml file that would be served locally')
     parser.add_argument("-s", dest='server',\
@@ -67,7 +66,7 @@ if __name__ == "__main__":
             sys.exit('Only local server can be served')
         if args.xml is None:
             sys.exit('Pls specify a XML file to serve')
-        _s1,_s2 = pst.server.lvc_server(_server, _port, _verbose)
+        _s1,_s2 = pst.lvc_server(_server, _port, _verbose)
         _info = 'Serve Mode:\thost:%s:port:%s'%(_s1,_s2)
         if _verbose: print('## %s'%_info)
         if _log: logging.info(_info)
@@ -75,22 +74,29 @@ if __name__ == "__main__":
 
     elif _mode == 2:  # - auto listen
         import gcn
-        _s1,_s2 = pst.server.lvc_server(_server, _port, _verbose)
+        _s1,_s2 = pst.lvc_server(_server, _port, _verbose)
         _info = 'Monitor mode: listening host:%s:port:%s'%(_s1,_s2)
         if _verbose: print('## %s'%_info)
         if _log: logging.info(_info)
-        gcn.listen(handler = pst.autogcndef.process_gcn, host=_s1, port=_s2)
+        gcn.listen(handler = pst.process_gcn, host=_s1, port=_s2)
 
-    elif _mode == 3:  # - manual search        
-        _tel = args.tel
-        if _tel is None:sys.exit('Error: option tel needed for man mode..')
-        pst.manschedule.man_search(args.fits, _tel)
+    elif _mode == 3:  # - manual search                        
+        pst.man_search(args.fits, args.tel, _verbose, _log)
 
     elif _mode == 4:  # - configure file
-        _tel = args.tel
-        if _tel is None:sys.exit('Error: option tel needed for man mode..')
-        _tel = _tel.split(',')
-        for _teli in _tel: pst.configure.config_init(_teli)        
+        # general file: $pstool_dir/default/$pstools.par
+        # telescope file: $pstool_dir/default/$tel_name.par
+        if args.tel is None:
+            arglist,optlist = pst.load_config()
+            _tell = arglist['observe']['telescope']
+            if _tell is None: sys.exit('Error: option tel wrong ...')        
+        else: _tell = args.tel
+        _dict = {}
+        for _tel in _tell.split(','): 
+            _dict[_tel] = {}
+            arglist,optlist = pst.load_config(_tel,_verbose=_verbose,_log=_log)
+            _dict[_tel]['general'],_dict[_tel]['telescope'] = arglist, optlist
+        if _verbose: pst.choose(_dict)
 
     elif _mode == 5:  # - web tutorial
         if _verbose: print ('https://pstool-cookbook.readthedocs.io/en/latest/')        

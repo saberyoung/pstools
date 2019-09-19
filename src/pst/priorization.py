@@ -19,9 +19,7 @@ from astropy.io import fits
 import astropy.coordinates
 import astropy.time
 import astropy.units as u
-import pstplot
-import pstdef
-import scheme
+from pst import pstplot,pstdef,scheme
 
 #################################################
 def make_hpfitsmap(_ra,_dec,_cat,_dist,nside,coord,ordering,norm,verbose,\

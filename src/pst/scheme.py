@@ -27,8 +27,97 @@ from matplotlib.patches import Rectangle
 import logging
 
 # self import
-import pstdef,pstplot
+from pst import pstdef,pstplot
     
+def IndexToDeclRa(NSIDE,index):
+    theta,phi=hp.pixelfunc.pix2ang(NSIDE,index)
+    return -np.degrees(theta-mt.pi/2.),np.degrees(phi)
+
+def DeclRaToIndex(decl,RA,NSIDE):
+    return hp.pixelfunc.ang2pix(NSIDE,np.radians(-decl+90.),np.radians(RA))
+    
+def RadecToThetaphi(ra,dec):
+    return mt.pi/2.-np.radians(dec),np.radians(ra)
+
+def ThataphiToRadec(theta,phi):
+    return np.degrees(phi),np.degrees(mt.pi/2.-theta)
+
+def rotate_map(hmap, rot_theta, rot_phi):
+    """
+    Take hmap (a healpix map array) and return another healpix map array 
+    which is ordered such that it has been rotated in (theta, phi) by the 
+    amounts given.
+    """
+    nside = hp.npix2nside(len(hmap))
+
+    # Get theta, phi for non-rotated map
+    t,p = hp.pix2ang(nside, np.arange(hp.nside2npix(nside))) #theta, phi
+
+    # Define a rotator
+    r = hp.Rotator(deg=True, rot=[rot_phi,rot_theta])
+
+    # Get theta, phi under rotated co-ordinates
+    trot, prot = r(t,p)
+
+    # Interpolate map onto these co-ordinates
+    rot_map = hp.get_interp_val(hmap, trot, prot)
+    
+    return rot_map
+
+def vertices(ra,dec,fovw,fovh):
+    """Finding the vertices of a FoV given the central location (ra[deg], dec[deg])
+    and the FoV size (fovw [deg], fovh [deg]).
+    """
+    fovw,fovh = fovw/2.,fovh/2.
+    vert_ra,vert_dec=[],[]
+    ra_rad,dec_rad,fovw_rad,fovh_rad = np.deg2rad(ra), np.deg2rad(dec),\
+                                       np.deg2rad(fovw), np.deg2rad(fovh)
+    for i,j in zip([-fovw_rad, fovw_rad, fovw_rad, -fovw_rad],\
+                     [fovh_rad, fovh_rad, -fovh_rad, -fovh_rad]):
+        arg = -i/(np.cos(dec_rad)-j*np.sin(dec_rad))
+        v_ra = np.rad2deg(ra_rad+np.arctan(arg))       
+        v_dec = np.rad2deg(np.arcsin((np.sin(dec_rad)+j*np.cos(dec_rad))/(1+i**2+j**2)**0.5))
+        vert_ra.append(v_ra)
+        vert_dec.append(v_dec)
+    return vert_ra[0], vert_ra[1], vert_ra[3], vert_ra[2], \
+        vert_dec[0], vert_dec[1], vert_dec[3], vert_dec[2]
+
+def ipix_in_box(ra,dec,width,height,nside):
+
+    width,height = width/2.,height/2.
+    v1_ra, v2_ra, v3_ra, v4_ra, v1_dec, v2_dec, v3_dec, v4_dec = vertices(ra, dec, width, height)
+    ra_vertices, dec_vertices = ([v1_ra, v2_ra, v4_ra, v3_ra],\
+                                 [v1_dec, v2_dec, v4_dec, v3_dec])
+
+    theta = 0.5 * np.pi - np.deg2rad(dec_vertices)
+    phi = np.deg2rad(ra_vertices)
+    xyz = hp.ang2vec(theta, phi)
+    ipix_fov_box = hp.query_polygon(nside, xyz)
+    return ipix_fov_box
+
+def contour(hpx,_contour1=.5,_contour2=.68,_contour3=.9,_contour4=.99,_donorm=False):
+
+    #  READ healpix map    
+    hpx1=hpx[:]
+
+    # normlization?
+    if _donorm:hpx = hpx/sum(hpx)
+
+    # sorted pixel by probability
+    sorted = hpx[hpx.argsort()][::-1]    
+    index = hpx.argsort()[::-1]
+    cumulative=np.cumsum(sorted)       
+
+    # limit probability
+    ilist={}
+    for _cc in [_contour1,_contour2,_contour3,_contour4]:       
+        if len(sorted[cumulative<_cc])>0:
+            limit1 = sorted[cumulative<_cc][-1]             
+            index1 = [i for i in index if hpx1[i] >= limit1]# count the area
+            ilist[_cc]=index1
+        else:ilist[_cc]=[]
+    return ilist,hpx 
+
 def radec2skycell(rac,decc,fovw,fovh,idlist=None,ralist=None,declist=None,obx=1,oby=1,shifth=0.,shiftw=0.):
 
     if idlist is None:
@@ -98,6 +187,18 @@ def divide_OB(rac,decc,fovw,fovh,nobw,nobh):
             declist.append(_dec)          
     return ralist,declist
 
+def outcat(ralist,declist,_cat,_fovw=1.,_fovh=1.,_outcat='tmp_fields.asc'):
+    _ra,_dec = _cat['RAJ2000'],_cat['DEJ2000']
+    _ocat = open(_outcat,'w')
+    _ocat.write('#index\tRa\tDec\tNgal\n')
+    for nn,(ra,dec) in enumerate(zip(ralist,declist)):
+        dx,dy = abs(_ra-ra),abs(_dec-dec)
+        _ra,_dec = _ra[np.logical_and(dx<_fovw/2, dy<_fovh/2)],\
+                   _dec[np.logical_and(dx<_fovw/2, dy<_fovh/2)]                        
+        _ocat.write('%i\t%.2f\t%.2f\t%i\n'%(nn,ra,dec,len(_ra)))
+    _ocat.close()   
+
+##################################################
 ##################################################
 def pointings(ralist=None,declist=None,limdec=[-89.,89.],limra=[0,360],fovh=1.,fovw=1.,obx=1,oby=1,fig=4,shifth=0.,shiftw=0.,rot_theta=0.,rot_phi=0.,verbose=False,interactive=False,pmet=False,_obmuilt=False):
 
@@ -315,14 +416,3 @@ def galaxies(catname='GLADE',outfits=False,limra=[0,360.],limdec=[-20,90],\
 
     print("%i galaxies generated in %i sec"%(len(ra0),int(time.time()-start_time)))
     return np.arange(len(ra0)),_gname,ra0,dec0,mag0,dist0,fig_g1,fig_g3,fig_g4
-
-def outcat(ralist,declist,_cat,_fovw=1.,_fovh=1.,_outcat='tmp_fields.asc'):
-    _ra,_dec = _cat['RAJ2000'],_cat['DEJ2000']
-    _ocat = open(_outcat,'w')
-    _ocat.write('#index\tRa\tDec\tNgal\n')
-    for nn,(ra,dec) in enumerate(zip(ralist,declist)):
-        dx,dy = abs(_ra-ra),abs(_dec-dec)
-        _ra,_dec = _ra[np.logical_and(dx<_fovw/2, dy<_fovh/2)],\
-                   _dec[np.logical_and(dx<_fovw/2, dy<_fovh/2)]                        
-        _ocat.write('%i\t%.2f\t%.2f\t%i\n'%(nn,ra,dec,len(_ra)))
-    _ocat.close()   

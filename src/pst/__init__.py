@@ -9,34 +9,36 @@ from . import pstdef
 
 from .pstdef import (
     main,
-    IndexToDeclRa,
-    DeclRaToIndex,
-    RadecToThetaphi,
-    ThataphiToRadec,
-    query_ebv,
-    query_vizier,
-    rotate_map,
-    vertices,
-    ipix_in_box,
-    contour,
-    mcmc,
+    choose,    
     gwdist,
     trigger_validation,
-    get_skymap,
+    get_skymap,   
+    read_filelist    
+)
+
+from .query import (
+    query_ebv,
+    query_vizier
+)
+
+from .visibility import (        
     slew_angle,
     prob_obs_hpmap,
     prob_obs_galaxies,
-    read_filelist,
-    moon_phase   
+    moon_phase
 )
+
+#from .mcmc import (
+#    main
+#)
 
 from .autogcndef import process_gcn
 
-from manschedule import man_search
+from .manschedule import man_search
 
 from .configure import (
     config_init,
-    config_list
+    load_config
 )
 
 from .link import (
@@ -77,7 +79,15 @@ from .pstplot import (
 
 from .scheduler import (VST,schmidt)
 
-from scheme import (
+from .scheme import (
+    IndexToDeclRa,
+    DeclRaToIndex,
+    RadecToThetaphi,
+    ThataphiToRadec,
+    rotate_map,
+    vertices,
+    ipix_in_box,
+    contour,    
     radec2skycell,
     skycell2radec,
     divide_OB,

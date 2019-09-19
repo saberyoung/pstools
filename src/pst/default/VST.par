@@ -1,0 +1,151 @@
+[telescope] ;-------------- define telescope
+
+name:		VST
+		;telescope name
+
+lat:		-24.625
+		;Latitude, format options:
+		; 1- 10.625, 41.2
+		; 2- 00h42m30s, +41d12m00s
+		; 3- 00h42.5m, +41d12m
+		; 4- 00 42 30, +41 12 00
+		; 5- 00:42.5, +41:12
+
+lon:		- 70.4033
+		;Longitude, format as above
+
+alt:		2635
+		;Altitude (in meter)
+
+fovw:		1.00
+		;field of view in horizontal/width direction (in deg)
+		; up to north
+
+fovh:		1.00
+		;field of view in elevation/height direction (in deg)
+
+angle:		0
+		;telescope orientation angle
+
+exptime:	40.00
+		;exposure time per frame (in second)
+
+rottime:	60.00
+		;estimated time for pointing reassignment (in seconds)
+
+resolution:	0.21
+		;image resolution (arcsec/pixel)
+
+filter:		r_SDSS
+		;telescope filter 
+
+airmass:	2.5
+		; airmass limit
+
+seeing:		2.0
+		; seeing limit
+
+dither:		0
+		;dither (unit in pixels)
+		;valid only if repeat is set >=1
+		; for VST, currently, use fixed dither, 0
+
+repeat:		1
+		;field repeatation
+		; if dither mode, at lease 1
+
+
+[pointings] ;-------------- network/pointings generation
+
+prepoint:	
+		;file name in which provides pre-defined pointings
+		; must given when calmode=2/3
+		; will skip generation of pointings
+		; otherwise, leave blacked 
+calmode:	1	
+		;network mode:
+		; 1. generate pointings, and sort them
+		; 2. read pointings from prefile, and assign score to them
+		; 3. read pointings and the score from prefile
+		; 4. generate pointings, and sort them, and store them as npz file
+		; 5. generate pointings, and sort them, and store them as asc/txt file
+
+fskip:	
+		;file name in which contains coordinate list that would be skipped
+		; used to avoid:
+		; 1. for bright stars
+		; 2. duplicate fields
+		; 3. blah blah
+
+rskip:		1.
+		;if fskip given, set a radius seperation in degrees
+		; if 1. given, any new pointings generated/input will be deleted
+		; if there're overlap between them with the forbidden pointings 
+		; (whose pointing center is given via fskip while radius is 1. deg)
+
+scheduler:	T
+		;telescope scheduler: 
+		; [T]iling search, for wide FoV telescopes; 
+		; [G]alaxy targeted search, for relatively small FoV telescopes; 
+		; [A]utomatic selection, will be decided depends on FoV and the trigger size; 
+		; [M]cmc, will optimise the tiling network by a ramdom sampling.
+
+limra:		0,360
+		;pointing limitation
+		; on the Ra range
+
+limdec:		-90,90
+		;pointing limitation
+		; on the Decl range
+
+ob:		3*3
+		;Use Observing Blocks for tiling search
+		; in order to save time for suto focus, etc
+
+nob:		1
+		;in order to save time
+		;calculate visibility every nob*tf time
+		;  where tf is the unit time for one OB
+		;  suggest: 1 for 3*3 OB mode
+		;           10 for galaxy search
+
+limnob:		10
+		;maximum number of OBs that can be done diring night
+		;for telescope which has a limitation on time
+		; otherwise, leave blanket, or very large, e.g.9999
+		; so that scheduler will stop till sun is up
+
+
+[scheduler]  ;  ------------- scheduler, only worked for VST
+
+schfile:	pst_VST.txt
+		; output name compostion for scheduler
+
+api:		True
+		; use api for scheduler
+
+environment:	production
+		; VST environment
+
+username:	saberyoung
+		; VST username
+
+password:	Ys19900615
+		; VST password
+
+containerid:	2229852
+		; VST containerid, 1455705 for omegacam
+
+userpriority:	1
+		; OB priority
+
+skyTransparency:3
+		; sky transparency:
+		; 1 - Photometric
+		; 2 - Clear
+		; 3 - Variable, thin cirrus
+		; 4 - Variable, thick cirrus
+
+fli:		1.0
+		; fractional_lunar_illumination
+

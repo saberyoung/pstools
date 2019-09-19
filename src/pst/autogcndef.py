@@ -1,6 +1,6 @@
 """############################################################################ 
 2019/1/30 Start
-A testing file
+Extract map and infos from xml, and call main()
 """ ############################################################################
 from __future__ import print_function
 from builtins import input
@@ -20,7 +20,7 @@ import pst
     gcn.notice_types.LVC_UPDATE)
 
 def process_gcn(payload, root):  
-
+   
     # judge if new voevet, no? return
     _voname = root.attrib['ivorn']+'.xml'
     if os.path.exists(os.path.basename(_voname)):return
@@ -203,4 +203,4 @@ def process_gcn(payload, root):
         logging.info('Finished checking VOevent, now starting main 2 process for ra=%.2f dec=%.2f with error=%.2f'%\
                      (_nra,_ndec,_loc))
 
-    pst.pstdef.main(mapname, _opts_list, 'auto')
+    pst.pstdef.main(mapname, _opts_list)

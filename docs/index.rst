@@ -28,6 +28,7 @@ in order astronomers to cover the sky localization with less pointings/time.
    usage
    ref
    example
+   errors
 
 Author
 ------

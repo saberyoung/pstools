@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Usage &#8212; pstools  documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -13,7 +11,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Reference" href="ref.html" />
@@ -63,7 +61,7 @@ optional arguments:
   -h, --help            show this <span class="nb">help</span> message and <span class="nb">exit</span>
   -f FITS               handle healpix fits file <span class="o">(</span>default: None<span class="o">)</span>
   -t TEL                specific telescopes, <span class="k">if</span> multiple divided with <span class="sb">`</span>,<span class="sb">`</span>
-                        options:<span class="o">[</span><span class="s1">&#39;CI&#39;</span>, <span class="s1">&#39;schmidt&#39;</span>, <span class="s1">&#39;VST&#39;</span>, <span class="s1">&#39;sv&#39;</span>, <span class="s1">&#39;REM&#39;</span><span class="o">]</span>
+                        options:<span class="o">[</span><span class="s1">&#39;VST&#39;</span>, <span class="s1">&#39;REM&#39;</span>, ... ...<span class="o">]</span>
                         <span class="o">(</span>default: None<span class="o">)</span>
   -x XML                xml file that would be served locally <span class="o">(</span>default: None<span class="o">)</span>
   -s <span class="o">{</span>local,eApps,Atlantic_2,Atlantic_3,Linode<span class="o">}</span>
@@ -75,11 +73,11 @@ optional arguments:
 </div>
 <p>As shown, there’re 5 options for <code class="docutils literal notranslate"><span class="pre">pstools</span></code>:</p>
 <ul class="simple">
-<li>Serve alert: For a test purpose, you can serve xml via the local server, afterwards hire PSTools to monitor the local server alerts.</li>
-<li>Monitor alert: You can activate PSTools to monitor a server/port, so that, the sudden alert would activate the prioritization process.</li>
-<li>Manual input map: This option would ask users to input a trigger map in healpix format, and the prioritization was subsequently performed.</li>
-<li>Generate configure file: Since there’re so many parameters and options in the process, in order to provide users a clear view, let users fast revise them, there’re a list of configure files, which stored the parameters, would be used. There’s a general configure file, named pstools.default, together with few telescope configure files, named pst_[<cite>tel name</cite>].default.</li>
-<li>Tutorial: will show the tutrial.</li>
+<li><p>Serve alert: For a test purpose, you can serve xml via the local server, afterwards hire PSTools to monitor the local server alerts.</p></li>
+<li><p>Monitor alert: You can activate PSTools to monitor a server/port, so that, the sudden alert would activate the prioritization process.</p></li>
+<li><p>Manual input map: This option would ask users to input a trigger map in healpix format, and the prioritization was subsequently performed.</p></li>
+<li><p>Generate configure file: Since there’re so many parameters and options in the process, in order to provide users a clear view, let users fast revise them, there’re a list of configure files, which stored the parameters, would be used. There’s a general configure file, named pstools.default, together with few telescope configure files, named pst_[<cite>tel name</cite>].default.</p></li>
+<li><p>Tutorial: will show the tutrial.</p></li>
 </ul>
 </div>
 <div class="section" id="slack">
@@ -115,6 +113,7 @@ optional arguments:
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ref.html">Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="example.html">Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="errors.html">Errors may happen</a></li>
 </ul>
 
 <div class="relations">
@@ -132,20 +131,10 @@ optional arguments:
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
-
-
-
-
-
-
-
-
         </div>
       </div>
       <div class="clearer"></div>
@@ -154,8 +143,8 @@ optional arguments:
       &copy;CC/BY/4.0/International.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
       
       |
       <a href="_sources/usage.rst.txt"
