@@ -17,6 +17,7 @@ import time
 # Third-party imports
 import numpy as np
 import healpy as hp
+import math as mt
 import astropy.units as u
 from astropy.table import Table
 import pylab as pl
@@ -27,7 +28,7 @@ from matplotlib.patches import Rectangle
 import logging
 
 # self import
-from pst import pstdef,pstplot
+import pst
     
 def IndexToDeclRa(NSIDE,index):
     theta,phi=hp.pixelfunc.pix2ang(NSIDE,index)
@@ -41,28 +42,6 @@ def RadecToThetaphi(ra,dec):
 
 def ThataphiToRadec(theta,phi):
     return np.degrees(phi),np.degrees(mt.pi/2.-theta)
-
-def rotate_map(hmap, rot_theta, rot_phi):
-    """
-    Take hmap (a healpix map array) and return another healpix map array 
-    which is ordered such that it has been rotated in (theta, phi) by the 
-    amounts given.
-    """
-    nside = hp.npix2nside(len(hmap))
-
-    # Get theta, phi for non-rotated map
-    t,p = hp.pix2ang(nside, np.arange(hp.nside2npix(nside))) #theta, phi
-
-    # Define a rotator
-    r = hp.Rotator(deg=True, rot=[rot_phi,rot_theta])
-
-    # Get theta, phi under rotated co-ordinates
-    trot, prot = r(t,p)
-
-    # Interpolate map onto these co-ordinates
-    rot_map = hp.get_interp_val(hmap, trot, prot)
-    
-    return rot_map
 
 def vertices(ra,dec,fovw,fovh):
     """Finding the vertices of a FoV given the central location (ra[deg], dec[deg])
@@ -95,28 +74,44 @@ def ipix_in_box(ra,dec,width,height,nside):
     ipix_fov_box = hp.query_polygon(nside, xyz)
     return ipix_fov_box
 
-def contour(hpx,_contour1=.5,_contour2=.68,_contour3=.9,_contour4=.99,_donorm=False):
+def compute_contours(proportions,samples):
+    r''' Plot containment contour around desired level.
+    E.g 90% containment of a PDF on a healpix map
+    '''
 
-    #  READ healpix map    
-    hpx1=hpx[:]
+    levels, indexlist = [], {}
+    # sorted_samples = list(reversed(list(sorted(samples))))    
+    index = samples.argsort()[::-1]
+    sorted_samples = samples[index]
+    cumulative_samples = np.cumsum(sorted_samples)
+    nside = hp.pixelfunc.get_nside(samples)
+    sample_points = np.array(hp.pix2ang(nside,np.arange(len(samples)))).T
+    for proportion in proportions:
+        level_index = (np.cumsum(sorted_samples) > \
+                       proportion).tolist().index(True)
+        level = (sorted_samples[level_index] + \
+                 (sorted_samples[level_index+1] \
+                  if level_index+1 < len(samples) else 0)) / 2.0
+        levels.append(level)        
+        _limit = sorted_samples[cumulative_samples<proportion][-1]
+        indexlist[proportion] = [i for i in index if samples[i] >= _limit]        
 
-    # normlization?
-    if _donorm:hpx = hpx/sum(hpx)
+    try: import meander
+    except: sys.exit('### Error: install meander via pip...')
+    contours_by_level = meander.spherical_contours(sample_points, samples, levels)
 
-    # sorted pixel by probability
-    sorted = hpx[hpx.argsort()][::-1]    
-    index = hpx.argsort()[::-1]
-    cumulative=np.cumsum(sorted)       
+    theta_list = {}; phi_list={}
+    for cc,contours in enumerate(contours_by_level):
+        _cnt = proportions[cc]
+        try:theta_list[_cnt]; phi_list[_cnt]
+        except: theta_list[_cnt] = []; phi_list[_cnt] = []
+        for contour in contours:            
+            theta, phi = contour.T
+            phi[phi<0] += 2.0*np.pi
+            theta_list[_cnt].append(theta)
+            phi_list[_cnt].append(phi)
 
-    # limit probability
-    ilist={}
-    for _cc in [_contour1,_contour2,_contour3,_contour4]:       
-        if len(sorted[cumulative<_cc])>0:
-            limit1 = sorted[cumulative<_cc][-1]             
-            index1 = [i for i in index if hpx1[i] >= limit1]# count the area
-            ilist[_cc]=index1
-        else:ilist[_cc]=[]
-    return ilist,hpx 
+    return theta_list, phi_list, indexlist
 
 def radec2skycell(rac,decc,fovw,fovh,idlist=None,ralist=None,declist=None,obx=1,oby=1,shifth=0.,shiftw=0.):
 
@@ -200,8 +195,8 @@ def outcat(ralist,declist,_cat,_fovw=1.,_fovh=1.,_outcat='tmp_fields.asc'):
 
 ##################################################
 ##################################################
-def pointings(ralist=None,declist=None,limdec=[-89.,89.],limra=[0,360],fovh=1.,fovw=1.,obx=1,oby=1,fig=4,shifth=0.,shiftw=0.,rot_theta=0.,rot_phi=0.,verbose=False,interactive=False,pmet=False,_obmuilt=False):
-
+def pointings(ralist=None,declist=None,limdec=[-89.,89.],\
+              limra=[0,360],fovh=1.,fovw=1.,obx=1,oby=1,shifth=0.,shiftw=0.):
     """
     create pointings by tiling sky with specific FoV and:
     - ra,dec cut
@@ -250,42 +245,12 @@ def pointings(ralist=None,declist=None,limdec=[-89.,89.],limra=[0,360],fovh=1.,f
         pdeclist.append(_tdeclist)       
     pidlist = np.arange(len(ralist))
 
-    # plot
-    colorlist,ii = ['r','g','b','k','y'],0
-    if _obmuilt:
-        for ralist,declist in zip(pralist,pdeclist):
-            ii+=1
-            pparams = {'ra':ralist,'dec':declist,'fignum':fig,'label':'tiles','rot_phi':rot_phi,\
-                       'rot_theta':rot_theta,'color':colorlist[ii%5],'fovw':fovw,'fovh':fovh}
-            optparams = ['rot_theta','rot_phi']
-
-            if pmet==3:pstplot.interactive_show(pstplot.verticeview,pparams,optparams)
-            elif pmet in [1,2]:fig = pstplot.verticeview(pparams)          
-    else:
-        ralist2,declist2 = [],[]
-        for _ra,_dec in zip(ralist,declist):
-            ralist2.append(np.mean(_ra))
-            declist2.append(np.mean(_dec))
-        pparams = {'ra':ralist2,'dec':declist2,'fignum':fig,'label':'tiles','rot_phi':rot_phi,\
-                   'rot_theta':rot_theta,'color':colorlist[ii%5],'fovw':fovw*obx,\
-                   'fovh':fovh*oby}
-        optparams = ['rot_theta','rot_phi']
-
-        if pmet==3:pstplot.interactive_show(pstplot.verticeview,pparams,optparams)
-        elif pmet in [1,2]:fig = pstplot.verticeview(pparams)
-
     print("%i pointings generated in %i sec"%(len(ralist),int(time.time()-start_time)))
-    if pmet==2:input('pointings')
+    return np.array(pidlist),np.array(pralist),np.array(pdeclist)
 
-    return np.array(pidlist),np.array(pralist),np.array(pdeclist),fig
-
-def galaxies(catname='GLADE',outfits=False,limra=[0,360.],limdec=[-20,90],\
-             distmin=0,distmax=1000.,absmag=-18.,size=-1,mcolor='k',mcolor2='r',mcolor3='grey',\
-             gcolor='grey',gcolor2='g-',gcolor3='r-',_dir='',_showmap=[],\
-             rot_theta=0.,rot_phi=0.,nside=1024,ordering=False,\
-             coord='C',norm = 'hist',verbose=False,pmet=False,interactive=False,\
-             cachefile='tmp_glade.npz',ypos1=2,ypos2=-2,nbindist=80,\
-             nbinlums=1,figset=[11,12,13,14]):
+def galaxies(catalog=1,filtro='B',limra=[0,360.],limdec=[-20,90],\
+             limdist=[0,1000.],limmag=[-10.,-18.],size=-1,\
+             verbose=False,cachemode=3,cachefile='tmp_glade.npz'):
     """
     Galaxy selection with:
     - catalog:GLADE/GWGC/2MASS/etc
@@ -304,115 +269,101 @@ def galaxies(catname='GLADE',outfits=False,limra=[0,360.],limdec=[-20,90],\
     - norm: healpy color normalization: log,hist,None
     
     the other parameters
-    - verbose
-    - interactive
+    - verbose    
     - cache/cachefile
     - nbindist/nbinlums
     """
 
     start_time = time.time()
+    if verbose: 
+        print('cat:%s, filter:%s, ra:%s, dec:%s, mag:%s, dist:%s'%(catalog,filtro,limra,limdec,limmag,limdist))    
+    for _dd in [limra,limdec,limmag,limdist]:
+        if len(_dd)==2:pass
+        else:sys.exit('check limra,limdec,limmag,limdist...')
 
-    ramin,ramax = min(limra),max(limra)
-    decmin,decmax = min(limdec),max(limdec)
-    _ginfo = '%s : [%.2f,%.2f]\t%s : [%.2f,%.2f]\t%s : < %.2f\t%s : [%.2f,%.2f]'%('ra',ramin,ramax,'dec',decmin,decmax,'mag',absmag,'dist',distmin,distmax)
-    if verbose:print(_ginfo)
+    # get galaxies
+    if verbose: print('cache mode: %i; cachefile: %s'%(cachemode,cachefile))
+    if not '.npz' in cachefile: cachefile = cachefile+'.npz'
+    if cachemode in [1,2]:
+        if os.path.exists(cachefile):# if exists
+            _indict = np.load(cachefile)
+            _cs = [ii in _indict for ii in ['limra','limdec',\
+                                            'limmag','limdist',\
+                                            'cat','filtro','name',\
+                                            'ra','dec','mag','dist']]
+            if sum(_cs) != len(_cs):
+                # missing fields in cachefile
+                if verbose: print('missing fields in cachefile')                
+                os.remove(cachefile) # clobber
 
-    #
-    _iftodo,_iftoread,_iftostore=True,True,True
-    if cachefile:
-        if os.path.exists(cachefile):
-            if _ginfo == str(np.load(cachefile)['info']):_iftodo,_iftostore=False,False
+                # download galaxy catalog 
+                if verbose: print('query vizier')
+                gname,gra,gdec,gmag,gdist = pst.query_vizier(catalog,\
+                                            size,filtro,limra,limdec,\
+                                            limmag,limdist,verbose)
             else:
-                #os.remove(cachefile)
-                _iftoread = False
-        else: _iftoread=False
-    else:_iftoread,_iftostore=False,False    
+                if verbose: print('cachefile exists, read')
+                # read infos
+                _limra,_limdec,_limmag,_limdist,_cat,_filter = \
+                                _indict['limra'],\
+                                _indict['limdec'],\
+                                _indict['limmag'],\
+                                _indict['limdist'],\
+                                _indict['cat'],\
+                                _indict['filtro']            
 
-    if _iftodo:
-        _info = 'create %s for galaxies'%(cachefile)
-        if verbose:print(_info)
-        logging.info(_info)
+                # check if it's OK
+                if catalog==_cat and filtro == _filter and \
+               limra[0] >= _limra[0] and limra[1] <= _limra[1] and \
+               limdec[0] >= _limdec[0] and limdec[1] <= _limdec[1] and \
+               limmag[0] >= _limmag[0] and limmag[1] <= _limmag[1] and \
+               limdist[0] >= _limdist[0] and limdist[1] <= _limdist[1]:
+                    if verbose: print('cachefile meets galaxy settings')
+                    gname,gra,gdec,gmag,gdist = _indict['name'],\
+                                                _indict['ra'],\
+                                                _indict['dec'],\
+                                                _indict['mag'],\
+                                                _indict['dist']
+                else: # no, generate galaxies
+                    if verbose: print('cachefile do not meet galaxy settings, remove')
+                    os.remove(cachefile) # clobber
 
-        # download galaxy catalog 
-        _gname,ra0,dec0,mag0,dist0 = pstdef.query_vizier(catname,size,interactive,ramin,ramax,decmin,decmax,absmag,distmin,distmax) 
+                    # download galaxy catalog 
+                    if verbose: print('query vizier')
+                    gname,gra,gdec,gmag,gdist = pst.query_vizier(catalog,\
+                                                size,filtro,limra,limdec,\
+                                                limmag,limdist,verbose)
+        else:           
+            if verbose: print('cachefile not exists, query vizier')
+            # download galaxy catalog 
+            gname,gra,gdec,gmag,gdist = pst.query_vizier(catalog,\
+                                        size,filtro,limra,limdec,\
+                                        limmag,limdist,verbose)
+        if cachemode == 1 and \
+           not os.path.exists(cachefile):
+            if verbose: print('store cachefile')
+            # store to cachefile
+            np.savez(cachefile,cat=catalog,filtro=filtro,\
+                     limra=limra,limdec=limdec,\
+                     limmag=limmag,limdist=limdist,\
+                     name=gname,ra=gra,dec=gdec,\
+                     mag=gmag,dist=gdist)
 
-    if _iftoread:
-        if verbose:print('read %s for galaxies'%(cachefile))
+    elif cachemode in [3,4]:
+        if verbose: print('query vizier')
+        gname,gra,gdec,gmag,gdist = pst.query_vizier(catalog,\
+                                size,filtro,limra,limdec,\
+                                limmag,limdist,verbose)
+        if cachemode == 3 and os.path.exists(cachefile):            
+            os.remove(cachefile) # clobber
+            if verbose: print('remove cachefile')
+            # store to cachefile
+            if verbose: print('store cachefile')
+            np.savez(cachefile,cat=catalog,filtro=filtro,\
+                     limra=limra,limdec=limdec,\
+                     limmag=limmag,limdist=limdist,\
+                     name=gname,ra=gra,dec=gdec,\
+                     mag=gmag,dist=gdist)
 
-        # if cache, store a tempfile, in order to save time next time 
-        # read: ra,dec,absmag,dist
-        _gname,ra0,dec0,mag0,dist0 = np.load(cachefile)['galaxyid'],\
-                                     np.load(cachefile)['ra'],\
-                                     np.load(cachefile)['dec'],\
-                                     np.load(cachefile)['mag'],\
-                                     np.load(cachefile)['dist']
-        _info = 'read %i galaxies from %s: %s'%(len(ra0),cachefile,_ginfo)
-        if verbose:print(_info)
-        logging.info(_info)
-
-    if _iftostore:
-        _info = 'store %s for galaxies'%(cachefile)
-        if verbose:print(_info)
-        logging.info(_info)
-        
-        np.savez(cachefile,catname=catname,info=_ginfo,galaxyid=_gname,ra=ra0,dec=dec0,mag=mag0,dist=dist0)
-
-    '''
-    # create healpix map if u want
-    galpixels_Range_num= np.zeros(hp.nside2npix(nside))
-    pix_num_Range    = (pstdef.DeclRaToIndex(dec0,ra0,nside))
-    galpixels_Range_num[pix_num_Range]+=1
-    galpixels_Range_num=hp.sphtfunc.smoothing(galpixels_Range_num,sigma=0.1)
-    if outfits:hp.write_map(outfits,galpixels_Range_num,nest=ordering,coord=coord,overwrite=True)
-    '''
-
-    # show galaxy properties       
-    # 1
-    fig_g1,fig_g2,fig_g3,fig_g4 = False,False,False,False
-
-    pparams = {'ra':ra0,'dec':dec0,'rot_phi':rot_phi,'fignum':figset[0],\
-               'rot_theta':rot_theta,'color':'r','coord':coord,'label':'full','ms':4}
-    optparams = ['rot_theta','rot_phi']
-    if pmet==3 and 'galaxy' in _showmap:pstplot.interactive_show(pstplot.pointview,pparams,optparams)
-    elif pmet in [1,2] and 'galaxy' in _showmap:fig_g1 = pstplot.pointview(pparams) 
-    if pmet==2 and 'galaxy' in _showmap:input('galaxy1')
-
-    '''
-    # 2
-    pparams = {'hpmap':galpixels_Range_num,'title':_ginfo,'rot_phi':rot_phi,\
-               'rot_theta':rot_theta,'fignum':figset[1],'ordering':ordering,\
-               'coord':coord,'norm':norm}
-    optparams = ['rot_theta','rot_phi']
-    if pmet==3:pstplot.interactive_show(pstplot.mollview,pparams,optparams)
-    elif pmet in [1,2]:fig_g2 = pstplot.mollview(pparams)
-    if pmet==2:input('galaxy2')
-    '''
-
-    # 3               
-    if distmin==np.nan and distmax==np.nan:
-        sys.exit('input distmin & distmax')
-    else:           
-        pparams = {'distmin':distmin,'distmax':distmax,'distfull_mat':dist0,\
-                   'dist_mat':dist0,'color1':mcolor,'color2':mcolor2,'color3':mcolor3,\
-                   'nbin':nbindist,'label1':'full','label2':_ginfo,'fignum':figset[2],\
-                   'ypos1':ypos1,'ypos2':ypos2}
-        optparams = ['distmin','distmax','nbin']
-        if pmet==3 and 'galaxy' in _showmap:pstplot.interactive_show(pstplot.distview,pparams,optparams)
-        elif pmet in [1,2] and 'galaxy' in _showmap:fig_g3 = pstplot.distview(pparams)    
-        if pmet==2 and 'galaxy' in _showmap:input('galaxy3')
-
-    # 4              
-    if distmin==np.nan and distmax==np.nan:
-        sys.exit('input distmin & distmax')
-    else:       
-        pparams = {'distmin':distmin,'distmax':distmax,'magfull_mat':mag0,\
-                   'distfull_mat':dist0,'dist_mat':dist0,'fignum':figset[3],\
-                   'mag_mat':mag0,'color1':gcolor,'color2':gcolor2,'color3':gcolor3,\
-                   'nbin':nbinlums,'label':_ginfo}
-        optparams = ['distmin','distmax','nbin']
-        if pmet==3 and 'galaxy' in _showmap:pstplot.interactive_show(pstplot.lumsview,pparams,optparams)
-        elif pmet in [1,2] and 'galaxy' in _showmap:fig_g4 = pstplot.lumsview(pparams)
-        if pmet==2 and 'galaxy' in _showmap:input('galaxy4')
-
-    print("%i galaxies generated in %i sec"%(len(ra0),int(time.time()-start_time)))
-    return np.arange(len(ra0)),_gname,ra0,dec0,mag0,dist0,fig_g1,fig_g3,fig_g4
+    print("%i galaxies obtained in %i sec"%(len(gra),int(time.time()-start_time)))
+    return np.arange(len(gra)),gname,gra,gdec,gmag,gdist

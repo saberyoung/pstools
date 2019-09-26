@@ -34,6 +34,7 @@ def load_config(_tel='VST',_verbose=False, _log=False):
             _configfile = config_init(_tel,_dir1,_class,_log,_verbose)
             if not _verbose: 
                 print ('!!! Warning: no %s file of %s found, initialize a new one, as %s'%(_class,_tel,_configfile))
+            sys.exit('Modify %s before running scripts'%_configfile)
 
         if not _configfile: return False,False
 

@@ -14,28 +14,37 @@ import matplotlib.pyplot as plt
 import random
 import os,sys,glob,shutil
 import logging
-#from wxpy import Bot
-#import sqlconn
 
 from astropy.io import fits
 from astropy.table import Table
 import astropy.coordinates
 import astropy.time
 import astropy.units as u
-from astroquery.vizier import Vizier
 import scipy.stats
-#from slackclient import SlackClient
-
-#from scp import SCPClient
-#from pst import scheme,priorization,pstplot,scheduler,configure,link
 import pst
+
 _pstpath = pst.__path__[0]
+
+# for LVC GW only
+# !!! for GRB, TBD
+# from XML:
+_strxml = ['GraceID', 'AlertType', 'Group', 'FAR', \
+           'Terrestrial', 'HasNS', 'Instruments', 'EventPage' ]
+# from fits header:
+_strhdr = ['DISTMEAN', 'DISTSTD', 'DATE-OBS', \
+           'MJD-OBS', 'CREATOR']
+# decrease nside in order to be faster
+_nside = 64 # for computer contour lines
+_nside1 = 12 # for check dist range in each piece of sky
+
+# for check dist range in each piece of sky
+distmin,distmax,delta,frac = 0,10000,100,1e-1
 
 #################################################
 
 class main(object):
     
-    def __init__(self,mapname,optlist):
+    def __init__(self,optlist):
     
         # Main procedure start
         start_time = time.time()
@@ -43,40 +52,53 @@ class main(object):
         # try cleaning all the plots if any
         plt.close('all')
 
-        # read params
-        self.mapname = mapname
+        # read params        
         self.optlist = optlist
+        self.str1 = self.optlist['arg']['email']['emailcontent']
+        self.str2 = self.optlist['arg']['phone']['phonecontent']
+        self.str3 = self.optlist['arg']['slack']['slackcontent']
+        self.distdict, self.indict = {}, {}
 
-        # define plots setting
-        self.colorlist, self.ncolor = ['b','g','k','y','c','m'], 0
-        
         # define time
         self.def_time()
 
         # decide figure out type
-        self.dec_opt()
+#        self.dec_opt()
 
-        ''' 1- Priorization generation algorithm'''
-        # define a blanket Priorization map
-        self.nside = int(self.optlist['arg']['priorization']["nside"])
-        self.pmap = np.zeros(hp.nside2npix(self.nside))+1
+        # define nside
+        self.nside = int(self.optlist['arg']['priorization']["nside"])        
+        if len(self.optlist['tmp']['tmap'])>0:
+            self.nside = int(np.sqrt(len(self.optlist['tmp']['tmap'])/12))        
 
-        ''' 1.1 - trigger Priorization
-                   include trigger prob if any '''
-        self.tprocess()
+        ''' 1 - Check triggers (hp map) '''
+        self.triggers()
 
-        ''' 1.2 - mass Priorization 
-                   include galaxies' effect if any '''
+        # decide telescope schedule
+        # if trigger available
+        self.dec_scheduler()
 
-        ''' 2 - generate pointings       
-        For different strategies: one for tiling (if any) and one for galaxy (if any)
-        !!!! important:
-        for tiling, valid only for multiple telescopes with same or similar FoV
-        if not, try to use OB mode to make them have the same FoV
-        Otherwise, I stopped'''
+        ''' 2 - Obtain galaxies '''
+        self.galaxies()       
 
-        ''' 3 - Ranking pointings '''
-        
+        ''' 3 - generate pointings 
+        for tiling search '''
+        self.pointings()
+
+        ''' 4 - Priorization algorithm 
+        for pointings/galaxies '''
+        self.ranking()
+
+        ''' 5 - Visualization '''
+        self.visualization()
+
+        ''' 6 - distributing to users/api/... '''
+        self.send()
+
+        ## done
+        if self.optlist['arg']['show']['verbose']: 
+            print("%Finished in %i secs"%\
+                  (int(time.time()-start_time)))
+
     def def_time(self): # define time
         if self.optlist['arg']['observe']['obstime'] == 'now': 
             self.timenow = astropy.time.Time.now()            
@@ -90,244 +112,350 @@ class main(object):
                         format='sec')           
         self.jdnow = self.timenow.jd
 
+    def dec_scheduler(self):
+        # decide which strategy to use
+        self.tellist, self.scheduler = [], []
+        for ff in self.optlist:
+            if ff in ['arg','tmp']:continue
+            self.tellist.append(self.optlist[ff])
+        area = np.array([len(self.indexlist[ii]) for ii in self.indexlist])            
+        for _tel in self.tellist:               
+            if eval(self.optlist['arg']['priorization']['trigger']): # if trigger                       
+                if _tel['pointings']['scheduler'] == 'A':                  
+                    _nn = max(area*self.areasingle)/\
+                          float(_tel['telescope']['fovw'])/\
+                          float(_tel['telescope']['fovh'])
+                    if _nn <= 1000:self.scheduler.append('T')
+                    else:self.scheduler.append('G')
+            else: 
+                if _tel['pointings']['scheduler'] in ['G','T']:
+                    self.scheduler.append(_tel['pointings']['scheduler'])
+                else: sys.exit('wrong scheduler input')        
+
     def dec_opt(self):
         ## decide savefig, plot, or no fig
-        # pmet: 1.if send email: savefig for specific plots
-        #       2.normal verbose: input for all plots
-        #       3.inter verbose: inter_plot for all plots
-        #       4.no fig
-        if self.optlist['arg']['search'] == 'auto':
-            if eval(self.optlist['arg']['plot']["verbose"]): self.pmet=1
+        # pmet: 1.save figure and send via email/slack, will not pause
+        #       2.pause and show plot whenever there's one available
+        #       3.interactive show: pause and interact with plots
+        #       4.no figure
+        if self.optlist['tmp']['search'] == 'auto': 
+            # for auto sarch: either 1 or 4
+            if eval(self.optlist['arg']['show']["verbose"]): self.pmet=1
             else: self.pmet=4
-        if 'man' in self.optlist['arg']['search']:
-            if eval(self.optlist['arg']['plot']["verbose"]):
-                if eval(self.optlist['arg']['plot']["interactive"]):self.pmet=3
+        if self.optlist['tmp']['search'] in ['trigger', 'galaxy', 'normal']:
+            # for manual search:
+            if eval(self.optlist['arg']['show']["verbose"]):
+                if eval(self.optlist['arg']['show']["interactive"]):self.pmet=3
                 else: self.pmet=2
             else: self.pmet=4
-        if eval(self.optlist['arg']['email']["sendemail"]) or \
-           eval(self.optlist['arg']['wechat']["activate"]) or \
-           eval(self.optlist['arg']['phone']['activate']):  self.pmet=1
-
         if self.pmet in [2,3]: pl.ion()
-        if len(self.optlist['arg']['plot']["showmap"])>0:
-            self.showmap = self.optlist['arg']['plot']["showmap"].split(',')
+        if len(self.optlist['arg']['show']["showmap"])>0:
+            self.showmap = [int(gg) for gg in \
+                    self.optlist['arg']['show']["showmap"].split(',')]
         else: self.showmap = []
 
-    def tprocess(self):
-        if eval(self.optlist['arg']['priorization']['trigger']):
+    def trigger_validation(self):
+        # validate a trigger by using the header of fits
+        ''' judge interests of the trigger '''
 
-            # in case there're trigger healpix map input
-            if not self.mapname is None:
-                            
-                try:  
-                    # read 3D trigger healpix map (for GW)
-                    # need to be tested for the other trigger types: GRB/AMON/ect
-                    (self.maptrigger, self.distmu, self.distsigma, \
-                     self.distnorm), self.header = \
-                        hp.read_map(self.mapname, field=[0, 1, 2, 3], h=True, \
-                        verbose=eval(self.optlist['arg']['plot']["verbose"]))
-                except:
-                    # report there's an error in the process of reading healpix map
-                    if eval(optlist['arg']['slack']['activate']):
-                        # send message via phone immediately
-                        slack_client = SlackClient(optlist['arg']['slack']['slack_bot_token'])
-                        for _channel in optlist['arg']['slack']['channel'].split(','):
-                            slack_client.api_call("chat.postMessage", channel=_channel,
-                                text='new alert, however, wrong healpix fits format!!', \
-                                as_user=True)  
-                    logging.info('wrong fits format for healpy!!') 
-                    return
+        # read more from the xml, complementry to the fits header                
+        for ii in _strxml:
+            if ii in self.optlist['tmp']['voevent']:
+                self.str1 += '#\t%s:\t%s\n'%(ii,self.optlist['tmp']['voevent'][ii])
+                self.str2 += '%s:%s, '%(ii,self.optlist['tmp']['voevent'][ii])
+                self.str3 += '%s:%s, '%(ii,self.optlist['tmp']['voevent'][ii])
+                self.indict[ii] = self.optlist['tmp']['voevent'][ii]
+            else:
+                self.str1 += '#\t%s:\tNot available\n'%ii
+                self.str2 += '%s:None, '%ii
+                self.str3 += '%s:None, '%ii
+                self.indict[ii] = None
+
+        # show params of the fits header
+        for ii in _strhdr:
+            if ii in self.header:            
+                self.str1 += '#\t%s:\t%s\n'%(ii,self.header[ii])
+                self.str2 += '%s:%s, '%(ii,self.header[ii])
+                self.str3 += '%s:%s, '%(ii,self.header[ii])
+                self.indict[ii] = self.header[ii]
+            else:
+                self.str1 += '#\t%s:\tNone\n'%ii
+                self.str2 += '%s:None, '%ii
+                self.str3 += '%s:None, '%ii
+                self.indict[ii] = None
+
+        # check the area of skymap     
+        # get area in single pixel, unit in deg
+        if False:self.areasingle = (hp.nside2resol(hp.get_nside(self.optlist['tmp']['tmap']), \
+                                        arcmin=True)/60.)**2
+        else:self.areasingle = (hp.nside2resol(_nside,arcmin=True)/60.)**2
+
+        self.area={}
+        for _cc in self.indexlist: # levels: .9,.5,....
+            _num = len(self.indexlist[_cc])          
+            if _num>0:
+                self.str1 += ' %.2fsky: %.f sq deg\n'%(_cc,_num*self.areasingle)
+                self.str2 += '%.2fsky: %.f sq deg, '%(_cc,_num*self.areasingle)
+                self.str3 += '%.2fsky: %.f sq deg, '%(_cc,_num*self.areasingle)
+                self.distdict[_cc] = ' %.f%% sky:%.f $deg^2$\n'%(_cc*100,_num*self.areasingle)
+                self.indict['%.2fsky'%_cc] = _num*self.areasingle
+                self.area[_cc] = _num*self.areasingle               
+            else:
+                self.str1 += ' %.2f%sky:None\n'%(_cc)
+                self.str2 += '%.2fsky:None, '%(_cc)
+                self.str3 += '%.2fsky:None, '%(_cc)
+                self.distdict[_cc] = ' %.f%% sky:None\n'%(_cc*100)
+                self.indict['%.2fsky'%_cc] = None
+                self.area[_cc] = None
+        self.str1 += '\n'
+        self.str2 = self.str2[:-2]
+        self.str3 = self.str3[:-2]
+
+    def triggers(self):
+        # check if need trigger
+
+        if eval(self.optlist['arg']['priorization']['trigger']): # read if yes
 
             # read and print some values from the FITS header.
-            header = dict(header)
+            self.header = dict(self.optlist['tmp']['header'])
+
+            # obtain containment contour of GW PDF
+            probs = hp.pixelfunc.ud_grade(self.optlist['tmp']['tmap'], 
+                    _nside) #reduce nside to make it faster
+            probs = probs/np.sum(probs)
+
+            levels = [float(kk) for kk in \
+                self.optlist['arg']['show']["contours"].split(',')]
+            self.theta_contour, self.phi_contour, self.indexlist = \
+                                pst.compute_contours(levels,probs)           
 
             # validate skymap
-            _ilist,_alist,_ld,_str,_date_obs,_mjd_obs = trigger_validation(maptrigger, header)
-            optlist['arg']['email']['emailcontent'] += _str
+            self.trigger_validation()
+           
+            # immediately report before telescopes scheduling
+            # - email
+            if eval(self.optlist['arg']['email']['sendemail']):
+                for _toaddress in self.optlist['arg']['email']['emailto'].split(','):
+                    _sent = pst.sendemail_1(self.optlist['arg']['email']['email'],\
+                                self.optlist['arg']['email']['emailpass'],\
+                                self.optlist['arg']['email']['emailsmtp'],\
+                                self.optlist['arg']['email']['emailsub'],\
+                                self.optlist['arg']['email']['email'],\
+                                _toaddress,self.str1+\
+                                '\n\nimmediate report, scheduler still ongoing...')
+            # - slack
+            if eval(self.optlist['arg']['slack']['activate']):
+                for _usr in self.optlist['arg']['slack']['channel'].split(','):
+                    _slack = pst.slack(self.optlist['arg']['slack']['slack_bot_token'], \
+                                       _usr, self.str3)
+                    if _slack: print ('slack sent successful to %s'%_usr)
+                    else: print ('slack sent failed to %s\tno slackclient'%_usr) 
 
-            # read areas: 50 68 90 99
-            index1,index2,index3,index4=_ilist.values()
-            _a50,_a68,_a90,_a99=_alist.values()                      
+            # - SMS
+            if eval(self.optlist['arg']['phone']['activate']):
+                for _usr in self.optlist['arg']['phone']['to'].split(','):
+                    _sms = pst.phone(self.optlist['arg']['phone']['account'],\
+                                     self.optlist['arg']['phone']['token'],\
+                                     self.optlist['arg']['phone']['from'],\
+                                     _usr,self.str2)
+                    if _sms: print ('SMS sent successful to %s'%_usr)
+                    else: print ('SMS sent failed to %s\tno twilio'%_usr) 
 
-            # voevent params
-            if 'voevent' in optlist['arg'] and header['CREATOR']!='PSTOOLS':
-                # for LVC
-                params = optlist['arg']['voevent']
+            # - insert to DB               
+            if False: #eval(optlist['arg']['database']['activate']):
+                import sqlconn
+                sqlconn.insert_values('ligoevents',indict)
+        else: self.theta_contour, self.phi_contour = None, None
 
-                if True:
-                    if optlist['arg']['email']['role'] == 'test':_trigger = False
-                    else:_trigger = True
-                else:_trigger = True
-                    
-                # for LVC: params of VOEvent to show in email
-                _strremain = ['Terrestrial', 'Group', 'EventPage', 'GraceID', \
-                              'HasRemnant', 'skymap_png', 'skymap_fits', 'AlertType', \
-                              'HasNS', 'BBH', 'BNS', 'Instruments', 'NSBH']
-                for ii in params:
-                    if ii in _strremain:optlist['arg']['email']['emailcontent']+='#\t%s:\t%s\n'%(ii,params[ii])
+        """
+        if 1 in self.showmap:
+            map2show = self.optlist['tmp']['tmap']
+        else:
+            map2show = np.zeros(12*self.nside**2)
 
-                # FAR
-                FAR = params['FAR']
-                FAR = float(FAR)*360*24*3600 # Hz to per year
-                optlist['arg']['email']['emailcontent']+='#\tFAR (per year):\t%.4e\n'%FAR
+        # healpix show of trigger
+        ''' fignum 1: 2d sky'''
+        # parameters for plotting
+        pparams = {'hpmap':map2show,\
+                   'title':self.optlist['arg']['show']['title'],\
+                   'theta':self.optlist['arg']['show']["theta"],\
+                   'phi':self.optlist['arg']['show']["phi"],\
+                   'fignum':1,'ordering':self.optlist['arg']['show']["ordering"],\
+                   'coord':self.optlist['arg']['show']["coord"],\
+                   'norm':self.optlist['arg']['show']["norm"],\
+                   'figsize':self.optlist['arg']['show']["figsize"],\
+                   'min':self.optlist['arg']['show']["min"],\
+                   'max':self.optlist['arg']['show']["max"],\
+                   'theta_contour':self.theta_contour,\
+                   'phi_contour':self.phi_contour,\
+                   'label':self.optlist['arg']['show']["label"],\
+                   'colors':self.optlist['arg']['show']["colors"],\
+                   'distinfo':self.distdict,'tellist':self.tellist,\
+                   'timenow':self.timenow}
+        # parameters that can be changed via interactive mode
+        optparams = ['theta','phi','min','max','norm',\
+                     'title','figsize','ordering','coord']
 
-                # params for alert validation
-                grace_id = params['GraceID']
-                mapurl = params['skymap_fits']
-                BBH = float(params['BBH'])
-                BNS = float(params['BNS'])
-                HasNS = float(params['HasNS'])
-                HasRemnant = float(params['HasRemnant'])
-                NSBH = float(params['NSBH'])
-                Terrestrial = float(params['Terrestrial'])
-                Group = params['Group']
-                EventPage = params['EventPage']
-                Instruments = params['Instruments']
+        _pm = False
+        if self.pmet==3: 
+            _pm, fig_2d = pst.interactive_show(pst.mollview,pparams,optparams)            
+        elif self.pmet in [1,2]:            
+            fig_2d = pst.mollview(pparams)
+            if self.pmet == 2:input('show trigger in skymap')
+        if _pm: # update show options
+            for _cc in optparams:self.optlist['arg']['show'][_cc]=_pm[_cc]
+        """
 
-                #The first selection criteria are about the likelyhood that the event is real and astrophysical. So we will take into consideration only events with a False Alarm Rate (FAR) < 1 event per year. Then we will exclude all the events for which the probability of being a terrestrial event is equal or higher than 90%. 
-                
-                if FAR < 1 and Terrestrial<0.9:_trigger *= True
-                else:_trigger *= False
-                
-                # !!! WHEN TO TRIGGER ???
-                ''' For VST:
-                PROB_NS > 0.1
-                90% skymap area < 100 deg2
-                or
-                - PROB_NS < 0.1
-                - 90% skymap area < 50 deg2
-                - Distance < 100 Mpc
-                '''
-                if float(HasNS)>.1 and float(HasRemnant)>.1:
-                    # interesting for all BNS NS-BH
-                    _trigger*=True     
-                elif float(HasNS)<.1 and _a90<200:
-                    if not _ld is None:
-                        Dmean = float(_ld.split('+/-')[0])
-                        if Dmean<500:_trigger*=True                
-                        else:_trigger*=False
-                    else:_trigger*=True    
-                else:_trigger*=False
+    def galaxies(self):
+        # check if need galaxies
 
-                # mysql insert
-                if eval(optlist['arg']['database']['activate']):
-                    if _ld is None:Dmean,Dvar='None','None'
-                    else:Dmean,Dvar=_ld.split('+/-')[0],_ld.split('+/-')[1]
-                    if 'Preliminary' in optlist['arg']['email']['emailcontent']:_stage='Preliminary'
-                    elif 'Initial' in optlist['arg']['email']['emailcontent']:_stage='Initial'
-                    elif 'Update' in optlist['arg']['email']['emailcontent']:_stage='Update'
-                    else:_stage='Null'
+        if eval(self.optlist['arg']["priorization"]["mass"]) or \
+           eval(self.optlist['arg']["priorization"]["dist"]) or \
+           eval(self.optlist['arg']["priorization"]["number"]) or \
+           'G' in self.scheduler:
 
-                    sqlconn.insert_values('ligoevents',\
-                                          {'GraceID':grace_id,\
-                                           'JD':_mjd_obs,\
-                                           'stage':_stage,\
-                                           'type':Group,\
-                                           'Dmean':Dmean,\
-                                           'Dvar':Dvar,\
-                                           'FAR':FAR,\
-                                           'BNS':BNS,\
-                                           'BBH':BBH,\
-                                           'NSBH':NSBH,\
-                                           'HasNS':HasNS,\
-                                           'HasRemnant':HasRemnant,\
-                                           'Terrestrial':Terrestrial,\
-                                           'time':str(_date_obs),\
-                                           'loc50':str(_a50),\
-                                           'loc68':str(_a68),\
-                                           'loc90':str(_a90),\
-                                           'loc99':str(_a99),\
-                                           'detector':Instruments,\
-                                           'url':mapurl
-                                       })
-                  
-                # email subject
-                if _trigger:  _comments = '[interesting]'
-                else:  _comments = '[not interesting]'
-                optlist['arg']['email']['emailsub'] += _comments
+            # query galaxies via vizier
+            if int(self.optlist['arg']['galaxies']["catalog"])==1:self.catname='GLADE'
+            elif int(self.optlist['arg']['galaxies']["catalog"])==2:self.catname='GWGC'
+            else:self.catname='???'
 
-                # slack
-                if eval(optlist['arg']['slack']['activate']):
-                    # send message via phone immediately   
-                    optlist['arg']['phone']['phonecontent'] += '`%s`\n a %s event detected at %sUT\n *FAR=%.2e per year, HasNS=%s, HasRemnant=%s, localization=%.2f-%.2f-%.2f-%.2f (50-68-90-99) sq deg, Distance=%s Mpc, Terrestrial=%.5e*\nGraceDB: %s\ntelescope scheduler working...'%(grace_id,Group,_date_obs,FAR,HasNS,HasRemnant,_a50,_a68,_a90,_a99,_ld,Terrestrial,EventPage)
-                    slack_client = SlackClient(optlist['arg']['slack']['slack_bot_token'])
-                    for _channel in optlist['arg']['slack']['channel'].split(','):
-                        slack_client.api_call("chat.postMessage", channel=_channel,
-                                        text=optlist['arg']['phone']['phonecontent'], as_user=True)
+            limdist,limrag,limdecg,limmag = \
+            [float(zz) for zz in self.optlist['arg']['galaxies']["limdist"].split(',')],\
+            [float(zz) for zz in self.optlist['arg']['galaxies']["limra"].split(',')],\
+            [float(zz) for zz in self.optlist['arg']['galaxies']["limdec"].split(',')],\
+            [float(zz) for zz in self.optlist['arg']['galaxies']["limmag"].split(',')]
 
-                # send phone message
-                if eval(optlist['arg']['phone']['activate']) and \
-                   optlist['arg']['email']['role'] == 'observation':                       
-                    optlist['arg']['phone']['phonecontent'] += '%s, a %s event detected at %sUT %s: FAR=%.2e per year. HasNS=%s. HasRemnant=%s. localization (90 per)=%.2f sq degree. Distance=%s Mpc. Terrestrial=%.5e. %s'%(grace_id,Group,_date_obs,_comments,FAR,HasNS,HasRemnant,_a90,_ld,Terrestrial,EventPage)
-                    for _to in optlist['arg']['phone']['to'].split(','):
-                        if eval(optlist['arg']['phone']['activate']):pst.link.phone(optlist['arg']['phone']['account'],optlist['arg']['phone']['token'],optlist['arg']['phone']['from'],_to,optlist['arg']['phone']['phonecontent'])
+            if self.optlist['tmp']['distmu'] is not None and \
+               self.optlist['tmp']['distsigma'] is not None and \
+               self.optlist['tmp']['distnorm'] is not None:
+                # if 3D GW loc available
+                # query the min to max distance from catalog
+                # meanwhile, get dist range for every piece of sky 
+                # (use small nside, since it would not change too much)
+                # the dist range of each piece will be then included,
+                # together with selected galaxies (gaussian), calculated
+                # for a score, contributing to the final list                
+                self.tpiece,self.ppiece = hp.pix2ang(_nside1, np.arange(12*_nside1**2))                
+                self.dminlist, self.dmaxlist = pst.gwdist(self.nside,\
+                    self.optlist['tmp']['distmu'], self.optlist['tmp']['distsigma'], \
+                    self.optlist['tmp']['distnorm'], self.tpiece,self.ppiece)
+            else: 
+                self.dminlist, self.dmaxlist = np.array([min(limdist)]), \
+                                               np.array([max(limdist)])
+            dmin = min(self.dminlist[np.where(self.dminlist!=-99)])
+            dmax = max(self.dmaxlist[np.where(self.dmaxlist!=-99)])
 
-            elif 'voevent' in optlist['arg'] and header['CREATOR']=='PSTOOLS':
+            self.gid,self.gname,self.gra,self.gdec,self.gmag,self.gdist = \
+                    pst.galaxies(catalog=int(self.optlist['arg']['galaxies']["catalog"]),\
+                    limra=limrag, limdec=limdecg, limdist=[dmin,dmax],\
+                    size=int(self.optlist['arg']['galaxies']["size"]),\
+                    limmag=limmag,filtro=self.optlist['arg']['galaxies']["filter"],\
+                    verbose = eval(self.optlist['arg']['show']["verbose"]),\
+                    cachemode=int(self.optlist['arg']['galaxies']['cachemode']),\
+                    cachefile=self.optlist['arg']['galaxies']['cachefile'])
+         
+            """
+            # healpix show of trigger
+            ''' fignum 1: 2d sky
+                fignum 2: dist
+                fignum 3: lums
+            ''' 
+            # 1 - 2D distribution
+            # focused, no interactive mode
+            pparams = {'ra':self.gra,'dec':self.gdec,\
+                       'theta':self.optlist['arg']['show']["theta"],\
+                       'phi':self.optlist['arg']['show']["phi"],\
+                       'fignum':1,'color':'r',\
+                       'coord':self.optlist['arg']['show']["coord"],\
+                       'label':'%s galaxies(%i)'%(self.catname,len(self.gra))}
+            if 2 in self.showmap:
+                fig_2d = pst.pointview(pparams)
+                if self.pmet in [2,3]:
+                    input('show galaxies in skymap')
 
-                # for other alerts
-                params = optlist['arg']['voevent']
-                for ii in params:optlist['arg']['email']['emailcontent']+='#\t%s:\t%s\n'%(ii,params[ii])
+            # 2 - distance distribution
+            pparams = {'distmin':dmin,'distmax':dmax,'dist':self.gdist,'fignum':2,\
+                       'color1':'k','color2':'r','scale':'linear','nbin':10,\
+                       'label':'%s galaxies(%i)'%(self.catname,len(self.gra))}
+            optparams = ['distmin','distmax','nbin','color1','color2','scale']
+            if self.pmet==3 and 3 in self.showmap:
+                _pm, fig_gd = pst.interactive_show(pst.distview,pparams,optparams)
+            elif self.pmet in [1,2] and 2 in self.showmap:
+                fig_gd = pst.distview(pparams)    
+            if self.pmet==2 and 3 in self.showmap:
+                input('galaxy distance distribution')
 
-            else:
-                # update graceid via header: MS190402o -> M328682
-                # choose whatever you want
-                try:grace_id = header['OBJECT']
-                except:grace_id='GWxyz'
+            # 3 - liminosity distribution
+            pparams = {'distmin':dmin,'distmax':dmax,'mag':self.gmag,\
+                       'dist':self.gdist,'fignum':3,'scale':'linear',\
+                       'color1':'r','color2':'grey','nbin':1,\
+                       'label':'%s galaxies(%i)'%(self.catname,len(self.gra))}
+            optparams = ['distmin','distmax','nbin','color1','color2','scale']
+            if self.pmet==3 and 3 in self.showmap:
+                _pm, fig_gl = pst.interactive_show(pst.lumsview,pparams,optparams)
+            elif self.pmet in [1,2] and 3 in self.showmap:
+                fig_gl = pst.lumsview(pparams)
+            if self.pmet==2 and 3 in self.showmap:
+                input('galaxy luminosity distribution')
 
-            # update nside
-            if nside != int(header['NSIDE']):
-                nside = int(header['NSIDE'])
-                _info = 'Warning: for trigger search, change nside to %i, according to trigger healpix map!'%nside
-                if eval(optlist['arg']['plot']["verbose"]):print(_info)
-                logging.info(_info)
-
-            # read time of GW
-            _jdgw = astropy.time.Time(header['MJD-OBS'], format='mjd') + 2400000.5
-            timegw = _jdgw.utc.datetime
-
-            # read distance
-            # for offline search, there's no ld available
-            try:
-                Dmean = header['DISTMEAN']
-                Dvar = header['DISTSTD']
-                _ld = str(Dmean) + ',' + str(Dvar)    
-                _info = 'Distance = %s+/-%s'%(Dmean,Dvar)
-            except:
-                _ld = None
-                _info = 'unmodelled trigger without distance'
-
-            if eval(optlist['arg']['plot']["verbose"]):print(_info)           
-            logging.info(_info)
-
-            # for Plotting
-            # healpix show
-            ''' fignum 1'''
-            pparams = {'hpmap':maptrigger,'title':'trigger sky map',\
-                       'rot_phi':float(optlist['arg']['plot']["rot_phi"]),\
-                       'rot_theta':float(optlist['arg']['plot']["rot_theta"]),'fignum':0,\
-                       'ordering':eval(optlist['arg']['plot']["ordering"]),\
-                       'coord':optlist['arg']['plot']["coord"],\
-                       'norm':str(optlist['arg']['plot']["norm"])}
-            optparams = ['rot_theta','rot_phi']
-
-            if pmet==3 and 'trigger' in _showmap:pstplot.interactive_show(pstplot.mollview,pparams,optparams)
-            if pmet in [1,2] and 'trigger' in _showmap:
-                if all(i for i in _alist.values()):fig_trigger = pstplot.contourview(pparams)
-                else:fig_trigger = pstplot.mollview(pparams)
             '''
-            if pmet==2 and 'trigger' in _showmap:                
-                pparams = {'ra':[255.58],'dec':[-12.4856],'fignum':0,'color':'k','rot_phi':float(optlist['arg']['plot']["rot_phi"]),'rot_theta':float(optlist['arg']['plot']["rot_theta"]),'coord':str(optlist['arg']['plot']["coord"]),'ms':2,'label':'UVOT candidate'}
-                pstplot.pointview(pparams)       
-                input('trigger map')
-            '''
+            # convolve galaxy info into score
+            # from arcsec to radians
+            try:self.gradius = float(optlist['arg']['galaxies']["radius"])*2*mt.pi/60/360
+            except:self.gradius=False
 
-            ## cross map with trigger
-            # length = 12*nside**2            
-            _pmap = maptrigger
-            _info = "%i sec to finish trigger priorization"%int(time.time()-start_time)
-            if eval(optlist['arg']['plot']["verbose"]):print(_info)
-            logging.info(_info)
-    else:grace_id = 'no_astro'    
+            if eval(self.optlist['arg']["priorization"]["mass"]): # lums
+                self.lums = 10**((-1)*(self.gmag/2.5))
+                self.glumsmap = pst.make_hpfitsmap(self.gra,self.gdec,\
+                                self.lums,self.nside,self.gradius)               
+                # plot
+                pparams = {'hpmap':self.glumsmap,'title':'galaxy dist',\
+                   'theta':self.optlist['arg']['show']["theta"],\
+                   'phi':self.optlist['arg']['show']["phi"],\
+                   'fignum':1,'ordering':self.optlist['arg']['show']["ordering"],\
+                   'coord':self.optlist['arg']['show']["coord"],\
+                   'norm':self.optlist['arg']['show']["norm"],\
+                   'figsize':self.optlist['arg']['show']["figsize"],\
+                   'min':self.optlist['arg']['show']["min"],\
+                   'max':self.optlist['arg']['show']["max"],\
+                   'theta_contour':self.theta_contour,\
+                   'phi_contour':self.phi_contour,\
+                   'label':self.optlist['arg']['show']["label"],\
+                   'colors':self.optlist['arg']['show']["colors"],\
+                   'distinfo':self.distdict,'tellist':self.tellist,\
+                   'timenow':self.timenow}
+                optparams = ['theta','phi','min','max','norm',\
+                             'title','figsize','ordering','coord']
+                _pm = False
+                if self.pmet==3: 
+                    _pm, fig_2d = pst.interactive_show(pst.mollview,pparams,optparams)            
+                elif self.pmet in [1,2]:            
+                    fig_2d = pst.mollview(pparams)
+                    if self.pmet == 2:input('show galaxies map')
+                if _pm: # update show options
+                    for _cc in optparams:self.optlist['arg']['show'][_cc]=_pm[_cc]
+            '''
+            """
+
+    def pointings(self):
+        # generate pointings
+        _idc,_ral,_decl,fig_np = pst.pointings(ralist=_ralist,declist=_declist,\
+                        limdec=limdecp,limra=limrap,fovh=float(optlist[_tt]['telescope']['fovh']),\
+                        fovw=float(optlist[_tt]['telescope']['fovw']),\
+                        obx=int(optlist[_tt]['pointings']['ob'].split('*')[0]),\
+                        oby=int(optlist[_tt]['pointings']['ob'].split('*')[1]),\
+                        shifth=0.,shiftw=0.)
+
+
+#    def ranking(self):
+#            if eval(self.optlist['arg']["priorization"]["dist"]): # dist
+#                ss
+#            if eval(self.optlist['arg']["priorization"]["number"]): # counts
+#                ss
+#        self.pmap = np.zeros(hp.nside2npix(self.nside))+1
+        # cross map with trigger map
+#        self.pmap *= self.optlist['tmp']['tmap']
+
 
 def choose(_dicti):
     done, _dict = False, _dicti   
@@ -352,16 +480,107 @@ def choose(_dicti):
             print ('\t %s'%_dict)
             done = True
 
-def gwdist(prob, distmu, distsigma, distnorm,ra,dec):
-     
-    distmin,distmax,delta,frac = 0,10000,1000,.1
-    npix = len(prob)                  
-    nside = hp.npix2nside(npix)
+def build_hp_map(v,mapname,nside,_coord='C'):
+    # generate healpix fits map
+    nside = int(nside)
+
+    # read infos
+    try:
+        _nra,_ndec,_loc = float(v.WhereWhen.ObsDataLocation.ObservationLocation.AstroCoords.Position2D.Value2.C1),\
+                          float(v.WhereWhen.ObsDataLocation.ObservationLocation.AstroCoords.Position2D.Value2.C2),\
+                          float(v.WhereWhen.ObsDataLocation.ObservationLocation.AstroCoords.Position2D.Error2Radius)
+    except:
+        print ('### Error: no ra,dec,radius found in voevent!!!')
+        return [],None
+
+    if _nra == 0 and _ndec == 0:
+        print ('### Error: no ra,dec reported in voevent!!!')
+        return [],None
+
+    if _loc == 0:
+        print ('### Error: no radius reported in voevent!!!')
+        return [],None
+                
+    try:
+        _timeobs = str(v.WhereWhen.ObsDataLocation.ObservationLocation.AstroCoords.Time.TimeInstant.ISOTime)        
+    except:
+        print ('### Error: no timeobs found in voevent!!!')
+        return [],None
+
+    _timeobs1 = astropy.time.Time(_timeobs, format='isot', scale='utc')
+    _mjdobs = _timeobs1.mjd
+
+    try:_object = v.Why.Inference.Name
+    except:_object = 'unKnown'           
+
+    gradius = _loc*2*mt.pi/360 # from deg to radians
+    _pmap = np.zeros(hp.nside2npix(nside))
+    _index = pst.DeclRaToIndex(_ndec,_nra,nside)
+    _pmap[_index]+=1
+    _pmap=hp.sphtfunc.smoothing(_pmap,fwhm=gradius)
+        
+    _pmap = _pmap/sum(_pmap)       
+    hlist = [('CREATOR','PSTOOLS'),
+             ('OBJECT',_object),
+             ('NSIDE',nside),
+             ('MJD-OBS',_mjdobs),
+             ('DATE-OBS',_timeobs)]
+    #
+    hp.write_map(mapname,_pmap, coord=_coord, extra_header=hlist, overwrite=True)
+    return _pmap, hlist
+
+def get_hp_map(_fits,verbose=False,nside=1024):
+    # get healpix fits
+
+    params = []
+    try:   # if it's healpix format
+        try:  # read 3D trigger healpix map (for GW)            
+            (tmap, distmu, distsigma, distnorm), header = hp.read_map(_fits, \
+                field=[0, 1, 2, 3],h=True, verbose=verbose)
+        except: # !!!!  need to be tested for the other trigger types: GRB/AMON/ect
+            tmap, header = hp.read_map(_fits, h=True, verbose=verbose)
+            distmu, distsigma, distnorm = None, None, None
+
+    except:  # if it's xml format, which can be used to extract the fits url
+        try: import voeventparse
+        except: sys.exit('### Error: pls installed voenet-parse first...')
+        try: 
+            with open(_fits, 'rb') as f:root = voeventparse.load(f)
+        except: 
+            sys.exit('### Error: %s not readable. Why:\n'%_fits+\
+                     '\t1. healpix header missing END card;\n'+\
+                     '\t2. not healpix fits;\n'+\
+                     '\t3. not xml including fits url')
+        params = {elem.attrib['name']:
+                  elem.attrib['value']
+                  for elem in root.iterfind('.//Param')}
+        try: mapurl = params['skymap_fits']
+        except: mapurl = False
+        if mapurl:   # download map
+            try: _fits = pst.get_skymap(mapurl,os.path.basename(root.attrib['ivorn']))
+            except: sys.exit('### Error: no ivorn in %s, TB checked'%_fits)
+            try:
+                (tmap, distmu, distsigma, distnorm), header = hp.read_map(_fits, \
+                    field=[0, 1, 2, 3],h=True, verbose=verbose)
+            except:
+                tmap, header = hp.read_map(_fits, h=True, verbose=verbose)
+                distmu, distsigma, distnorm = None, None, None
+        else:    # generate map
+            print ('### Warning: no skymap_fits in %s, try bulding...'%_fits)
+            tmap, header = pst.build_hp_map(root,os.path.basename(_fits).replace('.xml','.fits'),\
+                    nside,_coord='C')
+            
+            if len(tmap) > 0:
+                print ('### Warning: genearted a fits,'+\
+                       ' %s'%os.path.basename(_fits).replace('.xml','.fits'))
+                distmu, distsigma, distnorm = None, None, None
+            else:sys.exit('### Error: failed to build fits')
+    return tmap, distmu, distsigma, distnorm, header, params
+
+def gwdist(nside, distmu, distsigma, distnorm, thetal, phil):
 
     rminlist,rmaxlist = [],[]
-    for _ra,_dec in zip(ra,dec):
-        theta = 0.5 * np.pi - np.deg2rad(_dec)
-        phi = np.deg2rad(_ra)
+    for theta,phi in zip(thetal,phil):       
         ipix = hp.ang2pix(nside, theta, phi)
         r = np.linspace(distmin,distmax,num=delta)   
         dp_dr = r**2 * distnorm[ipix] * scipy.stats.norm(\
@@ -371,18 +590,33 @@ def gwdist(prob, distmu, distsigma, distnorm,ra,dec):
             rminlist.append(min(rl))
             rmaxlist.append(max(rl))
         else: 
-            rminlist.append(None)
-            rmaxlist.append(None)
-    return rminlist, rmaxlist
+            rminlist.append(-99)
+            rmaxlist.append(-99)
+    return np.array(rminlist), np.array(rmaxlist)
 
-def get_skymap(skymap_url,graceid,_dir):
+def get_skymap(skymap_url,graceid='Stest',_dir='/tmp/'):
     """
     Look up URL of sky map in VOEvent XML document,
     download sky map, and parse FITS file.
     """  
-    import requests,tempfile,shutil
 
-    if False:
+    filename = _dir + graceid + '_' + os.path.basename(skymap_url)
+    try: 
+        import wget
+        opt = 1
+        print ('using wget for downloading')
+    except:
+        import requests,tempfile,shutil
+        opt = 2
+        print ('no wget, using requests for downloading')
+
+    if opt == 1:
+        # wget
+        import wget
+        if os.path.exists(filename):os.remove(filename)
+        wget.download(skymap_url, out=filename)
+
+    elif opt == 2:
         # Send HTTP request for sky map   
         response = requests.get(skymap_url, stream=True)   
 
@@ -396,58 +630,10 @@ def get_skymap(skymap_url,graceid,_dir):
             tmpfile.flush()
       
             # Uncomment to save FITS payload to file       
-            shutil.copy(tmpfile.name, _dir + graceid+'_'+os.path.basename(skymap_url))       
-
-    else:
-        # wget
-        os.system(' '.join(['wget',skymap_url,'-O',_dir + graceid+'_'+os.path.basename(skymap_url)]))
+            shutil.copy(tmpfile.name, _dir + graceid+'_'+os.path.basename(skymap_url))   
 
     # Done!
-    return _dir + graceid +'_'+os.path.basename(skymap_url)
-
-def trigger_validation(skymap, header):
-
-    # validate a trigger by using the header of fits
-    ''' judge interests of the trigger '''
-
-    # read and print some values from the FITS header.
-    ''' need to be noticed: sometimes failed'''
-    header = dict(header)
-
-    # read distance
-    try:
-        Dmean = header['DISTMEAN']
-        Dvar = header['DISTSTD']
-        _ld = '%.2f+/-%.2f'%(Dmean,Dvar)
-        _str = '#\tDist:\t%s Mpc\n'%_ld
-    except:
-        _ld = None
-        _str = '#\tDist:\tNot available\n'
-
-    # show params of the fits header
-    _strremain = ['DATE-OBS', 'CREATOR', 'MJD-OBS']
-    for ii in header:
-        if ii in _strremain: _str+='#\t%s:\t%s\n'%(ii,header[ii])
-
-    # check the area of skymap
-    ilist,hpx = contour(skymap)
-
-    # get area in single pixel
-    _areasingle = (hp.nside2resol(hp.get_nside(hpx), arcmin=True)/60.)**2
-
-    # for each contour
-    _str += '#\tSky localization:\t'
-    _area={}
-    for _cc in ilist:
-        index1=ilist[_cc]
-        if len(index1)>0:
-            _str += ' %.2f sq. deg [%i%%]'%(len(index1)*_areasingle,_cc*100)
-            _area[_cc]=len(index1)*_areasingle
-        else:
-            _str += ' NULL [%i%%]'%(_cc*100)
-            _area[_cc]=None
-    _str+='\n'
-    return ilist,_area,_ld,_str,header['DATE-OBS'],header['MJD-OBS']
+    return filename
 
 def read_filelist(flist):
 

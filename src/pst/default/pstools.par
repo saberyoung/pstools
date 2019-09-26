@@ -1,21 +1,24 @@
 [priorization] ;  ------------- what infos used for priorization 
 
 trigger:	True
-		; include trigger prob into score
+		;include trigger prob into score
+		; True or False
 
 mass:		True
-		; include galaxy mass into score
+		;include galaxy mass into score
+		; True or False
 
 dist:		False
-		; include galaxy distance into score
+		;include galaxy distance into score
+		; True or False
 
 number:		False
-		; include galaxy counts into score
+		;include galaxy counts into score
+		; True or False
 
 nside:		1024
-		; nside of priorization map
+		;nside of priorization map
 		; Note: will change according to trigger healpix map
-		; 
 
 [react]  ;  ------------- for trigger search, when/how to response
 
@@ -84,8 +87,8 @@ limsobj:	jupiter,venus
 		; options: mercury,venus,moon,mars,jupiter,saturn,uranus,neptune
 
 limsobjr:	2
-		; limit radius
-		; pointings within such radius (unit in deg) will be removed
+		; limiting radius for solor object
+		; pointings with such radius (unit in deg) includes solor objects will be removed
 
 limalt:		2.0
 		; limitation on height/airmass
@@ -97,99 +100,153 @@ threshold:
 		;leave blanket, I will automatically do thresholding based on map size and FoV of telescope
 
 template:	
-		; search if available templates
+		;search if there're available templates
 		; e.g. VST,DES,PS,SDSS
+		; if yes, put pointings there with high priority
 
 [galaxies] ;  ------------- galaxy selection
 
-cachefile:	
-		; cache mode: store galaxies into $dir/cache, only if the number of galaxies is large
+cachemode:	1
+		;cache mode:
+		; 1. read galaxies from cachefile if any; check infos, 
+		;    see if cashed galaxies could meet the demandings setted below.
+		;    if yes, read and go on; if no, clobber and rebuild cachefile
+		;    if no cachefile, query Vizier and store to a cachefile
+		; 2. the same as 1, but instead, not store to a new cachefile
+		; 3. query Vizier directly and clobber exiting cachefile if any, 
+		;    then store yields to a new cachefile
+		; 4. the same as 3, but instead, not store to a new cachefile
 
-catalog:	GLADE
-		; galaxy cat: GLADE/GWGC/2MASS 
+cachefile:	/tmp/GLADE
+		;cache mode: store galaxies into a $dir/cache file
+		; avoid consuming time if the number of galaxies is large
+		; or at some point the network is bad
+		; suggest to store the full GLADE catalog once initialized, will take time
 
-filter:		B
-		; filter for galaxy absolute magniture 
+catalog:	1
+		;galaxy cat: 
+		; 1. GLADE, VII/281
+		; 2. GWGC, VII/267
 
 size:		-1
-		; galaxy catalog size number, -1 for full size
+		;galaxy catalog size number
+		; 100 for 100 lines of catalog
+		; -1 for the full catalog
 
-dist:		0,9999
-		; galaxy distance range
-		; if trigger (CBC GW, or?) distance available, ;
-		; auto select galaxy range; otherwise, applied settings here
-		; in principle, one should select all galaxies, 
-		; and then wait for a 3D prob, in case, 
-		; some one wants to concentrate only local volume
+limdist:	-1,200
+		; distance range (in Mpc) for galaxy selection
+		; if trigger (CBC GW, or?) distance available,
+		; auto select galaxy range; otherwise, applied settings here.
 		; Notice: GWGC is only valid within 100 Mpc, 
-		; GLADE will go up to 300Mpc however, not complete
+		; GLADE will go up to 300 Mpc
+		; -99 is reserved for specific case, so don't use -99 here
 
 limra:		0,360
 		; Ra range (in deg) for galaxy selection
 
-limdec:		-90,90
+limdec:		-20,90
 		; Dec range (in deg) for galaxy selection
 
-limmag:		-18
-		; absolute limiting magnitude
-		; remian galaxies only when they are brighter than this number
+limmag:		-10,-18
+		; absolute magnitude range (in mag) for galaxy selection
+
+filter:		B
+		;filter for galaxy absolute magnitude 
+		; for GLADE, there're B and K
+		; for GWGC, there're only B
 
 limebv:		False
-		; ebv cut
+		; galactic extinction cut
 		; if not False: remove pointings located in high ebv (e.g. $limebv<2.5) area 
 
-radius:		5
+radius:		50
 		; FWHM for galaxy smoothing (in arcmin)
 		; False: no smoothing
 
-[plot] ;  ------------- plotting parameters
+[show] ;  ------------- visualization setting, for plots and terminal
 
-verbose:	False
+verbose:	True
 		; verbose mode: show detialed infors, plots, etc
 
-showmap:	trigger,cum
-		; if verbose, which plot to show: trigger,galaxy,cum
+showmap:	1,2
+		;if verbose mode activated, which plot to show: 
+		; trigger map, galaxy distribution, galaxy cum curve
+		; options: 
+		;  1. trigger; 2. all galaxies in dots (be careful); 
+		;  3. galaxy info; 
+		;  4. all galaxies in hp map;
+		;  5. selected galaxies; 6. pointings; 
+		;  7. pointings + cumulative score
 
-interactive:	False
-		; Once verbose, interactive mode will enable user to set plots 
+figsize:	15,10
+		;figure size
 
-rot_theta:	0
+contours:	.9,.5
+		;define contours to show for GW/GRB/... triggers
+
+colors:		k,b
+		;define colors for above contours
+
+interactive:	True
+		;Once verbose,
+		; interactive mode will enable user to change plots
+
+theta:		0
 		;default paramater for healpix view
+		; theta = pi/2 - decl
+		; unit in deg
 
-rot_phi:	0
+phi:		0
 		;default paramater for healpix view
+		; phi = ra
+		; unit in deg
 
 ordering:	False
 		;default paramater for healpix view
+		; healpix ordering
 
 coord:		C
 		;default paramater for healpix view
-		; default: Equatorial, don't change
+		; coordinate system
+		; default: Equatorial
 
-norm:		hist
+norm:		norm
 		;default paramater for healpix view
+		; normalization
+
+min:		0
+		;minimum range value
+
+max:		1e-4
+		;maximum range value
+
+title:		2D skymap
+		;healpix title
+
+label:		True
+		;infos for healpix plots
 
 [email] ;  ------------- email setting
 
 sendemail:	False
 		;send email or not
 
-email:	
+email:		padova.grawita@gmail.com
 		;if yes, set email sender account
 
-emailpass:	
+emailpass:	QWERTASDFG
 		;if yes, set email sender password
 
-emailsmtp:	
+emailsmtp:	smtp.gmail.com:587
 		;if yes, set email sender host and port
 
-emailto:	
+emailto:	sheng.yang@inaf.it, saberyoung@gmail.com
 		;if yes, set email receiver account
 
-emailsub:	GW alerts:
+emailsub:	GRAWITA alert
 		;if yes, set email subject format
 
-[phone] ;  ------------- phone message setting
+[phone] ;  ------------- phone message setting, by using Twilio
 
 activate:	False
 		;send message or not
@@ -205,27 +262,6 @@ to:
 
 from:	
 		;set message sender
-
-[database] ;-------------- define database configuration
-
-activate:	False
-		; activate database injection
-		; configure in src/sqlconn.py
-
-[web] ;-------------- define web configuration
-
-activate:	False
-		; activate file transfer or not
-
-ssh:	
-		; if empty, local dir, else, remote dir, transfer files via ssh
-		; user:password@server:port
-
-dir:	
-		; transfer files to web dir
-
-refresh:	update.py
-		; excute python file in web dir, if using html indtead of php,etc
 
 [wechat] ;-------------- define wechat configuration
 

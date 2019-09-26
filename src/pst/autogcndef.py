@@ -44,7 +44,7 @@ def process_gcn(payload, root):
         for ff in _pstfile:
             _tool,tel0 = os.path.splitext(os.path.basename(ff))[0].split('_')
             if tel0 in _opts_list:continue
-            arglist,optlist = pst.configure.config_init(tel0)           
+            arglist,optlist = pst.config_init(tel0)           
             _opts_list['arg'] = arglist
             _opts_list[tel0] = optlist       
             _info = 'Use %s in %s for %s auto search'%(os.path.basename(ff),_pstdir,tel0)
@@ -135,7 +135,7 @@ def process_gcn(payload, root):
 
         # download map and read mapname    
         mapurl = params['skymap_fits']
-        mapname = pst.pstdef.get_skymap(mapurl,os.path.basename(root.attrib['ivorn']),_opts_list['arg']['data']['dir'])
+        mapname = pst.get_skymap(mapurl,os.path.basename(root.attrib['ivorn']),_opts_list['arg']['data']['dir'])
         _opts_list['arg']['email']['files'].append(mapname)
 
         logging.info('Finished checking VOevent, now starting main process for %s'%mapname)        
@@ -203,4 +203,4 @@ def process_gcn(payload, root):
         logging.info('Finished checking VOevent, now starting main 2 process for ra=%.2f dec=%.2f with error=%.2f'%\
                      (_nra,_ndec,_loc))
 
-    pst.pstdef.main(mapname, _opts_list)
+    pst.main(mapname, _opts_list)

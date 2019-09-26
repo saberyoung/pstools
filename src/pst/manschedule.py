@@ -5,6 +5,8 @@ A testing file
 from __future__ import print_function
 from builtins import input
 import pst,os,sys
+import healpy as hp
+import numpy as np
 
 def man_search(_fits, _tel, _verbose, _log):  
 
@@ -13,6 +15,7 @@ def man_search(_fits, _tel, _verbose, _log):
         arglist,optlist = pst.load_config()
         _tel = arglist['observe']['telescope']
         if _tel is None: sys.exit('Error: option tel wrong ...')    
+
     _info = '>>> telescope used: %s'%_tel
     if _log: 
         import logging
@@ -21,6 +24,7 @@ def man_search(_fits, _tel, _verbose, _log):
 
     # read params from configure file
     _paramslist = {}
+    _paramslist['tmp'] = {}
     for tel0 in _tel.split(','):        
         arglist,optlist = pst.load_config(tel0)           
         _paramslist['arg'] = arglist
@@ -29,12 +33,12 @@ def man_search(_fits, _tel, _verbose, _log):
         if _log:logging.info(_info)
         if _verbose: print(_info)        
 
-    # define email content        
-    _paramslist['arg']['email']['files'] = []
-    _paramslist['arg']['email']['images'] = []
-    _paramslist['arg']['email']['emailsub']+='[offline]'
-    _paramslist['arg']['email']['emailcontent']='offline GW search\n'
-    _paramslist['arg']['phone']['phonecontent']='offline GW search\n'    
+    # define email, slack, phone, ...
+    _paramslist['tmp']['files'] = []
+    _paramslist['tmp']['images'] = []    
+    _paramslist['arg']['email']['emailcontent']='offline alert \n'
+    _paramslist['arg']['phone']['phonecontent']='offline alert: '  
+    _paramslist['arg']['slack']['slackcontent']='offline alert: '
 
     # decide prioritization method        
     _trigger,_mass,_dist,_ngal = eval(_paramslist['arg']['priorization']['trigger']),\
@@ -42,11 +46,33 @@ def man_search(_fits, _tel, _verbose, _log):
                                  eval(_paramslist['arg']['priorization']['dist']),\
                                  eval(_paramslist['arg']['priorization']['number'])
 
-    if _trigger and _fits is None: _fits = input('specify an input map name:')
-    if not os.path.exists(_fits): sys.exit('### Error: %s not exists...'%_fits)
-    if _trigger or _mass or _dist or _ngal:  _paramslist['arg']['search'] = 'man trigger'             
-    else: _paramslist['arg']['search'] = 'man normal'
+    # if activate trigger, however no fits given
+    if _trigger and _fits is None: 
+        _fits = input('!!! in par file, you specify need trigger, however, not given exactly.\n\t'+\
+                      'input map name:')
+    # if exists
+    if _fits is not None and not os.path.exists(_fits): sys.exit('### Error: %s not exists...'%_fits)
 
-    if _verbose: print('>'*5,_paramslist['arg']['search'])  
-    if _log: logging.info(_paramslist['arg']['search'])
-    pst.main(_fits, _paramslist)
+    if _trigger and _fits is not None:   # check format and get fits map if given
+        _paramslist['tmp']['tmap'], _paramslist['tmp']['distmu'], \
+            _paramslist['tmp']['distsigma'], _paramslist['tmp']['distnorm'], \
+            _paramslist['tmp']['header'], _paramslist['tmp']['voevent'] = \
+                pst.get_hp_map(_fits,_paramslist['arg']['show']['verbose'],\
+                _paramslist['arg']['priorization']['nside'])
+    else:
+        _paramslist['tmp']['tmap'], _paramslist['tmp']['distmu'], \
+            _paramslist['tmp']['distsigma'], _paramslist['tmp']['distnorm'], \
+            _paramslist['tmp']['header'], _paramslist['tmp']['voevent'] = \
+            np.zeros(12*(int(_paramslist['arg']['priorization']['nside']))**2),\
+            None,None,None,None,None
+
+    # store above infos
+    if _trigger:  _paramslist['tmp']['search'] = 'trigger'
+    elif _mass or _dist or _ngal: _paramslist['tmp']['search'] = 'galaxy'
+    else: _paramslist['tmp']['search'] = 'normal'
+
+    if _verbose: print('>'*5,_paramslist['tmp']['search'])  
+    if _log: logging.info(_paramslist['tmp']['search'])
+
+    # main program
+    pst.main(_paramslist)

@@ -10,6 +10,7 @@ import healpy as hp
 import math as mt
 import pylab as pl
 import matplotlib.pyplot as plt
+from matplotlib import cm
 import astropy.coordinates
 import astropy.units as u
 import pst
@@ -19,102 +20,232 @@ import pst
 # trigger/healpix map:
 def mollview(pparams):
 
-    hpmap=pparams['hpmap']
-    rot_phi=pparams['rot_phi']
-    rot_theta=pparams['rot_theta']
-    fignum=pparams['fignum']
-    title=pparams['title']
-    ordering=pparams['ordering']
-    coord=pparams['coord']
-    norm=pparams['norm'] 
+    # read parameters
+    hpmap = pparams['hpmap']
+    theta = float(pparams['theta'])   
+    phi = float(pparams['phi'])
+    fignum = int(pparams['fignum'])
+    title = pparams['title']
+    ordering = eval(pparams['ordering'])
+    coord = pparams['coord']
+    norm = str(pparams['norm'])    
+    if len(pparams['figsize'].split(','))==2:
+        _figsize = (int(pparams['figsize'].split(',')[0]),\
+                    int(pparams['figsize'].split(',')[1]))
+    else:sys.exit('check figsize in par file')
+    _min = float(pparams['min'])
+    _max = float(pparams['max'])
+    theta_contour = pparams['theta_contour']
+    phi_contour = pparams['phi_contour']
+    label = pparams['label']
+    colors = [zz for zz in pparams['colors'].split(',')]
+    distinfo = pparams['distinfo']
+    tellist = pparams['tellist']
+    timenow = pparams['timenow']
 
-    fig = plt.figure(fignum, figsize=(15, 10))
+    # define rotate scheme
+    _r = hp.Rotator(deg=True, rot=[phi,theta])
+    # map is going reverse with coordinates
+    _r1 = hp.Rotator(deg=True, rot=[-phi, np.pi/2. - theta])
 
-#    hp.mollview(map=None, fig=None, rot=None, coord=None, unit='', xsize=800, title='Mollweide view', nest=False, min=None, max=None, flip='astro', remove_dip=False, remove_mono=False, gal_cut=0, format='%g', format2='%g', cbar=True, cmap=None, notext=False, norm=None, hold=False, margins=None, sub=None, nlocs=2, return_projected_map=False)
+    # rotate map
+    nside = hp.npix2nside(len(hpmap))
 
-#rotate_map(hpmap,rot_theta,rot_phi),fig=fignum,\
-#                title=title,unit='prob',nest=ordering,coord=coord,norm=norm)
-    hp.mollview(hpmap,rot=(rot_theta,rot_phi),fig=fignum,\
-                title=title,unit='prob',nest=ordering,coord=coord,norm=norm)
+    # Get theta, phi for non-rotated map
+    t,p = hp.pix2ang(nside, np.arange(hp.nside2npix(nside))) #theta, phi
+
+    # Get theta, phi under rotated co-ordinates
+    trot, prot = _r1(t,p)
+
+    # Interpolate map onto these co-ordinates
+    rot_map = hp.get_interp_val(hpmap, trot, prot)
+
+    # create figure
+    fig = plt.figure(fignum, figsize=_figsize)
+
+    # Choose color map and set background to white
+    cmap = cm.YlOrRd
+    cmap.set_under("w")
+
+    # Plot GW skymap in Mollweide projection
+    if hp.__version__ >= '1.12.9':
+        hp.mollview(map=pst.rotate_map(hpmap,_r), fig=fignum, rot=None, coord=coord, \
+                unit='', xsize=800, title=title, nest=ordering, min=_min, max=_max, \
+                flip='astro', remove_dip=False, remove_mono=False, gal_cut=0, \
+                format='%g', format2='%g', cbar=False, cmap=cmap, badcolor='gray', \
+                bgcolor='white', notext=False, norm='log', hold=True, margins=None, \
+                sub=None, nlocs=2, return_projected_map=False)
+    else:       
+        hp.mollview(map=rot_map, fig=fignum, rot=None, coord=coord, \
+                unit='', xsize=800, title=title, nest=ordering, min=_min, max=_max, \
+                flip='astro', remove_dip=False, remove_mono=False, gal_cut=0, \
+                format='%g', format2='%g', cbar=False, cmap=cmap, notext=False, \
+                norm=norm, hold=True, margins=None, sub=None, nlocs=2, \
+                return_projected_map=False)      
+
+    hp.graticule() # Set grid lines
+
+    # contour plots
+    if theta_contour is not None and \
+       phi_contour is not None:
+        for ndd,dd in enumerate(theta_contour):
+            # for .5, .9, ....
+            _theta_contour, _phi_contour = theta_contour[dd], phi_contour[dd]        
+            for i in range(len(_theta_contour)):
+                # for each contour
+                _theta,_phi = _r(_theta_contour[i],_phi_contour[i])
+                hp.projplot(_theta,_phi,linewidth=1,c=colors[ndd])
 
     # coordinate
-    plot_coord(rot_phi,rot_theta)  
+    plot_coord(_r,coord)
+
+    # write labels
+    if eval(label):
+        xx,yy = -2.,1.
+        plt.text(xx, .9, 'sun: $\odot$',fontsize=20,\
+                 ha="center", va="center", color='y')
+        plt.text(xx, 1., 'moon: $\oplus$',fontsize=20,\
+                 ha="center", va="center", color='b')        
+        for ndd in range(len(colors)):                       
+            yy+=.1
+            try: plt.text(xx, yy, list(distinfo.values())[ndd],\
+                          ha="center", va="center", color=colors[ndd],\
+                          fontsize=20)
+            except:pass
+
+    # plot the sky: sun, moon, horizon, galactic plane, ...
+    plot_sky(_r,tellist,coord,timenow,1)
     return fig
 
-def mollzoom(pparams):
+def plot_coord(r,coord='C'):
+    """
+    show specific coordiantes in healpy plots
+    """
 
-    hpmap=pparams['hpmap']
-    rot_phi=pparams['rot_phi']
-    rot_theta=pparams['rot_theta']
-    fignum=pparams['fignum']
-    title=pparams['title']
-    ordering=pparams['ordering']
-    coord=pparams['coord']
-    norm=pparams['norm']   
-    
-    # zoom
-    nside = hp.get_nside(hpmap)
-    dec,ra = IndexToDeclRa(nside,hpmap.argsort()[-1])
+    _tlist,_plist = [60,120,180,240,300,360],\
+                    [30,60,-30,-60]
 
-    hp.mollzoom(rotate_map(hpmap,rot_theta,rot_phi),rot=(ra,dec),xsize=2000,fig=fignum,\
-                title=title,unit='prob',nest=ordering,coord=coord,norm=norm)
-    # coordinate
-    plot_coord(rot_phi,rot_theta) 
+    for _t in _tlist:
+        # deg to hms
+        c= astropy.coordinates.SkyCoord(ra=_t*u.degree, \
+                                        dec=0*u.degree, frame='icrs')
 
-def contourview(pparams):
+        # select some special points
+        theta,phi = pst.RadecToThetaphi(_t,0) 
 
-    skymap=pparams['hpmap']   
-    rot_phi=pparams['rot_phi']
-    rot_theta=pparams['rot_theta']
-    color1='grey'
-    color2='y'
-    color3='r'
-    color4='w'
-    _label='GW loc'
-    _coord=pparams['coord']
-    fignum=pparams['fignum']
+        # apply rotation
+        theta,phi = r(theta,phi)
+        
+        # visualization
+        hp.projtext(theta,phi, '%ih'%c.ra.hms.h, coord=coord)
 
-    fig = plt.figure(fignum, figsize=(15, 10))    
+    for _p in _plist:
+       
+        # select some special points
+        theta,phi = pst.RadecToThetaphi(0,_p) 
 
-    hp.graticule()
-    r = hp.Rotator(deg=True, rot=[rot_phi,rot_theta])
-    _ilist,hpx = pst.contour(skymap)  
-    label1,label2,label3,label4=_ilist.keys()
-    index1,index2,index3,index4=_ilist.values()
-    nside = hp.get_nside(hpx)
-    for _index,_color,_cont in zip([index4,index3,index2,index1],\
-                                   [color1,color2,color3,color4],\
-                                   [label4,label3,label2,label1]):
-        if len(_index)==0:continue
-        theta,phi = hp.pix2ang(nside,_index)
-        thetar,phir = r(theta,phi)
-        theta,phi = np.array(thetar),np.array(phir)
-        try:
-            hp.projplot(theta[0],phi[0],_color,coord=_coord,\
-                        label='%s %s'%(_label,_cont))
-            hp.projplot(theta,phi,_color,coord=_coord)
-        except:
-            hp.projplot(theta,phi,_color,coord=_coord,\
-                        label='%s %s'%(_label,_cont))
+        # apply rotation
+        theta,phi = r(theta,phi)
+        
+        # visualization
+        hp.projtext(theta,phi, '%.f$^\circ$'%_p, coord=coord)
 
-    plt.title('trigger localization in equatorial system')
-    plot_coord(rot_phi,rot_theta)
-    plt.axis('off')
+def plot_sky(r,optlist,coord,timenow,fignum=1):
+
+    _colorlist = ['b','g','k','y','c','m']
+    plt.figure(fignum)
+
+    # plot the horizon
+    for _ntt in range(len(optlist)):
+
+        # for each telescope
+        _tt,_hlat,_hlon,_halt = optlist[_ntt]['telescope']['name'],\
+                                optlist[_ntt]['telescope']['lat'],\
+                                optlist[_ntt]['telescope']['lon'],\
+                                optlist[_ntt]['telescope']['alt']       
+        observatory = astropy.coordinates.EarthLocation(lat=float(_hlat)*u.deg, \
+                                                        lon=float(_hlon)*u.deg, \
+                                                        height=float(_halt)*u.m)
+        _smlabel=True
+        for _timeplus in np.arange(0,360,1):
+            # define observatory
+            newAltAzcoordiantes = astropy.coordinates.SkyCoord(alt = 0*u.deg, \
+                                                               az = 0*u.deg + _timeplus*u.deg, \
+                                                               obstime = timenow, \
+                                                               frame = 'altaz', \
+                                                               location = observatory)
+            # transform to theta phi
+            _htheta,_hphi = pst.RadecToThetaphi(newAltAzcoordiantes.icrs.ra.deg, \
+                                                newAltAzcoordiantes.icrs.dec.deg)            
+            _htheta,_hphi = r(_htheta,_hphi)
+            # plot
+            if _smlabel:
+                hp.projplot(_htheta,_hphi,'.', color = _colorlist[_ntt], \
+                            coord=coord, ms = 2, label='%s horizon now'%_tt)
+                _smlabel=False
+            else:
+                hp.projplot(_htheta,_hphi,'.', color = _colorlist[_ntt], \
+                            coord=coord, ms = 2)
+
+    # plot the galactic plane        
+    _hral = np.arange(0,360,10)
+    _hdecl = np.zeros(len(_hral))
+    _smlabel=True
+    for _hra,_hdec in zip(_hral,_hdecl):
+        
+        # from galactic coordinates to equatorial
+        _hradecs = astropy.coordinates.SkyCoord(l=_hra*u.deg, \
+                                                b=_hdec*u.deg, frame='galactic')                
+
+        # transform to theta phi
+        _htheta,_hphi = pst.RadecToThetaphi(_hradecs.icrs.ra.deg,\
+                                            _hradecs.icrs.dec.deg)
+        _htheta,_hphi = r(_htheta,_hphi)
+
+        # plot
+        if _smlabel:
+            hp.projplot(_htheta,_hphi,'x', color = 'k', \
+                        coord=coord, ms = 10, label='galactic plane')
+            _smlabel=False
+        else:
+            hp.projplot(_htheta,_hphi,'x', color = 'k', \
+                         coord=coord, ms = 10)
+
+    # plot the sun
+    _sra,_sdec = astropy.coordinates.get_sun(timenow).\
+                 ra.deg,astropy.coordinates.get_sun(timenow).dec.deg
+    _stheta,_sphi = pst.RadecToThetaphi(_sra,_sdec)    
+    _stheta,_sphi = r(_stheta,_sphi)
+    hp.projtext(_stheta,_sphi,'$\odot$', color = 'y', \
+                coord=coord,fontsize=20)     
+
+    # plot the moon lasting 5 days
+    for _nd in np.arange(0,5,1):
+        _timeplus = _nd*24
+        timelater = timenow + astropy.time.TimeDelta(_timeplus*3600, \
+                                                     format='sec')                           
+        _mra,_mdec = astropy.coordinates.get_moon(timelater).\
+                     ra.deg,astropy.coordinates.get_moon(timelater).dec.deg
+        _mtheta,_mphi = pst.RadecToThetaphi(_mra,_mdec)        
+        _mtheta,_mphi = r(_mtheta,_mphi)          
+        hp.projtext(_mtheta,_mphi,'$\oplus$', color = 'b', \
+                    coord=coord,fontsize=20)
+        hp.projtext(_mtheta,_mphi-.1,'%id'%_nd, color = 'b', \
+                    coord=coord,fontsize=12)
     plt.legend()
-    return fig
 
 # galaxy map
 def pointview(pparams):
    
     ra=pparams['ra']
     dec=pparams['dec']
-    rot_phi=pparams['rot_phi']
-    rot_theta=pparams['rot_theta']
+    rot_phi=pparams['phi']
+    rot_theta=pparams['theta']
     color=pparams['color']
-    coord=pparams['coord']
-    ms=pparams['ms']
+    coord=pparams['coord']    
     label=pparams['label']
     fignum=pparams['fignum']
+    ms=4
 
     if len(ra)>0:pass
     else:return
@@ -126,7 +257,7 @@ def pointview(pparams):
 
     hp.projplot(_rot(_theta[0],_phi[0]),'x', color =color, coord=coord, ms = ms, label=label)
     hp.projplot(_rot(_theta,_phi),'x', color =color, coord=coord, ms = ms)
-#    plot_coord(rot_phi,rot_theta)
+
     plt.legend()
     return fig
 
@@ -134,75 +265,57 @@ def distview(pparams):
 
     _distmin=float(pparams['distmin'])
     _distmax=float(pparams['distmax'])
-    dist00=pparams['distfull_mat']
-    dist0=pparams['dist_mat']
+    dist0=pparams['dist']
     color1=pparams['color1']
-    color2=pparams['color2']
-    color3=pparams['color3']
-    _nbindist=int(pparams['nbin'])
-    label1=pparams['label1']
-    label2=pparams['label2']
-    ypos1=float(pparams['ypos1'])
-    ypos2=float(pparams['ypos2'])
+    color2=pparams['color2']    
+    nbin=int(pparams['nbin'])
+    label=pparams['label']
     fignum=pparams['fignum']
+    scale=pparams['scale']
+    # cut dist
+    dist0 = dist0[np.logical_and(dist0>_distmin,
+                                 dist0<_distmax)]
 
     fig = plt.figure(fignum)
-    for nii,ii in enumerate(np.arange(_distmin,_distmax,abs(_distmax-_distmin)/10.)): 
-        cum = len(dist00[np.logical_and(dist00<ii,dist00>_distmin)])
-        pl.text(ii,ypos1,cum,color=color1)           
+    for nii,ii in enumerate(np.arange(_distmin,_distmax,abs(_distmax-_distmin)/nbin)):                 
         cum = len(dist0[np.logical_and(dist0<ii,dist0>_distmin)])
-        pl.text(ii,ypos2,cum,color=color2)          
-    pl.hist(dist00[np.logical_and(dist00<_distmax,dist00>_distmin)], \
-            _nbindist,label=label1,histtype='step',color=color3)       
-    pl.hist(dist0,_nbindist,label=label2,histtype='stepfilled',color=color3)         
+        pl.text(ii,-2,cum,color=color1)
+    pl.hist(dist0,nbin,label=label,histtype='stepfilled',color=color2)
+    if scale=='log': plt.yscale('log')
     plt.xlabel('Distance (Mpc)')
     plt.ylabel('Nuber of galaxies')
-#    pl.tight_layout()
     plt.legend()
     return fig
 
 def lumsview(pparams):
 
     _distmin=float(pparams['distmin'])
-    _distmax=float(pparams['distmax'])
-    dist00=pparams['distfull_mat']
-    dist0=pparams['dist_mat']
-    mag00=pparams['magfull_mat']
-    mag0=pparams['mag_mat']
+    _distmax=float(pparams['distmax'])    
+    dist0=pparams['dist']   
+    mag0=pparams['mag']
     color1=pparams['color1']  
-    color2=pparams['color2']  
-    color3=pparams['color3']  
-    _nbinlums=int(pparams['nbin'])   
+    color2=pparams['color2']      
+    nbin=int(pparams['nbin'])   
     label=pparams['label']
     fignum=pparams['fignum']
+    scale=pparams['scale']
 
     fig = plt.figure(fignum)
-
-    L1 = 10**((4.74-mag0)/2.5)
-    L2 = 10**((4.74-mag00)/2.5)
-    Lb1,Lb2 = [],[]
-    for ii in np.arange(_distmin,_distmax,_nbinlums):                   
-        Lb1.append(sum(L1[np.logical_and(dist0<ii,dist0>_distmin)]))
-        Lb2.append(sum(L2[np.logical_and(dist00<ii,dist00>_distmin)]))
-    ticks,Lbin1,Lbin2,Lbin3 = [],[],[],[]
-    for ii in range(len(Lb1)):
-        ticks.append((ii+.5)*_nbinlums)
-        if ii==0:
-            Lbin1.append(Lb1[ii])
-            Lbin2.append(Lb2[ii])
-        else:
-            Lbin1.append(Lb1[ii]-Lb1[ii-1])
-            Lbin2.append(Lb2[ii]-Lb2[ii-1])  
-        
-    pl.fill_between(ticks,Lbin1, step="pre", alpha=1,color='grey')
-    pl.plot(ticks,Lbin2, drawstyle="steps",label='binned luminosity for %s'%label,color=color1)
-    pl.plot(ticks,Lbin1, drawstyle="steps",label='binned luminosity for GLADE',color=color1)
-    pl.plot(ticks,Lb2,color2,label='cumulative luminosity for %s'%label)
-    pl.plot(ticks,Lb1,color3,label='cumulative luminosity for GLADE')   
-    plt.yscale('log')
+    Lums = 10**((4.74-mag0)/2.5)
+    ticks,Lcum,Lbin = [],[],[]
+    for ii in np.arange(_distmin,_distmax,nbin):
+        ticks.append((ii+.5)*nbin)
+        Lbin.append(sum(Lums[np.logical_and(dist0<ii,dist0>ii-nbin)]))
+        Lcum.append(sum(Lums[np.logical_and(dist0<ii,dist0>_distmin)]))            
+    pl.plot(ticks,Lbin,drawstyle="steps",\
+            label='binned luminosity',color=color1)
+    pl.plot(ticks,Lcum,drawstyle="steps",\
+            label='cumulative luminosity',color=color2)
+    pl.fill_between(ticks,Lbin,step="pre", alpha=1,color=color1)
+    pl.title(label)   
+    if scale=='log': plt.yscale('log')
     plt.xlabel('Distance (Mpc)')
     plt.ylabel('$L_{sun}$')
-#    pl.tight_layout()
     plt.legend()     
     return fig
 
@@ -271,34 +384,6 @@ def verticeview(pparams):
 #    plot_coord(rot_phi,rot_theta) 
     return fig
 
-def plot_coord(rot_phi,rot_theta):
-    """
-    show specific coordiantes in healpy plots
-    """
-
-    # define rotate scheme
-    r = hp.Rotator(deg=True, rot=[rot_phi,rot_theta])
-
-    _ralist,_declist = [0,45,90,135,180,225,270,315],\
-                       [0,30,60,-30,-60]
-
-    for _ra in _ralist:
-        for _dec in _declist:
-
-            # select some special points
-            theta1,phi1 = pst.RadecToThetaphi(_ra,_dec) 
-
-            # apply rotation
-            theta1,phi1 = r(theta1,phi1)
-  
-            # visualization
-            if _ra == 0:
-                hp.projtext(theta1,phi1, str(_dec), coord='C')
-            elif _dec == 0:
-                hp.projtext(theta1,phi1, str(_ra), coord='C')
-            else:
-                hp.projtext(theta1,phi1, str(_ra)+','+str(_dec), coord='C')
-
 def plot_lines(ra,dec,hh,ww,rot_theta=0,rot_phi=0,color='k',label='tiles'):
 
     r = hp.Rotator(deg=True, rot=[rot_phi,rot_theta])
@@ -312,79 +397,6 @@ def plot_lines(ra,dec,hh,ww,rot_theta=0,rot_phi=0,color='k',label='tiles'):
             hp.projplot(r(theta,phi),color,label=label)
             _smlabel=False
         else:hp.projplot(r(theta,phi),color)
-
-def plot_sky(optlist,timenow,_colorlist):
-
-    if True:
-        # plot the horizon
-        for _ntt,_tt in enumerate(optlist):
-            if _tt == 'arg':continue
-
-            # for each telescope
-            _hlat,_hlon,_halt = optlist[_tt]['telescope']['lat'],\
-                                optlist[_tt]['telescope']['lon'],\
-                                optlist[_tt]['telescope']['alt']
-
-            observatory = astropy.coordinates.EarthLocation(lat=float(_hlat)*u.deg, \
-                                                            lon=float(_hlon)*u.deg, \
-                                                            height=float(_halt)*u.m)
-            _smlabel=True
-            for _timeplus in np.arange(0,360,1):
-                newAltAzcoordiantes = astropy.coordinates.SkyCoord(alt = 0*u.deg, \
-                                                az = 0*u.deg + _timeplus*u.deg, \
-                                                obstime = timenow, \
-                                                frame = 'altaz', \
-                                                location = observatory)
-                # transform to theta phi
-                _htheta,_hphi = pst.RadecToThetaphi(newAltAzcoordiantes.icrs.ra.deg, \
-                                                    newAltAzcoordiantes.icrs.dec.deg)
-
-                plt.figure(0)
-                if _smlabel:
-                    hp.projplot(_htheta,_hphi,'.', color = _colorlist[_ntt], \
-                                coord=optlist['arg']['plot']["coord"], ms = 2, label='%s horizon now'%_tt)
-                    _smlabel=False
-                else:
-                    hp.projplot(_htheta,_hphi,'.', color = _colorlist[_ntt], \
-                                coord=optlist['arg']['plot']["coord"], ms = 2)
-
-        # plot the galactic plane        
-        _hral = np.arange(0,360,10)
-        _hdecl = np.zeros(len(_hral))
-        _smlabel=True
-        for _hra,_hdec in zip(_hral,_hdecl):
-
-            # from galactic coordinates to equatorial
-            _hradecs = astropy.coordinates.SkyCoord(l=_hra*u.deg, b=_hdec*u.deg, frame='galactic')                
-
-            # transform to theta phi
-            _htheta,_hphi = pst.RadecToThetaphi(_hradecs.icrs.ra.deg, _hradecs.icrs.dec.deg)
-
-            plt.figure(0)
-            if _smlabel:
-                hp.projplot(_htheta,_hphi,'x', color = 'k', coord=optlist['arg']['plot']["coord"], ms = 10, label='galactic plane')
-                _smlabel=False
-            else:hp.projplot(_htheta,_hphi,'x', color = 'k', coord=optlist['arg']['plot']["coord"], ms = 10)
-
-        # plot the sun, moon
-        _smlabel=True
-        for _timeplus in np.arange(0,36,6):
-            timelater = timenow + astropy.time.TimeDelta(_timeplus*3600, format='sec') 
-
-            _sra,_sdec = astropy.coordinates.get_sun(timelater).ra.deg,astropy.coordinates.get_sun(timelater).dec.deg
-            _stheta,_sphi = pst.RadecToThetaphi(_sra,_sdec)              
-
-            _mra,_mdec = astropy.coordinates.get_moon(timelater).ra.deg,astropy.coordinates.get_moon(timelater).dec.deg
-            _mtheta,_mphi = pst.RadecToThetaphi(_mra,_mdec)
-
-            plt.figure(0)
-            hp.projplot(_stheta,_sphi,'o', color = 'y', coord=optlist['arg']['plot']["coord"], ms = 10)            
-            hp.projplot(_mtheta,_mphi,'o', color = 'b', coord=optlist['arg']['plot']["coord"], ms = 10)
-            if _smlabel:
-                hp.projtext(_stheta,_sphi,'sun', color = 'k', coord=optlist['arg']['plot']["coord"])
-                hp.projtext(_mtheta,_mphi,'moon', color = 'k', coord=optlist['arg']['plot']["coord"])
-                _smlabel=False
-    plt.legend()
 
 def cumshow(pparams):
 
@@ -463,7 +475,7 @@ def cumshow1(pparams):
     if 'color2' in pparams: color2=pparams['color2']
     else:color2 = 'k'
 
-    fig = plt.figure(fignum, figsize=(15, 15))
+    fig = plt.figure(fignum, figsize=_figsize)
     ax1=pl.axes([.1,.10,.4,.3])
     ax2=pl.axes([.1,.40,.4,.55])
     ax11=pl.axes([.5,.10,.35,.3])
@@ -634,10 +646,12 @@ def interactive_show(func,_pm,_opt):
     Usage: intractive(plotfunc,rot_theta,'theta',rot_phi,'phi',[ralist,declist,_fovw,_fovh])
     """                
     answ = False
-    while not answ:                   
-        func(_pm)   
+    while not answ:
+        _fig = func(_pm)   
         _show = '    current options:'
-        for ii in _opt:_show += ' %s=%.2f '%(ii,float(_pm[ii])) 
+        for ii in _opt:
+            try: _show += ' %s=%.2e '%(ii,float(_pm[ii])) 
+            except: _show += ' %s=%s '%(ii,_pm[ii])
         print(_show)
         answ = True
         good_answ=False
@@ -645,7 +659,7 @@ def interactive_show(func,_pm,_opt):
             good_answ = True
             _answ = input('>>> good options (y) or quit (q) or change'+\
                           ' options (eg. %s=%.2f) [y]: '%\
-                          (_opt[0],float(_pm[_opt[0]])))
+                          (_opt[0],float(_pm[_opt[0]])))            
             if len(_answ) > 0: 
                 if _answ=='y': answ= True
                 elif _answ=='q':sys.exit('quit...')
@@ -654,7 +668,8 @@ def interactive_show(func,_pm,_opt):
                         if _answ[:_answ.index('=')] in _opt:
                             _pm[_answ[:_answ.index('=')]] = \
                                 _answ[_answ.index('=')+1:].strip() 
-                            pl.clf()                        
+                            try:_fig.clf()
+                            except:print ('!!! Warning: no return from inter func')
                         else: 
                             print("!!! Warning; option "+_answ+\
                                      " not available !!!" )
@@ -663,6 +678,7 @@ def interactive_show(func,_pm,_opt):
                         print("!!! Error: wrong input: retry")
                         good_answ = False
                     answ = False
+    return _pm,_fig
 
 def show_scheduler():
     # TBD

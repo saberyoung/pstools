@@ -11,7 +11,7 @@ lat:		-24.625
 		; 4- 00 42 30, +41 12 00
 		; 5- 00:42.5, +41:12
 
-lon:		- 70.4033
+lon:		-70.4033
 		;Longitude, format as above
 
 alt:		2635
@@ -57,11 +57,12 @@ repeat:		1
 
 [pointings] ;-------------- network/pointings generation
 
-prepoint:	
+prepoint:	/tmp/VST	
 		;file name in which provides pre-defined pointings
 		; must given when calmode=2/3
 		; will skip generation of pointings
 		; otherwise, leave blacked 
+
 calmode:	1	
 		;network mode:
 		; 1. generate pointings, and sort them
@@ -70,20 +71,14 @@ calmode:	1
 		; 4. generate pointings, and sort them, and store them as npz file
 		; 5. generate pointings, and sort them, and store them as asc/txt file
 
-fskip:	
+skippoint:	
 		;file name in which contains coordinate list that would be skipped
 		; used to avoid:
 		; 1. for bright stars
 		; 2. duplicate fields
-		; 3. blah blah
+		; 3. npz file, with ra dec radius(in deg)
 
-rskip:		1.
-		;if fskip given, set a radius seperation in degrees
-		; if 1. given, any new pointings generated/input will be deleted
-		; if there're overlap between them with the forbidden pointings 
-		; (whose pointing center is given via fskip while radius is 1. deg)
-
-scheduler:	T
+scheduler:	A
 		;telescope scheduler: 
 		; [T]iling search, for wide FoV telescopes; 
 		; [G]alaxy targeted search, for relatively small FoV telescopes; 
@@ -115,6 +110,9 @@ limnob:		10
 		; otherwise, leave blanket, or very large, e.g.9999
 		; so that scheduler will stop till sun is up
 
+timelast:	72
+		;force stop when reaching a specific time
+		; unit in hours
 
 [scheduler]  ;  ------------- scheduler, only worked for VST
 

@@ -5,6 +5,10 @@ define some functions for linking soft/email/etc
 from __future__ import print_function
 from builtins import input
 import os
+#from slackclient import SlackClient
+#from scp import SCPClient
+#from wxpy import Bot
+#import sqlconn
 
 def sendemail_1(email,emailpass,emailsmtp,subj,fromaddr,toaddrs,text):
     """
@@ -112,13 +116,23 @@ def wechat(_name,_msg,_img):
     # send img
     if _img: my_friend.send_image(_img)
 
-def slack(server, port, user, password):
-    # pip install slackclient
-    from slackclient import SlackClient
+def slack(token, usr, content):
+    # pip install slackclient   
+    try: from slackclient import SlackClient
+    except: return False
 
-def phone( _account,_token,_from,_to,_txt):
+    slack_client = SlackClient(token)    
+    slack_client.api_call("chat.postMessage", channel=usr,
+                          text=content, as_user=True)
+    return True
+
+
+
+def phone(_account,_token,_from,_to,_txt):
     # pip install twilio
-    from twilio.rest import Client
+    try:from twilio.rest import Client
+    except: return False
+
     account_sid = _account
     auth_token  = _token
     client = Client(account_sid, auth_token)
@@ -127,3 +141,4 @@ def phone( _account,_token,_from,_to,_txt):
         from_=_from,
         body=_txt)
     print(message.sid)
+    return True

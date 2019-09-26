@@ -11,9 +11,10 @@ from .pstdef import (
     main,
     choose,    
     gwdist,
-    trigger_validation,
-    get_skymap,   
-    read_filelist    
+    get_skymap,  
+    build_hp_map, 
+    get_hp_map,
+    read_filelist
 )
 
 from .query import (
@@ -58,9 +59,7 @@ from .priorization import (
 )
 
 from .pstplot import (
-    mollview,
-    mollzoom,
-    contourview,
+    mollview,    
     pointview,
     distview,
     lumsview,
@@ -83,11 +82,10 @@ from .scheme import (
     IndexToDeclRa,
     DeclRaToIndex,
     RadecToThetaphi,
-    ThataphiToRadec,
-    rotate_map,
+    ThataphiToRadec,    
     vertices,
     ipix_in_box,
-    contour,    
+    compute_contours,
     radec2skycell,
     skycell2radec,
     divide_OB,
