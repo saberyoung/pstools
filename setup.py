@@ -12,7 +12,7 @@ URL1 = 'https://github.com/saberyoung/pst'
 EMAIL = 'saberyoung@gmail.com'
 AUTHOR = 'Sheng Yang'
 REQUIRES_PYTHON = '>=2.7'
-VERSION = "0.0.6"
+VERSION = "0.0.7"
 
 # What packages are required for this module to be executed
 REQUIRED = [

@@ -74,15 +74,7 @@ def mollview(pparams):
     cmap.set_under("w")
 
     # Plot GW skymap in Mollweide projection
-    if hp.__version__ >= '1.12.9':
-        hp.mollview(map=rot_map, fig=fignum, rot=None, coord=coord, \
-                unit='', xsize=800, title=title, nest=ordering, min=_min, max=_max, \
-                flip='astro', remove_dip=False, remove_mono=False, gal_cut=0, \
-                format='%g', format2='%g', cbar=False, cmap=cmap, badcolor='gray', \
-                bgcolor='white', notext=False, norm='log', hold=True, margins=None, \
-                sub=None, nlocs=2, return_projected_map=False)
-    else:       
-        hp.mollview(map=rot_map, fig=fignum, rot=None, coord=coord, \
+    hp.mollview(map=rot_map, fig=fignum, rot=None, coord=coord, \
                 unit='', xsize=800, title=title, nest=ordering, min=_min, max=_max, \
                 flip='astro', remove_dip=False, remove_mono=False, gal_cut=0, \
                 format='%g', format2='%g', cbar=False, cmap=cmap, notext=False, \
