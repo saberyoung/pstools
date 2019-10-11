@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """############################################################################
 2019/1/30 Start version 0.1. Only module avaivale for call..
 2019/3/27 version 0.2. add pstool.py. Init cookbook
