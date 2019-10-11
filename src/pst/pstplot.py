@@ -75,7 +75,7 @@ def mollview(pparams):
 
     # Plot GW skymap in Mollweide projection
     if hp.__version__ >= '1.12.9':
-        hp.mollview(map=pst.rotate_map(hpmap,_r), fig=fignum, rot=None, coord=coord, \
+        hp.mollview(map=rot_map, fig=fignum, rot=None, coord=coord, \
                 unit='', xsize=800, title=title, nest=ordering, min=_min, max=_max, \
                 flip='astro', remove_dip=False, remove_mono=False, gal_cut=0, \
                 format='%g', format2='%g', cbar=False, cmap=cmap, badcolor='gray', \
