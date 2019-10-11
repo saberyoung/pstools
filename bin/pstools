@@ -20,11 +20,13 @@ if __name__ == "__main__":
     parser.add_argument("mode",choices=[1,2,3,4,5],type=int,\
         help='PSTools mode: [1] Serve alert; [2] Monitor alert; '+\
         '[3] Manual input map; [4] Generate configure file; '+\
-        '[5] Tutorial')
+        '[5] Tutorial [6] covert txt to npz')
 
     # optional
     parser.add_argument("-f", dest="fits",\
-        help='handle healpix fits file')      
+        help='handle healpix fits file or xml voevent')   
+    parser.add_argument("-i", dest="files",\
+        help='txt files')      
     parser.add_argument("-t", dest="tel",\
         help='specific telescopes, if multiple divided with `,`')
     parser.add_argument("-x",dest='xml',\
@@ -88,7 +90,7 @@ if __name__ == "__main__":
         # telescope file: $pstool_dir/default/$tel_name.par
         if args.tel is None:
             arglist,optlist = pst.load_config()
-            _tell = arglist['observe']['telescope']
+            _tell = arglist['react']['telescope']
             if _tell is None: sys.exit('Error: option tel wrong ...')        
         else: _tell = args.tel
         _dict = {}
@@ -103,6 +105,24 @@ if __name__ == "__main__":
         import webbrowser
         _html = '%s/../../docs/_build/html/index.html'%pst.__path__[0]
         webbrowser.open(_html, new=2)
+
+    elif _mode == 6:  # - file convert
+        if _verbose: 
+            print ('for each file, need 4 columns, '+\
+                   'i.e. ra, dec, fov1, fov2, split in space')    
+
+        ra,dec,fov1,fov2 = [],[],[],[]
+        for f in read_filelist(flist):
+            for i in open(f).readlines():
+                try:ra.append(float(i[0]))
+                except:ra.append(Null)
+                try:dec.append(float(i[1]))
+                except:dec.append(Null)
+                try:fov1.append(float(i[2]))
+                except:fov1.append(Null)
+                try:fov2.append(float(i[3]))
+                except:fov2.append(Null)
+        np.savez(cachefile,ra=ra,dec=dec,fovw=fovw1,fovh=fov2)
 
 print("-"*80)
 print('>>>>> Completed in '+str(int(time.time()-start_time))+' sec\n')

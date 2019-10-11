@@ -1,0 +1,37 @@
+Metadata-Version: 1.2
+Name: pstools
+Version: 0.0.4
+Summary: pstools is a telescope pointing scheduler
+Home-page: https://sngyang.com/pstools
+Author: Sheng Yang
+Author-email: saberyoung@gmail.com
+License: MIT license
+Download-URL: https://github.com/saberyoung/pst
+Description-Content-Type: UNKNOWN
+Description: 
+        # PSTools: Pointing Scheduler in responce to Triggers
+        
+        **tutorial**
+        
+        https://pstools-documentation.readthedocs.io/en/latest/
+        
+        Don't hesitate to contact me (sheng.yang@inaf.it) if you found any problems in using the tool. 
+        
+        'Anything that can possibly go wrong, will go wrong.'
+        --MURPHY'S LAW on debugging
+        
+Platform: UNKNOWN
+Classifier: Development Status :: 1 - Planning
+Classifier: Intended Audience :: Science/Research
+Classifier: Topic :: Scientific/Engineering :: Astronomy
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.2
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Requires-Python: >=2.7

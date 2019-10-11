@@ -23,13 +23,12 @@ import astropy.units as u
 import pst
 
 #################################################
-def make_hpfitsmap(_ra,_dec,_cat,nside,radius):
+def make_hpfitsmap(_ra,_dec,_cat,nside):
 
     galpixels_Range_lum= np.zeros(hp.nside2npix(nside))
     pix_num_Range    = (pst.DeclRaToIndex(_dec,_ra,nside)) 
     galpixels_Range_lum[pix_num_Range]+=_cat    
-    if radius:lmap = hp.sphtfunc.smoothing(galpixels_Range_lum,fwhm=radius) # mass map
-    else:lmap = galpixels_Range_lum    
+    lmap = galpixels_Range_lum    
     lmap = lmap/sum(lmap) # normalization
     return lmap
 
@@ -45,9 +44,9 @@ def dist_galaxydist(_dist,tdist,verbose=False):
     if verbose:pst.dist_gauss(dmean,dsigma)
     return np.array(score)
 
-def calprob_gal(skymap,ra,dec,id0,radius=False):   
+def calprob_gal(skymap,ra,dec,radius=False):   
 
-    if radius>0:
+    if radius:
         problist,nside = [],hp.get_nside(skymap)
         for ii,xx in enumerate(ra):
             theta,phi = pst.RadecToThetaphi(ra[ii],dec[ii])        
@@ -56,51 +55,21 @@ def calprob_gal(skymap,ra,dec,id0,radius=False):
             _theta,_phi = hp.pix2ang(nside,pix)
             _prob = hp.get_interp_val(skymap, _theta, _phi)   
             prob = sum(_prob)                      
-            problist.append(prob)             
-        problist=np.array(problist)        
-
+            problist.append(prob)                                  
     else:
         theta,phi = pst.RadecToThetaphi(ra,dec)
-        problist = hp.get_interp_val(skymap, theta, phi)   
+        problist = hp.get_interp_val(skymap, theta, phi) 
+    return problist
 
-    # transform to OB format
-    ral,decl,idl=[],[],[]
-    for _ra,_dec,_id in zip(ra,dec,id0):
-        ral.append([_ra])
-        decl.append([_dec])
-        idl.append(_id)
-    return np.array(idl),np.array(ral),np.array(decl),problist
+def calprob_tile(skymap,ral,decl,fovh,fovw): 
 
-def calprob_tile(skymap,ra,dec,fovh,fovw,obx,oby): 
-
-    if True:
-        # cal via pointings
-        problist,nside = [],hp.get_nside(skymap)
-        for _ral,_decl in zip(ra,dec):
-            _probs=0
-            for _ra,_dec in zip(_ral,_decl):
-                if _ra>360-fovw:_ra=360-fovw
-                if _ra<fovw:_ra=fovw
-                if _dec>90-fovh:_dec=90-fovh
-                if _dec<-90+fovh:_dec=-90+fovh
-                ipix_poly=(pst.ipix_in_box(_ra,_dec,fovh,fovw,nside))
-                _probs+=skymap[ipix_poly].sum()
-            problist.append(_probs)
-    else:
-        # cal via OBs
-        _ra2,_dec2 = [],[]
-        for _ra,_dec in zip(ra,dec):
-            _ra2.append(np.mean(_ra))
-            _dec2.append(np.mean(_dec))
-
-        # 
-        problist,nside = [],hp.get_nside(skymap)
-        for _ra,_dec in zip(_ra2,_dec2):
-            if _ra>360-fovw*obx:_ra=360-fovw*obx
-            if _ra<fovw*obx:_ra=fovw*obx
-            if _dec>90-fovh*oby:_dec=90-fovh*oby
-            if _dec<-90+fovh*oby:_dec=-90+fovh*oby
-            ipix_poly=(pst.ipix_in_box(_ra,_dec,fovh*oby,fovw*obx,nside))
-            problist.append(skymap[ipix_poly].sum())
-        
-    return np.array(ra),np.array(dec),np.array(problist)
+    problist,nside = [],hp.get_nside(skymap)
+    for _ra,_dec in zip(ral,decl):
+        if _ra>360-fovw:_ra=360-fovw
+        if _ra<fovw:_ra=fovw
+        if _dec>90-fovh:_dec=90-fovh
+        if _dec<-90+fovh:_dec=-90+fovh
+        ipix_poly=(pst.ipix_in_box(_ra,_dec,fovh,fovw,nside))
+        _probs = skymap[ipix_poly].sum()
+        problist.append(_probs)
+    return np.array(problist)

@@ -10,9 +10,8 @@ If you use setup installation, pip would install them automatically so you do no
 install them yourself. 
 If you adopt pip approach, you need to do: pip install healpy --user, 
 all the libraries that needed by PSTools can be installed via pip.
-If you prefer bash to the setup, `astrocond/iraf27 <https://astroconda.readthedocs.io/en/latest/>`_ 
-environment is suggested, and then you need to install a few libraries 
-if needed.
+If you prefer bash to the setup, `astrocond <https://astroconda.readthedocs.io/en/latest/>`_ 
+is suggested, and then you need to install a few libraries if needed.
 
 As an option, PSTools employ `pygcn <https://github.com/lpsinger/pygcn>`_ to 
 listens for VOEvent XML format notices over
@@ -21,6 +20,7 @@ Thus, if you intend to activate such function,
 please verify your machine has network, which is not private.
 
 Note that only Linux and MAC OS have been tested, for Windows everything reamins unknown.
+Considering the Python version, the tool is working for Python 2/3.
 
 Bash installation (RECOMMENDED)
 ---------------------------------------------
@@ -37,7 +37,7 @@ Then, you need to add one line in your bash (if you use bash)::
 
 After you source your bash file, you can then initial pstools by::
 
-    source activate iraf27
+    source activate iraf27/astroconda
     pstools_init
 
 This approach would not install the pipeline, but instead call python via envirnmental defination,

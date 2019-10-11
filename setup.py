@@ -9,19 +9,19 @@ NAME = 'pstools'
 DESCRIPTION = 'pstools is a telescope pointing scheduler'
 URL = 'https://sngyang.com/pstools'
 URL1 = 'https://github.com/saberyoung/pst'
-EMAIL = 'sheng.yang@inaf.it'
+EMAIL = 'saberyoung@gmail.com'
 AUTHOR = 'Sheng Yang'
 REQUIRES_PYTHON = '>=2.7'
 VERSION = "0.0.4"
 
 # What packages are required for this module to be executed
 REQUIRED = [
-    'future','astropy','numpy','healpy','matplotlib','astroquery','xmltodict','requests'
+    'future','astropy','numpy','healpy','matplotlib','astroquery','xmltodict','requests','pygcn','voevent-parse'
 ]
 
 # What packages are optional
 EXTRAS = {
-    'source extraction': ['multiprocessing'],
+    'source extraction': ['email','smtplib','slackclient','twilio'],
 }
 
 # define current directory
@@ -30,9 +30,9 @@ here = os.path.abspath(os.path.dirname(__file__))
 # Import the README and use it as the long-description.
 # Note: this will only work if 'README.md' is present in your MANIFEST.in file!
 try:
-    with io.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
+    with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
         long_description = '\n' + f.read()
-except FileNotFoundError:
+except:
     long_description = DESCRIPTION
 
 # Load the package's __version__.py module as a dictionary.
@@ -71,7 +71,6 @@ class UploadCommand(Command):
         os.system('{0} setup.py sdist bdist_wheel --universal'.format(sys.executable))
 
         self.status('Uploading the package to PyPI via Twine...')
-#        os.system('twine upload dist/*')
         os.system('twine upload --skip-existing dist/*')
 
         self.status('Pushing git tags...')

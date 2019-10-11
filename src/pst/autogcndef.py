@@ -4,203 +4,251 @@ Extract map and infos from xml, and call main()
 """ ############################################################################
 from __future__ import print_function
 from builtins import input
-import os,glob,gcn,gcn.handlers,gcn.notice_types,scipy.stats,logging,voeventparse,astropy.time
+import os,sys,glob,gcn,gcn.handlers,gcn.notice_types,scipy.stats,voeventparse,astropy.time
 import healpy as hp
 import numpy as np
 import math as mt
 import pst
+from pst.default import *
+
+_log = False # record log file
 
 #################################################
-# Function to call every time a GCN is received.
-# Run only for notices of type LVC_INITIAL or LVC_UPDATE.
+""" 
+Function to call every time a GCN is received.
+alert types are defined by pygcn, options below:
+    GRB_COORDS=1,
+    TEST_COORDS=2,
+    IM_ALIVE=3,
+    KILL_SOCKET=4,
+    MAXBC=11,
+    BRAD_COORDS=21,
+    GRB_FINAL=22,
+    HUNTS_SRC=24,
+    ALEXIS_SRC=25,
+    XTE_PCA_ALERT=26,
+    XTE_PCA_SRC=27,
+    XTE_ASM_ALERT=28,
+    XTE_ASM_SRC=29,
+    COMPTEL_SRC=30,
+    IPN_RAW=31,
+    IPN_SEG=32,
+    SAX_WFC_ALERT=33,
+    SAX_WFC_SRC=34,
+    SAX_NFI_ALERT=35,
+    SAX_NFI_SRC=36,
+    XTE_ASM_TRANS=37,
+    spare38=38,
+    IPN_POS=39,
+    HETE_ALERT_SRC=40,
+    HETE_UPDATE_SRC=41,
+    HETE_FINAL_SRC=42,
+    HETE_GNDANA_SRC=43,
+    HETE_TEST=44,
+    GRB_CNTRPART=45,
+    SWIFT_TOO_FOM=46,
+    SWIFT_TOO_SC_SLEW=47,
+    DOW_TOD=48,
+    spare50=50,
+    INTEGRAL_POINTDIR=51,
+    INTEGRAL_SPIACS=52,
+    INTEGRAL_WAKEUP=53,
+    INTEGRAL_REFINED=54,
+    INTEGRAL_OFFLINE=55,
+    INTEGRAL_WEAK=56,
+    AAVSO=57,
+    MILAGRO_POS=58,
+    KONUS_LC=59,
+    SWIFT_BAT_GRB_ALERT=60,
+    SWIFT_BAT_GRB_POS_ACK=61,
+    SWIFT_BAT_GRB_POS_NACK=62,
+    SWIFT_BAT_GRB_LC=63,
+    SWIFT_BAT_SCALEDMAP=64,
+    SWIFT_FOM_OBS=65,
+    SWIFT_SC_SLEW=66,
+    SWIFT_XRT_POSITION=67,
+    SWIFT_XRT_SPECTRUM=68,
+    SWIFT_XRT_IMAGE=69,
+    SWIFT_XRT_LC=70,
+    SWIFT_XRT_CENTROID=71,
+    SWIFT_UVOT_DBURST=72,
+    SWIFT_UVOT_FCHART=73,
+    SWIFT_BAT_GRB_LC_PROC=76,
+    SWIFT_XRT_SPECTRUM_PROC=77,
+    SWIFT_XRT_IMAGE_PROC=78,
+    SWIFT_UVOT_DBURST_PROC=79,
+    SWIFT_UVOT_FCHART_PROC=80,
+    SWIFT_UVOT_POS=81,
+    SWIFT_BAT_GRB_POS_TEST=82,
+    SWIFT_POINTDIR=83,
+    SWIFT_BAT_TRANS=84,
+    SWIFT_XRT_THRESHPIX=85,
+    SWIFT_XRT_THRESHPIX_PROC=86,
+    SWIFT_XRT_SPER=87,
+    SWIFT_XRT_SPER_PROC=88,
+    SWIFT_UVOT_POS_NACK=89,
+    SWIFT_BAT_ALARM_SHORT=90,
+    SWIFT_BAT_ALARM_LONG=91,
+    SWIFT_UVOT_EMERGENCY=92,
+    SWIFT_XRT_EMERGENCY=93,
+    SWIFT_FOM_PPT_ARG_ERR=94,
+    SWIFT_FOM_SAFE_POINT=95,
+    SWIFT_FOM_SLEW_ABORT=96,
+    SWIFT_BAT_QL_POS=97,
+    SWIFT_BAT_SUB_THRESHOLD=98,
+    SWIFT_BAT_SLEW_POS=99,
+    AGILE_GRB_WAKEUP=100,
+    AGILE_GRB_GROUND=101,
+    AGILE_GRB_REFINED=102,
+    SWIFT_ACTUAL_POINTDIR=103,
+    AGILE_POINTDIR=107,
+    AGILE_TRANS=108,
+    AGILE_GRB_POS_TEST=109,
+    FERMI_GBM_ALERT=110,
+    FERMI_GBM_FLT_POS=111,
+    FERMI_GBM_GND_POS=112,
+    FERMI_GBM_LC=113,
+    FERMI_GBM_GND_INTERNAL=114,
+    FERMI_GBM_FIN_POS=115,
+    FERMI_GBM_ALERT_INTERNAL=116,
+    FERMI_GBM_FLT_INTERNAL=117,
+    FERMI_GBM_TRANS=118,
+    FERMI_GBM_POS_TEST=119,
+    FERMI_LAT_POS_INI=120,
+    FERMI_LAT_POS_UPD=121,
+    FERMI_LAT_POS_DIAG=122,
+    FERMI_LAT_TRANS=123,
+    FERMI_LAT_POS_TEST=124,
+    FERMI_LAT_MONITOR=125,
+    FERMI_SC_SLEW=126,
+    FERMI_LAT_GND=127,
+    FERMI_LAT_OFFLINE=128,
+    FERMI_POINTDIR=129,
+    SIMBADNED=130,
+    FERMI_GBM_SUBTHRESH=131,
+    SWIFT_BAT_MONITOR=133,
+    MAXI_UNKNOWN=134,
+    MAXI_KNOWN=135,
+    MAXI_TEST=136,
+    OGLE=137,
+    CBAT=138,
+    MOA=139,
+    SWIFT_BAT_SUBSUB=140,
+    SWIFT_BAT_KNOWN_SRC=141,
+    VOE_11_IM_ALIVE=142,
+    VOE_20_IM_ALIVE=143,
+    FERMI_SC_SLEW_INTERNAL=144,
+    COINCIDENCE=145,
+    FERMI_GBM_FIN_INTERNAL=146,
+    SUZAKU_LC=148,
+    SNEWS=149,
+    LVC_PRELIMINARY=150,
+    LVC_INITIAL=151,
+    LVC_UPDATE=152,
+    LVC_TEST=153,
+    LVC_COUNTERPART=154,
+    AMON_ICECUBE_COINC=157,
+    AMON_ICECUBE_HESE=158,
+    CALET_GBM_FLT_LC=160,
+    CALET_GBM_GND_LC=161,
+    AMON_ICECUBE_EHE=169
+"""
 
 @gcn.handlers.include_notice_types(
-    gcn.notice_types.LVC_PRELIMINARY,            # pointing and send alerts
+    gcn.notice_types.LVC_PRELIMINARY,
     gcn.notice_types.LVC_INITIAL,                
-    gcn.notice_types.LVC_UPDATE)
+    gcn.notice_types.LVC_UPDATE)   
 
 def process_gcn(payload, root):  
    
-    # judge if new voevet, no? return
-    _voname = root.attrib['ivorn']+'.xml'
-    if os.path.exists(os.path.basename(_voname)):return
-    else:pass
+    # read arglist
+    # decide which telescopes to be activated
+    arglist,optlist = pst.load_config()
+    _tell = arglist['react']['telescope']
+    _dir =  arglist['data']['dir']
+    if _tell is None: return('!!! Error: option tel wrong ...')    
 
-    # if new voevent, alert, store voevet
-    print('###Alert')
-    logging.info('###Alert %s'%_voname)
-    with open(os.path.basename(_voname),'w') as _vo:_vo.write(payload)    
+    # judge if it's new voevet
+    # if not return
+    _voname = '%s/%s.xml'%(_dir,os.path.basename(root.attrib['ivorn']))
+    if os.path.exists(_voname):
+        if eval(arglist['show']['verbose']): print ('%s exists'%_voname)
+        return
 
-    # define parameter dictionary
-    _opts_list = {}
+    if _log: # if record
+        import logging
 
-    # decide which telescopes for follow up
-    # in the "current" directory: pstools.default, pst_tel.default
-    for _pstdir in ['./']:#, '%s/default/'%pst.__path__[0]]:
-        _pstfile = glob.glob(_pstdir + 'pst_*.default')        
-        if len(_pstfile)==0:
-            logging.info('No default files found in %s'%_pstdir)
-            continue
-        for ff in _pstfile:
-            _tool,tel0 = os.path.splitext(os.path.basename(ff))[0].split('_')
-            if tel0 in _opts_list:continue
-            arglist,optlist = pst.config_init(tel0)           
-            _opts_list['arg'] = arglist
-            _opts_list[tel0] = optlist       
-            _info = 'Use %s in %s for %s auto search'%(os.path.basename(ff),_pstdir,tel0)
-            print(_info)
-            logging.info(_info)
+    # for python3, transform from bytes to string
+    if sys.version_info>(3,0,0):
+        payload = str(payload, encoding = "utf-8")
 
-    # if arg default file missing
-    if not 'arg' in _opts_list:
-        print('!!! Error: take care, trigger is coming, however, pstools.default missing in pst directory!!!')
-        logging.info('!!! Error: take care, trigger is coming, however, pstools.default missing in pst directory!!!')
+    # if new voevent
+    # red alert, store voevet
+    print(' - [Alert] -: %s'%_voname)
+    with open(_voname,'w') as _vo:
+        if eval(arglist['show']['verbose']): 
+            print ('create %s'%_voname)
+        _vo.write(payload)
 
-    # lenght of default file >=2: one for arg, at least one for telescope
-    if len(_opts_list) < 2:
-        print('!!! Error: take care, trigger is coming, however, no default file found in pst directory!!!')    
-        logging.info('!!! Error: take care, trigger is coming, however, no default file found in pst directory!!!')
+    # read params from configure file
+    _paramslist = {}
+    _paramslist['tmp'] = {}
+    for tel0 in _tell.split(','):        
+        arglist,optlist = pst.load_config(tel0)           
+        _paramslist['arg'] = arglist
+        _paramslist[tel0] = optlist
+        _info = '>>> Read params for telescope:%s'%tel0
+        if _log:logging.info(_info)
+        if _paramslist['arg']['show']['verbose']: print(_info)        
 
-    # transfer further informations via _opts_list dict
-    # -> files, content, images
-    _opts_list['arg']['email']['files'] = [os.path.basename(_voname)]
-    _opts_list['arg']['email']['images'] = []
-
-    # read GW parameters from voevent, record them to _opts_list dict
-    if 'LVC' in root.attrib['ivorn']:
-        _opts_list['arg']['email']['emailcontent'] = '#online LVC alert:\n'
-        _opts_list['arg']['phone']['phonecontent'] = 'online LVC alert, '
-    else:
-        try:_tname = os.path.basename(root.attrib['ivorn']).split('#')[0]
-        except:
-            # related to gcn.handlers.include_notice_types           
-            logging.info('Check voevent %s!'%_voname)
-            print('Check voevent %s!'%_voname)
-            return
-        _opts_list['arg']['email']['emailcontent'] = '#online %s search:\n'%_tname
-        _opts_list['arg']['phone']['phonecontent'] = 'online %s alert, '%_tname
-
-    # check role: test or obs
-    _opts_list['arg']['email']['emailcontent'] += '#\t%s alert\n'%root.attrib['role']
-    _opts_list['arg']['phone']['phonecontent'] += '%s: '%root.attrib['role']
-
-    # record role in email list
+    # record role in email list   
     if root.attrib['role'] == 'test':
-        if not eval(_opts_list['arg']['priorization']['test']):return
-    _opts_list['arg']['email']['role'] = root.attrib['role']
+        if not eval(_paramslist['arg']['react']['test']):return
 
-    if not root.attrib['role'] in ['test','observation']:
-        # for LVC only two roles
-        # take care for the other alert type: neutrino, GRB, etc
-        logging.info('New role?')
-        print('New role?')
-        #return
+    # define email, slack, phone, ...
+    _paramslist['tmp']['files'] = [_voname]
+    _paramslist['arg']['email']['emailcontent']='online %s alert \n'%root.attrib['role']
+    _paramslist['arg']['phone']['phonecontent']='online %s alert: '%root.attrib['role']
+    _paramslist['arg']['slack']['slackcontent']='online %s alert: '%root.attrib['role']
 
-    # for the voevent without healpy map, go main2
-    if any(x in _voname for x in ['LVC']):go_main = 1
-    # for alert with healpy map, go main1
-    else:go_main = 2
-
-    # for LVC preliminary initial update cases:
-    if go_main == 1:
-        # check stage: Preliminary or Initial or Update
-        if 'Preliminary' in _voname:
-            _opts_list['arg']['email']['emailcontent'] += '#\tPreliminary announcement\n'
-            _opts_list['arg']['phone']['phonecontent'] += 'preliminary announcement for '
-        elif 'Initial' in _voname:
-            _opts_list['arg']['email']['emailcontent'] = '#\tInitial announcement\n'
-            _opts_list['arg']['phone']['phonecontent'] += 'initial announcement for '
-        elif 'Update' in _voname:
-            _opts_list['arg']['email']['emailcontent'] = '#\tUpdate announcement\n'
-            _opts_list['arg']['phone']['phonecontent'] += 'update announcement for '
-        else:
-            # impossible to arrvie here!
-            logging.info('New stage?')    
-            return
-    # for neutrino, GRB, etc
-    else:
-        print(_voname)
-        logging.info(_voname)
-
+    # for auto search, trigger is forced to be activated
+    _paramslist['arg']['priorization']['trigger'] = 'True'
+                        
     # Read all of the VOEvent parameters from the "What" section.
     params = {elem.attrib['name']:
               elem.attrib['value']
               for elem in root.iterfind('.//Param')}
+    _paramslist['tmp']['voevent'] = params
 
-    # store voevent
-    _opts_list['arg']['voevent']=params
+    # store infos
+    try: mapurl = params['skymap_fits']
+    except: mapurl = False
+    if mapurl:   # download map
+        try: _fits = pst.get_skymap(mapurl,os.path.basename(root.attrib['ivorn']),_dir)
+        except: return('### Error: no ivorn in %s, TB checked'%_fits)
+        try:
+            (_paramslist['tmp']['tmap'], _paramslist['tmp']['distmu'], \
+             _paramslist['tmp']['distsigma'], _paramslist['tmp']['distnorm']), \
+                _paramslist['tmp']['header'] = hp.read_map(_fits, \
+                    field=[0, 1, 2, 3],h=True, \
+                    verbose=_paramslist['arg']['show']['verbose'])
+        except:
+            _paramslist['tmp']['tmap'], _paramslist['tmp']['header'] = \
+                                hp.read_map(_fits, h=True, \
+                                verbose=_paramslist['arg']['show']['verbose'])
+            _paramslist['tmp']['distmu'], _paramslist['tmp']['distsigma'], \
+                _paramslist['tmp']['distnorm'] = None, None, None
+    else:    # generate map
+        print ('### Warning: no skymap_fits found, try bulding...')
+        _paramslist['tmp']['tmap'], _paramslist['tmp']['header'] = \
+                pst.build_hp_map(root,_dir+'/'+\
+                os.path.basename(root.attrib['ivorn'])+'.fits',\
+                nside,_coord=_paramslist['arg']['show']["coord"])
+        if len(_paramslist['tmp']['tmap']) > 0:
+            print ('### Warning: genearted a fits,'+\
+                   ' %s'%(root.attrib['ivorn']+'.fits'))
+            distmu, distsigma, distnorm = None, None, None
+        else:return('### Error: failed to build fits') 
 
-    # main process
-    if go_main == 1: 
-
-        # download map and read mapname    
-        mapurl = params['skymap_fits']
-        mapname = pst.get_skymap(mapurl,os.path.basename(root.attrib['ivorn']),_opts_list['arg']['data']['dir'])
-        _opts_list['arg']['email']['files'].append(mapname)
-
-        logging.info('Finished checking VOevent, now starting main process for %s'%mapname)        
-    
-    else: # for no map case
-        with open(os.path.basename(_voname), 'rb') as f:
-
-            v = voeventparse.load(f)
-
-            try:
-                _nra,_ndec,_loc = float(v.WhereWhen.ObsDataLocation.ObservationLocation.AstroCoords.Position2D.Value2.C1),\
-                                  float(v.WhereWhen.ObsDataLocation.ObservationLocation.AstroCoords.Position2D.Value2.C2),\
-                                  float(v.WhereWhen.ObsDataLocation.ObservationLocation.AstroCoords.Position2D.Error2Radius)
-            except:
-                logging.info('Error: no ra,dec found in voevent!!!')
-                return
-
-            if _nra == 0 and _ndec == 0:
-                logging.info('Error: no ra,dec reported in voevent!!!')
-                return
-                
-            try:
-                _timeobs = str(v.WhereWhen.ObsDataLocation.ObservationLocation.AstroCoords.Time.TimeInstant.ISOTime)
-                #_importance = next(root.iterfind('.//Why')).attrib['importance']
-            except:
-                logging.info('Error: no timeobs found in voevent!!!')
-                return
-
-            _timeobs1 = astropy.time.Time(_timeobs, format='isot', scale='utc')
-            _mjdobs = _timeobs1.mjd
-
-            try:_object = v.Why.Inference.Name
-            except:_object = 'unKnown'           
-
-        # create healpix fits map and read mapname
-        mapname = '%s%s.fits'%(_opts_list['arg']['data']['dir'],\
-                          os.path.basename(root.attrib['ivorn']))
-        nside = int(_opts_list['arg']['priorization']["nside"])
-
-        # circle with ra,dec,radius=err or max(fov)
-        if _loc>0: _radius = _loc
-        else:
-            fovl = []
-            for _ntt,_tt in enumerate(_opts_list):
-                if _tt == 'arg':continue
-                fovl.append(float(_opts_list[_tt]['telescope']['fovw']))
-                fovl.append(float(_opts_list[_tt]['telescope']['fovh']))
-            _radius = max(fovl)
-
-        gradius = _radius*2*mt.pi/360 # from deg to radians
-        _pmap = np.zeros(hp.nside2npix(nside))
-        _index = pst.DeclRaToIndex(_ndec,_nra,nside)
-        _pmap[_index]+=1
-        _pmap=hp.sphtfunc.smoothing(_pmap,fwhm=gradius)
-        
-        _pmap = _pmap/sum(_pmap)       
-        hlist = [('CREATOR','PSTOOLS'),
-                 ('OBJECT',_object),
-                 ('NSIDE',nside),
-                 ('MJD-OBS',_mjdobs),
-                 ('DATE-OBS',_timeobs)]
-
-        hp.write_map(mapname,_pmap, coord='C', extra_header=hlist, overwrite=True)
-        _opts_list['arg']['email']['files'].append(mapname)
-        logging.info('Finished checking VOevent, now starting main 2 process for ra=%.2f dec=%.2f with error=%.2f'%\
-                     (_nra,_ndec,_loc))
-
-    pst.main(mapname, _opts_list)
+    # main process    
+    pst.main(_paramslist)

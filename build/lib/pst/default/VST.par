@@ -1,0 +1,203 @@
+[telescope] ;-------------- define telescope
+
+name:		VST
+		;telescope name
+
+weight:		1
+		;if at some point, two telescopes are both available,
+		; the one with highest weight number will be assigned
+		; pointings first
+		; int/float, the smaller, the highest priority
+
+lat:		-24.625
+		;Latitude
+
+lon:		-70.4033
+		;Longitude
+
+alt:		2635
+		;Altitude (in meter)
+
+fovw:		1.00
+		;field of view in horizontal/width direction (in deg)
+		; up to north
+
+fovh:		1.00
+		;field of view in elevation/height direction (in deg)
+
+exptime:	45.00
+		;estimated time for exposure per frame (in second)
+
+rottime:	60.00
+		;estimated time for overhat (in seconds)
+
+[pointings] ;-------------- network/pointings generation
+
+scheduler:	T
+		;telescope scheduler: 
+		; [T]iling search, for wide FoV telescopes
+		; [G]alaxy targeted search, for relatively small FoV telescopes
+		; [A]utomatic selection, will be decided as T or G,
+		;    depends on telescope FoV and trigger size
+
+uarea:		0
+		;when adding tilings, they will be skipped if 
+		; a portion of its area is already covered or should be skipped
+		; Here $uarea defines the threshold on the portion
+		; if 0 set, any part of tiling is covered would be removed
+		; if 1 set, only tiling is 100 percent covered would be removed
+		; apparently, $uarea can be only varied from 0 to 1
+
+cachemode:	3
+		;network mode:
+		; 1. read fields from $cachefile if setted and exists, 
+                ;    see if cached fields could meet the demandings setted below.
+                ;    if yes, read and go on
+		;    if no, clobber and rebuild $cachefile
+                ;    if $cachefile not exists, generate pointings and store to a cachefile
+		; 2. the same as 1, but instead, not store to a new $cachefile
+		; 3. always, generate fields,
+		;    clobber exiting $cachefile if any,
+                ;    then store yields to a new $cachefile
+		; 4. the same as 3, but instead, not store to a new $cachefile
+
+cachefile:	VST1
+		;file name in which provides pre-defined pointings
+		; since, npz file is used, so:
+		; either put .npz in $cachefile, or without suffix
+		; and I will put .npz in the end of $cachefile
+
+skipfile:	
+		;file name in which contains coordinate list that would be skipped
+		; used to avoid:
+		;   1. sources from some know catalog, e.g. bright stars
+		;   2. fields had already been done, avoid duplication
+		; format:
+		;   should be a npz file, naming is same as $cachefile
+		;   for $skipfile, should contain 4 lists,
+		;   i.e. ra, dec, fovw, fovh (unit in deg) with the same lingth
+
+shift:		0
+		;for tiling generation:
+		; the network was built with initial tiling at ra=0, dec=0
+		; if $shift>0
+		;   optimise tiling network by a ramdom sampling on initial radec,
+		;   in order to cover most probs with the top $shift fields
+		; if $shift=0, use original tiling network
+
+limra:		0,360
+		;pointing limitation
+		; on the Ra range
+
+limdec:		-90,20
+		;pointing limitation
+		; on the Decl range
+
+nfields:	5
+		;in order to save time, calculate visibility 
+		;   every some fields, if they are in the same portion of sky
+
+limfields:	50
+		;maximum number of fields that can be done diring night
+		;for telescope which has a limitation on time
+		; if leave blanket, or very large, e.g. 9999
+		; scheduler will stop till time/pointing used up
+
+timelast:	24
+		;force stop when reaching a specific time
+		; while the begining of time is setted in $obstime
+		; unit in hours
+
+[observe] ;------------- observation estimate
+
+obstime:	night
+		; define the start time for schedule
+		;  [1] now
+		;        start from now/when receiving alerts
+		;  [2] night
+		;        start from the beginning of the following night
+		;        defined by time when sun < $limsun
+		;  [3] specific time in utc
+		;        make sure to be readable by astropy.time
+		;        e.g.1999-01-01T00:00:00.1234
+		;  [4] +/- x minutes
+		;        some time before/later than now
+		;        e.g. -30, 30 mins before
+		;             +30, 30 mins later
+
+order:		3
+		; Ranking algorithms: 
+		;  [1] greedy algorithm: rank with priority 
+		;  [2] conservative algorithm: rank from west to east 
+		;  [3] optimal algorithm: consider slewing angle, start from westest pointing 
+		;  [4] optimal algorithm: consider slewing angle, start from highest ranking
+
+remcov:		0.9
+		; if a float num (0-1) given, 
+		;   remain fields that cover $cov probs of priorization map
+		;   decrease pointings would speed up following procedures
+		; if not set, remain all fields
+
+remfields:	200
+		; if a number is given	
+		;   remain the top $remfields fields
+		;   decrease pointings would speed up following procedures
+		; leave blanket will remain all fields
+
+limsun:		-12
+		; limitation on the sun altitude
+		; will start scheduler when sun alt < $limsun
+
+limmoon:	auto
+		; limitation on the moon effect
+		; give a number, e.g. 30 (unit in deg) or auto
+		; if a number given: pointings within such radius will be removed
+		; if auto given: do pointing removement accoring to the lunar phase:
+		;  moon light is calculated as a number between 0 to 100
+		;    moon light > 80, $limmoon = 30
+		;    moon light from 40 to 80, $limmoon = 20
+		;    moon light from 10 to 40, $limmoon = 10
+		;    moon light < 10, $limmoon = 1
+
+limsobj:	jupiter,venus
+		; avoid objects inside the solor system
+		; options: mercury,venus,moon,mars,jupiter,saturn,uranus,neptune
+		; divided with comma
+
+limsobjr:	2
+		; limiting radius for solor object
+		; pointings with such radius (unit in deg)
+		;  includes solor objects will be removed
+
+limalt:		2.0
+		; limitation on height/airmass
+		; avoid telescope being too low
+
+[scheduler]  ;  ------------- scheduler setting
+
+dither:	     	5
+                ; dither mode
+		; give a number, e.g. 5 (unit in arcsec)
+		; or leave blanket
+
+filter:		r_SDSS, g_SDSS
+		;telescope filter 
+
+repeat:		0
+		;field repeatation:
+		; for dithering, or different filters etc
+		; 0 for exposure once, 1 for 2 exposures, ....
+
+schfile:	pst_VST.txt
+		; output name compostion for scheduler
+		; if a name given, e.g. pst_VST.txt:
+		;    will remove and rebuild $schfile
+		; if leave blacket:
+		;    will set $schfile as {tel name}_{trigger name}_{date time}.txt
+		; if None, will not generate schedule file
+
+py2:		
+		; after schedule, excute $py2 python codes,
+		;  for specific functions, e.g. interact with databse, 
+		;    generate special OB files, etc.
+		;  could be muitiple, divided by comma

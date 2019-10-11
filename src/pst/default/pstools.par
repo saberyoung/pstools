@@ -1,195 +1,121 @@
 [priorization] ;  ------------- what infos used for priorization 
 
 trigger:	True
-		;include trigger prob into score
-		; True or False
+		;include trigger infos into score if any
+		; option: True or False
 
-mass:		True
-		;include galaxy mass into score
-		; True or False
+galaxy:		1
+		;include galaxy infos into score
+		; 0. no galaxy infos
+		; 1. galaxy mass/luminosity
+		; 2. galaxy count
 
-dist:		False
+dist:		True
 		;include galaxy distance into score
-		; True or False
-
-number:		False
-		;include galaxy counts into score
-		; True or False
-
-nside:		1024
-		;nside of priorization map
-		; Note: will change according to trigger healpix map
+		; P_dist = gaussian PDF (galaxy dist)
+		;  Gaussian distribution was built with mean, var from trigger
+		;  currently only working for CBC GW triggers
+		; options: True or False
+		;  if True, worked only when trigger = True and galaxy = 1/2
 
 [react]  ;  ------------- for trigger search, when/how to response
 
-type:		1,2
-		;react to which type of VOEvent
-		; 1. GW
-		; 2. GRB
-		; 3. AMON
-		; TBD
+telescope:	VST
+		; which telescopes used
+		; essential for auto search
+
+action:		2
+		; 1. only alert
+		; 2. + telescope pointing scheduler
 
 test:		False
-		;for GW, there're always test alerts for testing
-		; True: Respond also to test alerts
-		; False: No
+		;when monitoring, for the role of triggers,
+		; if True: respond also to test alerts
+		; if False: respond only to observation alerts
 
 [data]  ;  ------------- define directory for putting data
 
 dir:		./
-		; define a directory for putting yields
+		; define a directory for putting scheduling yields
 
-schfile:	all.txt
-		; output scheduler file name
-
-[observe] ;------------- observation estimate
-
-telescope:	VST,schmidt
-		; which telescopes used
-		; essential for auto search
-
-obstime:	now
-		; define the start time for schedule
-		;  [1] now
-		;  [2] time in utc, e.g.1999-01-01T00:00:00.1234
-		;  [3] +/- x minutes, e.g. -30 (30 mins before); +30 (30 mins later)
-
-timelast:	10
-		; force stop schedule after how much time
-		; if it's long, the schedule will stop till no visible fields
-
-order:		1
-		; Ranking algorithms: 
-		;  [1]greedy algorithm: rank with priority 
-		;  [2]conservative algorithm: rank from west to east 
-		;  [3]optimal algorithm: consider slewing angle, start from westest pointing 
-		;  [4]optimal algorithm: consider slewing angle, start from highest ranking 
-
-cov:
-		; observing coverage
-		; if a float num (0-1), e.g. 0.9, given, force network to cover 
-		;   the top 90% prob
-		;   otherwise, auto set, depending on the trigger size and FoV
-
-limsun:		-12
-		; limitation on the height of sun
-		; less will be considered as safe
-		; otherwise, considered as the end of schedule
-
-limmoon:	auto
-		; limitation on the area of moon
-		; e.g. 30 (unit in deg) or auto
-		; if a number set: pointings within such radius will be removed
-		; if auto set: do removement accoring to the lunar phase
-
-limsobj:	jupiter,venus
-		; avoid objects inside solor system, divided with comma
-		; options: mercury,venus,moon,mars,jupiter,saturn,uranus,neptune
-
-limsobjr:	2
-		; limiting radius for solor object
-		; pointings with such radius (unit in deg) includes solor objects will be removed
-
-limalt:		2.0
-		; limitation on height/airmass
-		; avoid telescope being too low
-
-threshold:	
-		;pixel threshold (e.g. 1e-3):
-		;remain fields only when their corresponding probs is above the threshold
-		;leave blanket, I will automatically do thresholding based on map size and FoV of telescope
-
-template:	
-		;search if there're available templates
-		; e.g. VST,DES,PS,SDSS
-		; if yes, put pointings there with high priority
+py1:		test.py
+		; after alert and before schedule, excute $py1 python codes,
+		;  for specific functions, e.g. interact with databse, etc.
+		;  could be muitiple, divided by comma
 
 [galaxies] ;  ------------- galaxy selection
 
 cachemode:	1
-		;cache mode:
-		; 1. read galaxies from cachefile if any; check infos, 
+		;galaxy cache mode:
+		; 1. read galaxies from $cachefile if if setted and exists,
 		;    see if cashed galaxies could meet the demandings setted below.
-		;    if yes, read and go on; if no, clobber and rebuild cachefile
-		;    if no cachefile, query Vizier and store to a cachefile
-		; 2. the same as 1, but instead, not store to a new cachefile
-		; 3. query Vizier directly and clobber exiting cachefile if any, 
-		;    then store yields to a new cachefile
-		; 4. the same as 3, but instead, not store to a new cachefile
+		;    if yes, read and go on
+		;    if no, clobber and rebuild $cachefile
+		;    if $cachefile not exists, query Vizier and store to a cachefile
+		; 2. the same as 1, but instead, not store to a new $cachefile
+		; 3. always, query Vizier 
+		;    clobber exiting $cachefile if any, 
+		;    then store yields to a new $cachefile
+		; 4. the same as 3, but instead, not store to a new $cachefile
 
 cachefile:	/tmp/GLADE
-		;cache mode: store galaxies into a $dir/cache file
-		; avoid consuming time if the number of galaxies is large
-		; or at some point the network is bad
-		; suggest to store the full GLADE catalog once initialized, will take time
+		;file name in which provides pre-defined galaxies
+		; since, npz file is used, so:
+		; either put .npz in $cachefile, or without suffix
+		; and I will put .npz in the end of $cachefile
 
 catalog:	1
-		;galaxy cat: 
+		;Vizier query for galaxy catalog, options:
 		; 1. GLADE, VII/281
 		; 2. GWGC, VII/267
 
-size:		-1
-		;galaxy catalog size number
-		; 100 for 100 lines of catalog
-		; -1 for the full catalog
-
-limdist:	-1,200
+limdist:	-1,1000
 		; distance range (in Mpc) for galaxy selection
 		; if trigger (CBC GW, or?) distance available,
-		; auto select galaxy range; otherwise, applied settings here.
-		; Notice: GWGC is only valid within 100 Mpc, 
-		; GLADE will go up to 300 Mpc
-		; -99 is reserved for specific case, so don't use -99 here
+		;     auto select galaxy range
+		; otherwise, applied settings here.
+		; Notice: GWGC/GLADE is imcomplete beyond within 40/100 Mpc
 
 limra:		0,360
 		; Ra range (in deg) for galaxy selection
 
-limdec:		-20,90
+limdec:		-90,90
 		; Dec range (in deg) for galaxy selection
 
-limmag:		-10,-18
+limmag:		-10,-25
 		; absolute magnitude range (in mag) for galaxy selection
-
-filter:		B
-		;filter for galaxy absolute magnitude 
-		; for GLADE, there're B and K
-		; for GWGC, there're only B
-
-limebv:		False
-		; galactic extinction cut
-		; if not False: remove pointings located in high ebv (e.g. $limebv<2.5) area 
-
-radius:		50
-		; FWHM for galaxy smoothing (in arcmin)
-		; False: no smoothing
 
 [show] ;  ------------- visualization setting, for plots and terminal
 
 verbose:	True
-		; verbose mode: show detialed infors, plots, etc
+		; verbose mode: show detialed infos
 
-showmap:	1,2
+showmode:	2
+		; 1. no plot
+		; 2. plot according to $showmap, not show, send to users via ...
+		; 3. plot according to $showmap, and show together when finished
+		; 4. plot according to $showmap, pause whenever a plot is done
+		; 5. interactive mode for 4, enable user to change plots
+
+showmap:	1,3,4,5,6,8,10
 		;if verbose mode activated, which plot to show: 
-		; trigger map, galaxy distribution, galaxy cum curve
 		; options: 
-		;  1. trigger; 2. all galaxies in dots (be careful); 
-		;  3. galaxy info; 
-		;  4. all galaxies in hp map;
-		;  5. selected galaxies; 6. pointings; 
-		;  7. pointings + cumulative score
-
-figsize:	15,10
-		;figure size
+		;  default:
+		;    2d sky with sun, moon, horizon, galactic plane (figure 1); 
+		;  1. with trigger & contours if any (figrue 1); 
+		;  2. all galaxies (figure 1); 
+		;  3. remianed galaxies (figure 1);
+		;  4. galaxy distance distribution (figure 2); 
+		;  5. galaxy luminosity distribution (figure 3); 
+		;  6. cumulative galaxy score (figure 4)
+		;  7. all telescope pointings (figure 1)
+		;  8. remianed telescope pointings (figure 1);
+		;  9. route for scheduled pointings (figure 1);
+		;  10. cumulative pointing score (figure 5)
 
 contours:	.9,.5
-		;define contours to show for GW/GRB/... triggers
-
-colors:		k,b
-		;define colors for above contours
-
-interactive:	True
-		;Once verbose,
-		; interactive mode will enable user to change plots
+		;2D contours to show for triggers
+		; divided by comma, varied from 0 to 1
 
 theta:		0
 		;default paramater for healpix view
@@ -201,34 +127,32 @@ phi:		0
 		; phi = ra
 		; unit in deg
 
-ordering:	False
-		;default paramater for healpix view
-		; healpix ordering
-
 coord:		C
 		;default paramater for healpix view
 		; coordinate system
+		; options: C, E, G
 		; default: Equatorial
 
-norm:		norm
+norm:		None
 		;default paramater for healpix view
 		; normalization
+		; options: 
+		;  ‘hist’: histagram
+		;  ‘log’: logarithmic
+		;   None: linear
 
 min:		0
-		;minimum range value
+		;minimum range value for 2d normalized map
 
 max:		1e-4
-		;maximum range value
+		;maximum range value for 2d normalized map
 
 title:		2D skymap
 		;healpix title
 
-label:		True
-		;infos for healpix plots
-
 [email] ;  ------------- email setting
 
-sendemail:	False
+activate:	True
 		;send email or not
 
 email:		padova.grawita@gmail.com
@@ -262,17 +186,6 @@ to:
 
 from:	
 		;set message sender
-
-[wechat] ;-------------- define wechat configuration
-
-activate:	False
-		; activate or not
-
-friends:	
-		; send msg to whom
-
-groups:	
-		; send msg to which group
 
 [slack] ;-------------- define slack configuration
 

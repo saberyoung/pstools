@@ -5,39 +5,20 @@ define some functions for linking soft/email/etc
 from __future__ import print_function
 from builtins import input
 import os
-#from slackclient import SlackClient
-#from scp import SCPClient
-#from wxpy import Bot
-#import sqlconn
 
-def sendemail_1(email,emailpass,emailsmtp,subj,fromaddr,toaddrs,text):
+def sendemail(email,emailpass,emailsmtp,subj,\
+              fromaddr,toaddrs,text,Imglist=[],Filelist=[]):
     """
-    send email without attachment
-    """     
-    import smtplib
-    try:
-        message = 'To: %s \nSubject: %s\n\n%s' % (toaddrs,subj, text)
-        server = smtplib.SMTP(emailsmtp)
-        server.starttls()
-        server.login(email,emailpass)
-        server.sendmail(fromaddr,toaddrs,message)
-        server.quit()
-        return 1
-    except:
-        return 0
-
-def sendemail_2(email,emailpass,emailsmtp,subj,fromaddr,toaddrs,text,Imglist,Filelist):
-    """
-    send email with attachment
+    send email
     """
     import smtplib
     from email.mime.text import MIMEText
     from email.mime.image import MIMEImage
-    from email.mime.multipart import MIMEMultipart
-    from email.MIMEBase import MIMEBase
-    from email import Encoders
+    from email.mime.multipart import MIMEMultipart, MIMEBase
+    from email import encoders
 
     try:
+        # settings
         msg = MIMEMultipart()
         msg['Subject'] = subj
         msg['From'] = fromaddr
@@ -51,7 +32,7 @@ def sendemail_2(email,emailpass,emailsmtp,subj,fromaddr,toaddrs,text,Imglist,Fil
         for FileName in Filelist:
             part = MIMEBase('application', "octet-stream")
             part.set_payload(open(FileName, "rb").read())
-            Encoders.encode_base64(part)
+            encoders.encode_base64(part)
             part.add_header('Content-Disposition', 'attachment; filename="%s"'%FileName)
             msg.attach(part)
 
@@ -125,8 +106,6 @@ def slack(token, usr, content):
     slack_client.api_call("chat.postMessage", channel=usr,
                           text=content, as_user=True)
     return True
-
-
 
 def phone(_account,_token,_from,_to,_txt):
     # pip install twilio
