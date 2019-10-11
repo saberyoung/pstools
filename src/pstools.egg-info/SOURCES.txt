@@ -8,6 +8,9 @@ setup.py
 upload.py
 bin/pstools
 bin/slack
+bin/OBgen/p2api.py
+bin/OBgen/scheduler.py
+bin/OBgen/sqlconn.py
 data/ebv_hpmap/wssa_sample_1024-bintable.fits
 data/refer_cat/wdb_query_18932_eso.txt
 docs/Makefile
@@ -100,6 +103,7 @@ src/pst/autogcndef.pyc
 src/pst/configure.py
 src/pst/configure.pyc
 src/pst/default.py
+src/pst/default.pyc
 src/pst/link.py
 src/pst/link.pyc
 src/pst/manschedule.py
@@ -111,6 +115,7 @@ src/pst/pstdef.pyc
 src/pst/pstplot.py
 src/pst/pstplot.pyc
 src/pst/query.py
+src/pst/query.pyc
 src/pst/scheme.py
 src/pst/scheme.pyc
 src/pst/server.py
@@ -118,10 +123,12 @@ src/pst/server.pyc
 src/pst/version.py
 src/pst/version.pyc
 src/pst/visibility.py
+src/pst/visibility.pyc
 src/pst/__pycache__/__init__.cpython-35.pyc
 src/pst/__pycache__/__init__.cpython-36.pyc
 src/pst/__pycache__/autogcndef.cpython-36.pyc
 src/pst/__pycache__/configure.cpython-36.pyc
+src/pst/__pycache__/default.cpython-36.pyc
 src/pst/__pycache__/link.cpython-36.pyc
 src/pst/__pycache__/manschedule.cpython-36.pyc
 src/pst/__pycache__/mcmc.cpython-36.pyc
@@ -136,8 +143,11 @@ src/pst/__pycache__/server.cpython-36.pyc
 src/pst/__pycache__/version.cpython-35.pyc
 src/pst/__pycache__/version.cpython-36.pyc
 src/pst/__pycache__/visibility.cpython-36.pyc
+src/pst/default/CI1.par
+src/pst/default/REM.par
 src/pst/default/VST.par
 src/pst/default/pstools.par
+src/pst/default/schmidt1.par
 src/pst/default/temptel.par
 src/pstools.egg-info/PKG-INFO
 src/pstools.egg-info/SOURCES.txt

@@ -1,0 +1,214 @@
+[telescope] ;-------------- define telescope
+
+name:		Campo-Imperatore
+		;telescope name
+
+weight:         2
+                ;if at some point, two telescopes are both available,
+                ; the one with highest weight number will be assigned
+                ; pointings first
+                ; int/float, the smaller, the highest priority
+
+lat:		42.44194
+		;Latitude, format options:
+		; 1- 10.625, 41.2
+		; 2- 00h42m30s, +41d12m00s
+		; 3- 00h42.5m, +41d12m
+		; 4- 00 42 30, +41 12 00
+		; 5- 00:42.5, +41:12
+
+lon:		13.5877
+		;Longitude, format as above
+
+alt:		2135
+		;Altitude (in meter)
+
+fovw:		1.00
+		;field of view in horizontal/width direction (in deg)
+		; up to north
+
+fovh:		1.00
+		;field of view in elevation/height direction (in deg)
+
+angle:		0
+		;telescope orientation angle
+		; currently, not yet included
+		; only working for up north and down south
+
+exptime:	60.00
+		;exposure time per frame (in second)
+
+rottime:	45.00
+		;estimated time for pointing reassignment (in seconds)
+
+resolution:	
+		;image resolution (arcsec/pixel)
+
+filter:		r
+		;telescope filter 
+
+airmass:	2.0
+		; airmass limit
+
+seeing:		2.0
+		; seeing limit
+
+dither:		0
+		;dither (unit in pixels)
+		;valid only if repeat is set >=1
+		; for VST, currently, use fixed dither, 0
+
+repeat:		1
+		;field repeatation
+		; if dither mode, at lease 1
+
+
+[pointings] ;-------------- network/pointings generation
+
+uarea:		0.
+		;for the selected pointings, they will be removed if 
+		; a portion is covered by fields of skipfile or other 
+		; telescopes with same scheduler
+		; Here will define the threshold on the portion
+		; if 0 set, any part of pointing is covered would be then removed
+		; if 1 set, only when the pointing is 100 percent covered
+		; would be then removed
+		; this number can be only varied from 0 to 1
+		; if it's outside, it will be auto set to the closet valid one
+
+cachemode:	3
+		;network mode:
+		; 1. read pointings from cachefile if any; check infos,
+                ;    see if cached pointings could meet the demandings setted below.
+                ;    if yes, read and go on; if no, clobber and rebuild cachefile
+                ;    if no cachefile, generate pointings and store to a cachefile
+		; 2. the same as 1, but instead, not store to a new cachefile
+		; 3. generate pointings directly and clobber exiting cachefile if any,
+                ;    then store yields to a new cachefile
+		; 4. the same as 3, but instead, not store to a new cachefile
+
+cachefile:	
+		;file name in which provides pre-defined pointings
+		; must given when calmode=2/3
+		; will skip generation of pointings
+		; otherwise, leave blacked 
+
+skipfile:	
+		;file name in which contains coordinate list that would be skipped
+		; used to avoid:
+		; 1. for bright stars
+		; 2. duplicate fields
+		; 3. npz file, with ra, dec, fovw, fovh (unit in deg)
+
+scheduler:	T
+		;telescope scheduler: 
+		; [T]iling search, for wide FoV telescopes; 
+		; [G]alaxy targeted search, for relatively small FoV telescopes; 
+		; [A]utomatic selection, will be decided depends on FoV and the trigger size; 
+
+mc:             0
+                ;for tiling generation, 
+                ;    the initial tiling was set to ra=0, dec=0
+                ; if $mc>0, optimise the tiling network   
+                ;    by a ramdom sampling on initial ra dec
+                ;    in order to cover most probs with $mc fields
+                ; if $mc=0, skip
+
+limra:		0,360
+		;pointing limitation
+		; on the Ra range
+
+limdec:		-20,90
+		;pointing limitation
+		; on the Decl range
+
+ob:		1*1
+		;Use Observing Blocks for tiling search
+		; in order to save time for suto focus, etc
+
+nob:		5
+		;in order to save time
+		;calculate visibility every nob*tf time
+		;  where tf is the unit time for one OB
+		;  suggest: 1 for 3*3 OB mode
+		;           10 for galaxy search
+
+limfields:	100
+		;maximum number of fields that can be done diring night
+		;for telescope which has a limitation on time
+		; otherwise, leave blanket, or very large, e.g.9999
+		; so that scheduler will stop till sun is up
+
+timelast:	24
+		;force stop when reaching a specific time
+		; unit in hours
+
+[observe] ;------------- observation estimate
+
+obstime:	night
+		; define the start time for schedule
+		;  [1] now
+                ;          start from now
+                ;  [2] night
+                ;          start from the beginning of the following night
+		;  [3] time in utc, e.g.1999-01-01T00:00:00.1234
+		;  [4] +/- x minutes, e.g. -30 (30 mins before); +30 (30 mins later)
+
+order:		4
+		; Ranking algorithms: 
+		;  [1]greedy algorithm: rank with priority 
+		;  [2]conservative algorithm: rank from west to east 
+		;  [3]optimal algorithm: consider slewing angle, start from westest pointing 
+		;  [4]optimal algorithm: consider slewing angle, start from highest ranking 
+
+loop:           True
+                ; When all pointings had been scheduled
+                ; stop or repeat the pointings
+
+cov:		0.1
+		; observing coverage
+		; if a float num (0-1), e.g. 0.9, given, force network to cover 
+		;   the top 90% prob
+		;   otherwise, auto set to 0.9
+
+limsun:		-12
+		; limitation on the height of sun
+		; less will be considered as safe
+		; otherwise, considered as the end of schedule
+
+limmoon:	auto
+		; limitation on the area of moon
+		; e.g. 30 (unit in deg) or auto
+		; if a number set: pointings within such radius will be removed
+		; if auto set: do removement accoring to the lunar phase
+
+limsobj:	jupiter,venus
+		; avoid objects inside solor system, divided with comma
+		; options: mercury,venus,moon,mars,jupiter,saturn,uranus,neptune
+
+limsobjr:	2
+		; limiting radius for solor object
+		; pointings with such radius (unit in deg) 
+		; includes solor objects will be removed
+
+limalt:		2.0
+		; limitation on height/airmass
+		; avoid telescope being too low
+
+fields:		
+		;number of fields to remain for the scheduler
+		;leave blanket will be set auto to 1000
+
+template:	
+		;search if there're available templates
+		; e.g. VST,DES,PS,SDSS
+		; if yes, put pointings there with high priority
+
+[scheduler]  ;  ------------- scheduler setting
+
+schfile:	None
+                ; output name compostion for scheduler
+                ; e.g. pst_VST.txt
+                ; if leave blacket, will out as:
+                ;    telname_triggername_date.txt
+                ; if None, will not generate file
