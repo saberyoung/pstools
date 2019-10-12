@@ -1,0 +1,16 @@
+future
+astropy
+numpy
+healpy
+matplotlib
+astroquery
+xmltodict
+requests
+pygcn
+voevent-parse
+logging
+email
+slackclient
+twilio
+
+[source extraction]

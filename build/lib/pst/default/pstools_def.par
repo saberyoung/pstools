@@ -1,0 +1,43 @@
+[priorization]
+trigger = 
+galaxy = 
+dist = 
+
+[react]
+telescope = 
+action = 
+
+[data]
+dir = 
+py1 = 
+
+[galaxies]
+cachemode = 
+cachefile = 
+
+[show]
+verbose = 
+log = 
+showmode = 
+showmap = 
+
+[email]
+activate = 
+email = 
+emailpass = 
+emailsmtp = 
+emailto = 
+emailsub = 
+
+[phone]
+activate = 
+account = 
+token = 
+to = 
+from = 
+
+[slack]
+activate = 
+token = 
+botid = 
+channel = 
