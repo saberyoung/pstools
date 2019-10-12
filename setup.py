@@ -16,12 +16,15 @@ VERSION = "0.0.7"
 
 # What packages are required for this module to be executed
 REQUIRED = [
-    'future','astropy','numpy','healpy','matplotlib','astroquery','xmltodict','requests','pygcn','voevent-parse'
+    'future','astropy','numpy','healpy','matplotlib',
+    'astroquery','xmltodict','requests','pygcn',
+    'voevent-parse','logging','email','smtplib',
+    'slackclient','twilio'
 ]
 
 # What packages are optional
 EXTRAS = {
-    'source extraction': ['email','smtplib','slackclient','twilio'],
+    'source extraction': [],
 }
 
 # define current directory

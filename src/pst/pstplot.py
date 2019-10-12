@@ -479,14 +479,15 @@ def cumshow(pparams):
     for _nt,_tt in enumerate(full):
        
         ##### full part
-        scorei = pst.decomposit(_tt['score'])
-        rai = pst.decomposit(_tt['ra'])
-        deci = pst.decomposit(_tt['dec'])
-        try: namei = pst.decomposit(_tt['name'])
-        except: namei = pst.decomposit(_tt['ra'])
+        scorei = np.array(pst.decomposit(_tt['score']))
+        rai = np.array(pst.decomposit(_tt['ra']))
+        deci = np.array(pst.decomposit(_tt['dec']))
+        try: namei = np.array(pst.decomposit(_tt['name']))
+        except: namei = np.array(pst.decomposit(_tt['ra']))
 
         # sort score
         idx = np.argsort(np.asarray(scorei))[::-1]
+
         scorei = scorei[idx]
         rai = rai[idx]
         deci = deci[idx]

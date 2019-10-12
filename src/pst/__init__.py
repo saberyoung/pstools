@@ -29,7 +29,9 @@ from .visibility import (
     innight)
 from .configure import (
     config_init,
-    load_config)
+    load_config,
+    gen_config,
+    modify_config)
 from .link import (
     sendemail,
     wechat,

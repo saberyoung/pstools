@@ -203,7 +203,7 @@ def process_gcn(payload, root):
 
     # record role in email list   
     if root.attrib['role'] == 'test':
-        if not eval(_paramslist['arg']['react']['test']):return
+        if not test:return
 
     # define email, slack, phone, ...
     _paramslist['tmp']['files'] = [_voname]
@@ -242,8 +242,8 @@ def process_gcn(payload, root):
         print ('### Warning: no skymap_fits found, try bulding...')
         _paramslist['tmp']['tmap'], _paramslist['tmp']['header'] = \
                 pst.build_hp_map(root,_dir+'/'+\
-                os.path.basename(root.attrib['ivorn'])+'.fits',\
-                nside,_coord=_paramslist['arg']['show']["coord"])
+                    os.path.basename(root.attrib['ivorn'])+'.fits',\
+                    nside,_coord=coord)
         if len(_paramslist['tmp']['tmap']) > 0:
             print ('### Warning: genearted a fits,'+\
                    ' %s'%(root.attrib['ivorn']+'.fits'))
