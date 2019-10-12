@@ -8,9 +8,10 @@ xmltodict
 requests
 pygcn
 voevent-parse
-
-[source extraction]
+logging
 email
 smtplib
 slackclient
 twilio
+
+[source extraction]

@@ -37,6 +37,16 @@ class main(object):
         # try cleaning all the plots if any
         plt.close('all')
 
+        # how to deal with plots        
+        self.showmode = int(optlist['arg']['show']["showmode"])        
+        if self.showmode in [3,4,5]: pl.ion()
+
+        # which plots to show
+        if len(optlist['arg']['show']["showmap"])>0:
+            self.showmap = [int(gg) for gg in \
+            optlist['arg']['show']["showmap"].split(',')]
+        else: self.showmap = []
+
         # read params
         self.optlist = optlist
         self.str1 = self.optlist['arg']['email']['emailcontent']
@@ -64,7 +74,7 @@ class main(object):
         ''' 2 - Check triggers (hp map) '''
         if self.verbose: 
             print (' [2] Check trigger infos: \n')
-        self.triggers()
+        self.triggers(contours)
 
         # action = 1 will stop here
         if int(self.optlist['arg']['react']['action'])==1:
@@ -121,24 +131,24 @@ class main(object):
         self.schlist = {}
         self.schlist['T'] = []
         self.schlist['G'] = []
-        for ff in self.optlist:            
-            if ff in ['arg','tmp']:continue
-            if self.optlist[ff]['pointings']['scheduler'] == 'A':
-                if float(self.optlist[ff]['telescope']['fovw']) > .2 and \
-                   float(self.optlist[ff]['telescope']['fovh']) > .2:
+        for _ff in self.optlist:            
+            if _ff in ['arg','tmp']:continue
+            if self.optlist[_ff]['pointings']['scheduler'] == 'A':
+                if float(self.optlist[_ff]['telescope']['fovw']) > .2 and \
+                   float(self.optlist[_ff]['telescope']['fovh']) > .2:
                     # greater than .2*.2 sq deg FoV          
-                    self.optlist[ff]['pointings']['scheduler'] = 'T'
-                    self.schlist['T'].append(self.optlist[ff])
+                    self.optlist[_ff]['pointings']['scheduler'] = 'T'
+                    self.schlist['T'].append(self.optlist[_ff])
                 else:
-                    self.optlist[ff]['pointings']['scheduler'] = 'G'
-                    self.schlist['G'].append(self.optlist[ff])
-            elif self.optlist[ff]['pointings']['scheduler'] in ['G','T']:
-                self.schlist[self.optlist[ff]['pointings']['scheduler']].\
-                    append(self.optlist[ff])
+                    self.optlist[_ff]['pointings']['scheduler'] = 'G'
+                    self.schlist['G'].append(self.optlist[_ff])
+            elif self.optlist[_ff]['pointings']['scheduler'] in ['G','T']:
+                self.schlist[self.optlist[_ff]['pointings']['scheduler']].\
+                    append(self.optlist[_ff])
                 if self.verbose:
                     print ('\t%s: %s search'%\
-                           (self.optlist[ff]['telescope']['name'], \
-                            self.optlist[ff]['pointings']['scheduler']))
+                           (self.optlist[_ff]['telescope']['name'], \
+                            self.optlist[_ff]['pointings']['scheduler']))
             if self.verbose:print('\n')
 
     def trigger_validation(self):
@@ -146,36 +156,36 @@ class main(object):
         ''' judge interests of the trigger '''
 
         # read more from the xml, complementry to the fits header                
-        for ii in strxml:
-            if ii in self.optlist['tmp']['voevent']:
-                self.str1 += '#\t%s:\t%s\n'%(ii,self.optlist['tmp']['voevent'][ii])
-                self.str2 += '%s:%s, '%(ii,self.optlist['tmp']['voevent'][ii])
-                self.str3 += '%s:%s, '%(ii,self.optlist['tmp']['voevent'][ii])
-                self.indict[ii] = self.optlist['tmp']['voevent'][ii]
-                if ii == 'GraceID':
-                    self.graceid = self.optlist['tmp']['voevent'][ii]
+        for _ii in strxml:
+            if _ii in self.optlist['tmp']['voevent']:
+                self.str1 += '#\t%s:\t%s\n'%(_ii,self.optlist['tmp']['voevent'][_ii])
+                self.str2 += '%s:%s, '%(_ii,self.optlist['tmp']['voevent'][_ii])
+                self.str3 += '%s:%s, '%(_ii,self.optlist['tmp']['voevent'][_ii])
+                self.indict[_ii] = self.optlist['tmp']['voevent'][_ii]
+                if _ii == 'GraceID':
+                    self.graceid = self.optlist['tmp']['voevent'][_ii]
                     # use trigger name and date
                     self.sname = '%s/$telname$_%s_%s.txt'%(\
                         self.optlist['arg']['data']['dir'],self.graceid,\
                         str(astropy.time.Time.now().value)[:-10])
             else:
-                self.str1 += '#\t%s:\tNot available\n'%ii
-                self.str2 += '%s:None, '%ii
-                self.str3 += '%s:None, '%ii
-                self.indict[ii] = None
+                self.str1 += '#\t%s:\tNot available\n'%_ii
+                self.str2 += '%s:None, '%_ii
+                self.str3 += '%s:None, '%_ii
+                self.indict[_ii] = None
 
         # show params of the fits header
-        for ii in strhdr:
-            if ii in self.header:            
-                self.str1 += '#\t%s:\t%s\n'%(ii,self.header[ii])
-                self.str2 += '%s:%s, '%(ii,self.header[ii])
-                self.str3 += '%s:%s, '%(ii,self.header[ii])
-                self.indict[ii] = self.header[ii]
+        for _ii in strhdr:
+            if _ii in self.header:            
+                self.str1 += '#\t%s:\t%s\n'%(_ii,self.header[_ii])
+                self.str2 += '%s:%s, '%(_ii,self.header[_ii])
+                self.str3 += '%s:%s, '%(_ii,self.header[_ii])
+                self.indict[_ii] = self.header[_ii]
             else:
-                self.str1 += '#\t%s:\tNone\n'%ii
-                self.str2 += '%s:None, '%ii
-                self.str3 += '%s:None, '%ii
-                self.indict[ii] = None
+                self.str1 += '#\t%s:\tNone\n'%_ii
+                self.str2 += '%s:None, '%_ii
+                self.str3 += '%s:None, '%_ii
+                self.indict[_ii] = None
 
         # check the area of skymap     
         # get area in single pixel, unit in deg
@@ -209,7 +219,7 @@ class main(object):
         self.str3 = self.str3[:-2]
         if self.verbose: print (self.str1)
 
-    def triggers(self):
+    def triggers(self,contours):
         # check if need trigger
 
         if eval(self.optlist['arg']['priorization']['trigger']): # read if yes
@@ -219,24 +229,23 @@ class main(object):
 
             # obtain containment contour of GW PDF
             # binnned map to lower resolution in order to save time
-            probs = hp.pixelfunc.ud_grade(self.optlist['tmp']['tmap'],nside1)
-            probs = probs/np.sum(probs)
+            _probs = hp.pixelfunc.ud_grade(self.optlist['tmp']['tmap'],nside1)
+            _probs = _probs/np.sum(_probs)
 
             # computer contour lines and sky area at specific levels
-            levels = [float(kk) for kk in \
-                      self.optlist['arg']['show']["contours"].split(',')]  
             # add contour for tel
-            for ff in self.optlist:               
-                try:levels.append(float(self.optlist[ff]['observe']['remcov']))                  
-                except:pass
-            levels = np.unique(levels)
+            for ff in self.optlist:
+                try:
+                    contours.append(float(self.optlist[ff]['observe']['remcov']))
+                except: pass
+            contours = np.unique(contours)
 
             # compute contours for plot
             self.theta_contour, self.phi_contour = \
-                    pst.compute_contours(levels,probs)   
+                    pst.compute_contours(contours,_probs)   
             
             # compute contours index
-            self.indexlist = pst.compute_contours_1(levels, \
+            self.indexlist = pst.compute_contours_1(contours, \
                         self.optlist['tmp']['tmap'])            
 
             # validate skymap
@@ -306,20 +315,10 @@ class main(object):
            len(self.schlist['G'])>0:
 
             # query galaxies via vizier
-            if int(self.optlist['arg']['galaxies']["catalog"])==1:self.catname='GLADE'
-            elif int(self.optlist['arg']['galaxies']["catalog"])==2:self.catname='GWGC'
-            else:self.catname='???'
-
-            limdist,limrag,limdecg,limmag = \
-            [float(zz) for zz in self.optlist['arg']['galaxies']["limdist"].split(',')],\
-            [float(zz) for zz in self.optlist['arg']['galaxies']["limra"].split(',')],\
-            [float(zz) for zz in self.optlist['arg']['galaxies']["limdec"].split(',')],\
-            [float(zz) for zz in self.optlist['arg']['galaxies']["limmag"].split(',')]
-
             self.gname,self.gra,self.gdec,self.gmag,self.gdist = \
-                    pst.galaxies(catalog=int(self.optlist['arg']['galaxies']["catalog"]),\
+                    pst.galaxies(catalog=catalog,verbose = self.verbose,\
                     limra=limrag, limdec=limdecg, limdist=limdist, \
-                    verbose = self.verbose,size=size,limmag=limmag,filtro=filtro,\
+                    size=size,limmag=limmag,filtro=filtro,\
                     cachemode=int(self.optlist['arg']['galaxies']['cachemode']),\
                     cachefile=self.optlist['arg']['galaxies']['cachefile'])
 
@@ -327,22 +326,27 @@ class main(object):
         # generate pointings
 
         if len(self.schlist['T']) > 0:
-
             for _nt,_tt in enumerate(self.schlist['T']):
+                # read OB mode
+                _obx, _oby = int(_tt['pointings']["ob"].split(',')[0]),\
+                             int(_tt['pointings']["ob"].split(',')[1])
+                _fovw, _fovh = float(_tt['telescope']['fovw'])*_oby,\
+                               float(_tt['telescope']['fovh'])*_obx
+                # update fov
+                self.schlist['T'][_nt]['telescope']['fovw'] = _fovw
+                self.schlist['T'][_nt]['telescope']['fovh'] = _fovh
+
                 _shift = int(_tt['pointings']["shift"])                
                 if _shift < 0: _shift = 0
                 limrat,limdect = \
                     [float(zz) for zz in _tt['pointings']["limra"].split(',')],\
-                    [float(zz) for zz in _tt['pointings']["limdec"].split(',')]                
-
+                    [float(zz) for zz in _tt['pointings']["limdec"].split(',')]
                 if _shift == 0: # with shfitw=shifth=0
                     if self.verbose:
                         print ('\tgenerate pointing without shift mode')
                     _ral,_decl = pst.pointings(
-                        tel=_tt['telescope']['name'],\
-                        limdec=limdect,limra=limrat,\
-                        fovh=float(_tt['telescope']['fovh']),\
-                        fovw=float(_tt['telescope']['fovw']),\
+                        tel=_tt['telescope']['name'],limdec=limdect,\
+                        limra=limrat,fovh=_fovh,fovw=_fovw,\
                         shifth=0.,shiftw=0.,verbose=self.verbose,\
                         uarea=float(_tt['pointings']['uarea']),\
                         cachemode=int(_tt['pointings']['cachemode']),\
@@ -353,12 +357,10 @@ class main(object):
                         print ('\tgenerate pointing with shift mode')
                     _ral,_decl = pst.pointngsshift(
                         self.pmap,_shift,verbose=self.verbose,\
-                        limdec=limdect,limra=limrat,\
-                        fovh=float(_tt['telescope']['fovh']),\
-                        fovw=float(_tt['telescope']['fovw']),\
-                        skipfile=_tt['pointings']['skipfile'])
+                        limdec=limdect,limra=limrat,fovh=_fovh,\
+                        fovw=_fovw,skipfile=_tt['pointings']['skipfile'])
                 self.schlist['T'][_nt]['ra'] = _ral
-                self.schlist['T'][_nt]['dec'] = _decl
+                self.schlist['T'][_nt]['dec'] = _decl                
 
     def priorization(self):
         # priorization with trigger
@@ -596,7 +598,11 @@ class main(object):
             for _nt,_tt in enumerate(self.schlist[_sch]): # telescope
                 if self.verbose:
                     print ('\n\t\tfor tel:%s'%_tt['telescope']['name'])
-
+                fovw,fovh = float(_tt['telescope']['fovw']),\
+                            float(_tt['telescope']['fovh'])
+                _obx,_oby = int(_tt['pointings']["ob"].split(',')[0]),\
+                            int(_tt['pointings']["ob"].split(',')[1])
+                _nob = 0
                 # get selected ra,dec to tellist
                 tellist = None
                 for _weight in self.tellist[_sch]:
@@ -607,18 +613,18 @@ class main(object):
 
                 if not tellist is None:
                     if len(_tt['scheduler']['schfile'])>0:
-                        if _tt['scheduler']['schfile'] == 'None':
-                            schfile = None
+                        if _tt['scheduler']['schfile'] == 'auto':
+                            schfile = self.sname.replace('$telname$',\
+                                            _tt['telescope']['name'])
                         else:
                             schfile = _tt['scheduler']['schfile']
                     else:
-                        schfile = self.sname.replace('$telname$',\
-                                    _tt['telescope']['name'])
+                        schfile = None
 
                     if schfile is not None:
                         # read ra,dec,time
                         _strlist,sumscore = '',0
-                        _hdr,_whdr = '#RA(J2000)   DEC(J2000)   Filter   Prob(%)'+\
+                        _hdr,_whdr = '#RA(J2000)   DEC(J2000)   Filter      Prob(%)'+\
                                      ' '*6,True
                         ra,dec,date = tellist['ra'],\
                                       tellist['dec'],\
@@ -626,64 +632,76 @@ class main(object):
                         _obs, _tf, _tfl = self.def_obs(_tt)
                         [_exp,_rot,_nf,_rep] = _tfl
                         # if dither or filter
-                        try: _dit = float(_tt['scheduler']['dither'])/3600
-                        except: _dit = False
-                        if len(_tt['scheduler']['filter'])>0:
-                            _bands = _tt['scheduler']['filter'].split(',')
-                        else: _bands = ['R']
+                        _dit = float(_tt['scheduler']['dither'])/3600
+                        _bands = _tt['scheduler']['filter'].split(',')
 
                         for _zz in range(len(date)):
                             # at different time
                             _time = date[_zz]
+                            _num = 0
+
                             for _nfi in range(_nf):
+                                # number of fields
                                 try:
-                                    _ra,_dec = ra[_zz*_nf+_nfi],\
-                                               dec[_zz*_nf+_nfi]
-                                except: continue
-                                s,t = np.where(_tt['ra']==_ra),\
-                                      np.where(_tt['dec']==_dec)
+                                    _rac,_decc = ra[_zz*_nf+_nfi],\
+                                                 dec[_zz*_nf+_nfi]
+                                    _nob += 1
+                                except: 
+                                    continue
+                                s,t = np.where(_tt['ra']==_rac),\
+                                      np.where(_tt['dec']==_decc)
 
                                 # find index at specific ra,dec
                                 index = np.intersect1d(s, t)[0]
                                 score = pst.decomposit(_tt['score'])[index]
                                 sumscore+=score
+                                
+                                # OB mode
+                                ral, decl = pst.divide_OB(_rac,_decc,fovw,fovh,_obx,_oby)
 
-                                for _repi in range(_rep):
-                                    # for fields:
-                                    # first assign filters and then dither
-                                    _filt = _bands[_repi%len(_bands)]
-                                    if _dit:
+                                for _pointing,(_ra,_dec) in enumerate(zip(ral, decl)):
+                                    # for 1 pointing of OB
+                                    for _repi in range(_rep):
+                                        # for fields:
+                                        # first assign filters
+                                        _filt = _bands[_repi%len(_bands)]
+                                        # for dither
                                         angle = random.uniform(0,2*np.pi)
                                         _ra+=_dit*np.cos(angle)
                                         _dec+=_dit*np.sin(angle)
-                                    # write ra,dec,score,[name,dist,mag],....
-                                    _strlist += '%-*.5f %-*.5f %-*s %-*.2e '%\
-                                                (12,_ra,12,_dec,12,_filt,12,score)
-                                    if _sch == 'G':
-                                        _name = pst.decomposit(_tt['name'])[index]
-                                        _strlist += '%-*s '%(30,_name)
-                                        if _whdr:_hdr += (' '*12+'name'+' '*16)
-                                        for _key in ['dist','mag']:
-                                            _val = pst.decomposit(_tt[_key])[index]
-                                            _strlist += '%-*.2f '%(8,_val)
-                                            if _whdr:_hdr += '%s      '%_key
-                                    # get time
-                                    _timenow = _time+(_exp+_rot)*(_nfi*_rep+_repi)
-                                    # calculate sun and airmass
-                                    radecs = astropy.coordinates.SkyCoord(ra=_ra*u.deg, \
-                                                                          dec=_dec*u.deg)
-                                    frame = astropy.coordinates.AltAz(obstime=_timenow, \
-                                                                      location=_obs)     
-                                    altaz = radecs.transform_to(frame)
-                                    sun_altaz = astropy.coordinates.\
-                                            get_sun(_timenow).transform_to(altaz)
-                                    # write time,sun,airmass
-                                    _strlist += '%-*s %-*.2f %-*s\n'%\
-                                            (6,str(sun_altaz.alt)[:5],8,\
-                                             altaz.secz,20,str(_timenow)[:19])
-                                    if _whdr:
-                                        _hdr += 'sun  airmass        time\n'
-                                        _whdr = False
+                                        # write ra,dec,score,[name,dist,mag],....
+                                        _strlist += '%-*.5f %-*.5f %-*s %-*.2e '%\
+                                                    (12,_ra,12,_dec,12,_filt,12,score)
+                                        if _sch == 'G':
+                                            _name = pst.decomposit(_tt['name'])[index]
+                                            _strlist += '%-*s '%(30,_name)
+                                            if _whdr:_hdr += (' '*12+'name'+' '*16)
+                                            for _key in ['dist','mag']:
+                                                _val = pst.decomposit(_tt[_key])[index]
+                                                _strlist += '%-*.2f '%(8,_val)
+                                                if _whdr:_hdr += '%s      '%_key
+                                        # get time
+                                        _timenow = _time + _exp*_num
+                                        _num += 1
+
+                                        # calculate sun and airmass
+                                        radecs = astropy.coordinates.SkyCoord(ra=_ra*u.deg, \
+                                                                              dec=_dec*u.deg)
+                                        frame = astropy.coordinates.AltAz(obstime=_timenow, \
+                                                                          location=_obs)     
+                                        altaz = radecs.transform_to(frame)
+                                        sun_altaz = astropy.coordinates.\
+                                                    get_sun(_timenow).transform_to(altaz)
+                                        # write time,sun,airmass
+                                        _strlist += '%-*s %-*.2f %-*s %i-%i \n'%\
+                                                    (6,str(sun_altaz.alt)[:5],8,\
+                                                     altaz.secz,20,str(_timenow)[:19],\
+                                                     _nob,_pointing+1)
+                                        if _whdr:
+                                            _hdr += 'sun  airmass        time'
+                                            _hdr += ' '*10
+                                            _hdr += 'OB \n'
+                                            _whdr = False
                         # write
                         if os.path.exists(schfile):os.remove(schfile)
                         rr = open(schfile,'w')
@@ -709,18 +727,20 @@ class main(object):
             if self.verbose:
                 print ('\t%.2f hours later sunset for %s'%\
                 (_timedif.value*24,_tlist['telescope']['name']))
+        elif type(_obstime) in [int,float]:
+            timenow = astropy.time.Time.now() + \
+                      astropy.time.TimeDelta(float(_obstime)*60, \
+                                             format='sec')
         else:
             try: 
                 timenow = astropy.time.Time(_obstime, scale='utc')
             except: 
-                timenow = astropy.time.Time.now() + \
-                        astropy.time.TimeDelta(float(_obstime)*60, \
-                        format='sec')
+                timenow = astropy.time.Time.now()  
         jdnow = timenow.jd
         return timenow, jdnow
 
     def def_obs(self,_tlist): # define observatory and time per frame
-        
+
         # Geodetic coordinates of observatory    
         observatory = astropy.coordinates.EarthLocation(\
                     lat=float(_tlist['telescope']['lat'])*u.deg, \
@@ -728,13 +748,15 @@ class main(object):
                     height=float(_tlist['telescope']['alt'])*u.m)
 
         # time per OB
-        num = int(_tlist['pointings']['nfields'])
-        
+        try:num = int(_tlist['pointings']['nfields'])
+        except:num=1
+
         ''' !!! if dithering or not; if dither, specify repeat number>0 !!! '''
         _repeat = int(_tlist['scheduler']['repeat']) + 1
-        _tf = (float(_tlist['telescope']['exptime'])+\
-               float(_tlist['telescope']['rottime']))*\
-               _repeat*num
+        _obx,_oby = int(_tlist['pointings']["ob"].split(',')[0]),\
+                    int(_tlist['pointings']["ob"].split(',')[1])
+        _tf = float(_tlist['telescope']['exptime'])*_repeat*num*_obx*_oby +\
+              float(_tlist['telescope']['rottime'])
         _tf = astropy.time.TimeDelta(_tf, format='sec') 
         return observatory,_tf,\
             [astropy.time.TimeDelta(float(_tlist['telescope']['exptime']),\
@@ -994,22 +1016,24 @@ class main(object):
 
                 # Where is the other sources inside solor system
                 _solorobj = tel['observe']['limsobj'].split(',')  
-                _limsolor = float(tel['observe']['limsobjr'])*3600 # to deg
-                for _source in _solorobj:
-                    # astropy.coordinates.solar_system_ephemeris.bodies
-                    if _source in ['mercury','venus','mars',\
-                                   'jupiter','saturn','uranus','neptune']:
-                        _loc = astropy.coordinates.get_body(_source, \
+                try:_limsolor = float(tel['observe']['limsobjr'])*3600 # to deg
+                except:_limsolor=False
+                if _limsolor:
+                    for _source in _solorobj:
+                        # astropy.coordinates.solar_system_ephemeris.bodies
+                        if _source in ['mercury','venus','mars',\
+                                       'jupiter','saturn','uranus','neptune']:
+                            _loc = astropy.coordinates.get_body(_source, \
                                     _time, observatory).transform_to(altaz)
-                        sep = gradecs.separation(_loc)
-                        _length = len(gradecs[np.where(sep.arcsecond<_limsolor)])
-                        if _length>0:
+                            sep = gradecs.separation(_loc)
+                            _length = len(gradecs[np.where(sep.arcsecond<_limsolor)])
+                            if _length>0:
+                                if self.verbose:
+                                    print('\t - remove %s sources due to %s'%(_length,_source))
+                                gradecs = gradecs[sep.arcsecond>_limsolor]
+                        else:
                             if self.verbose:
-                                print('\t - remove %s sources due to %s'%(_length,_source))
-                            gradecs = gradecs[sep.arcsecond>_limsolor]
-                    else:
-                        if self.verbose:
-                            print ('\t!!! Warning: unknown source %s'%_source)
+                                print ('\t!!! Warning: unknown source %s'%_source)
 
                 # go on or not
                 if self.verbose:
@@ -1071,17 +1095,6 @@ class main(object):
 
     def visualization1(self):
 
-        # how to deal with plots        
-        self.showmode = int(self.optlist['arg']['show']["showmode"])        
-        if self.showmode == 1 or not self.showmode in [2,3,4,5]:return
-        if self.showmode in [3,4,5]: pl.ion()
-
-        # which plots to show
-        if len(self.optlist['arg']['show']["showmap"])>0:
-            self.showmap = [int(gg) for gg in \
-                    self.optlist['arg']['show']["showmap"].split(',')]
-        else: self.showmap = []
-
         ########## 1 - healpix show of trigger
         ''' fignum 1: 2d sky'''
         if 1 in self.showmap or 2 in self.showmap or \
@@ -1097,21 +1110,15 @@ class main(object):
                 if self.verbose: print (' - show sky without trigger')
 
             # parameters for plotting
-            pparams = {'hpmap':map2show,\
-                'title':self.optlist['arg']['show']['title'],\
-                'theta':self.optlist['arg']['show']["theta"],\
-                'phi':self.optlist['arg']['show']["phi"],\
-                'fignum':1,'ordering':ordering,\
-                'coord':self.optlist['arg']['show']["coord"],\
-                'norm':self.optlist['arg']['show']["norm"],\
-                'min':self.optlist['arg']['show']["min"],\
-                'max':self.optlist['arg']['show']["max"],\
-                'theta_contour':self.theta_contour,\
+            pparams = {'hpmap':map2show,'theta':theta,'phi':phi,\
+                'fignum':1,'ordering':ordering,'coord':coord,\
+                'min':minv,'max':maxv,'title':title,\
+                'theta_contour':self.theta_contour,'norm':norm,\
                 'phi_contour':self.phi_contour,'timenow':'now',\
                 'colors':color_contour,'distinfo':self.distdict,\
                 'tellist':self.schlist,'figsize':figsize}
             # parameters that can be changed via interactive mode
-            optparams = ['theta','phi','min','max','norm','timenow',\
+            optparams = ['theta','phi','min','max','timenow',\
                          'title','coord']
 
             _pm = False
@@ -1139,11 +1146,9 @@ class main(object):
                 if len*self(gra) > 10000:
                     print ('!!! Warning: take care, too many galaxies')
                 pparams = {'ra':self.gra,'dec':self.gdec,\
-                       'theta':self.optlist['arg']['show']["theta"],\
-                       'phi':self.optlist['arg']['show']["phi"],\
-                        'fignum':1,'color':color_field[self.ncolor],\
-                       'coord':self.optlist['arg']['show']["coord"],\
-                       'label':'%s galaxies(%i)'%(self.catname,len(self.gra))}
+                    'theta':theta,'phi':phi,'coord':coord,\
+                    'fignum':1,'color':color_field[self.ncolor],\
+                    'label':'%s galaxies(%i)'%(self.catname,len(self.gra))}
                 self.fig_2d = pst.pointview(pparams)
                 self.ncolor+=1
                 if self.showmode in [4, 5]:
@@ -1156,10 +1161,8 @@ class main(object):
                     for _nt in tellist:
                         _tt = tellist[_nt]
                         pparams = {'ra':_tt['ra'],'dec':_tt['dec'],\
-                            'theta':self.optlist['arg']['show']["theta"],\
-                            'phi':self.optlist['arg']['show']["phi"],\
+                            'theta':theta,'phi':phi,'coord':coord,\
                             'fignum':1,'color':color_field[self.ncolor],\
-                            'coord':self.optlist['arg']['show']["coord"],\
                             'label':'%s galaxies(%i)'%(_tt['name'],len(_tt['ra']))}
                         self.fig_2d = pst.pointview(pparams)
                         self.ncolor+=1
@@ -1220,11 +1223,9 @@ class main(object):
                 for _nt,_tt in enumerate(self.schlist['T']):
                     pparams = {'ra':_tt['ra'],'dec':_tt['dec'],\
                                'fignum':1,'color':color_field[self.ncolor],\
-                               'theta':self.optlist['arg']['show']["theta"],\
-                               'phi':self.optlist['arg']['show']["phi"],\
+                               'theta':theta,'phi':phi,'coord':coord,\
                                'fovw':_tt['telescope']['fovw'],\
                                'fovh':_tt['telescope']['fovh'],\
-                               'coord':self.optlist['arg']['show']["coord"],\
                                'label':'%s all (%i) tilings'%\
                                (_tt['telescope']['name'],len(_tt['ra']))}
                     self.fig_2d = pst.verticeview(pparams)
@@ -1240,10 +1241,8 @@ class main(object):
                         if 9 in self.showmap: 
                             pparams = {'ra':_tt['ra'],'dec':_tt['dec'],\
                                'fignum':1,'color':color_field[self.ncolor],\
-                               'theta':self.optlist['arg']['show']["theta"],\
-                               'phi':self.optlist['arg']['show']["phi"],\
+                               'theta':theta,'phi':phi,'coord':coord,\
                                'fovw':_tt['fovw'],'fovh':_tt['fovh'],\
-                                'coord':self.optlist['arg']['show']["coord"],\
                                 'label':'%s selected (%i) tilings'%\
                                        (_tt['name'],len(_tt['ra']))}
                             self.fig_2d = pst.verticeview(pparams)
@@ -1252,9 +1251,7 @@ class main(object):
                             pparams = {'ra':_tt['ra'],'dec':_tt['dec'],\
                                 'time':_tt['timelist'],'fignum':1,\
                                 'color':color_field[self.ncolor],\
-                                'theta':self.optlist['arg']['show']["theta"],\
-                                'phi':self.optlist['arg']['show']["phi"],\
-                                'coord':self.optlist['arg']['show']["coord"],\
+                                'theta':theta,'phi':phi,'coord':coord,\
                                 'label':'%s routine'%_tt['name']}
                             self.fig_2d = pst.routeview(pparams)
                             self.ncolor+=1
@@ -1284,14 +1281,30 @@ class main(object):
 
         # final report before telescopes scheduling
         self.figlist = []
-        for _fig,nn in zip([self.fig_2d,self.fig_gd,self.fig_gl,self.fig_cum], \
-                           [1,2,3,4]):
-            try: 
-                _fig.savefig(self.sname.replace('$telname$_','').\
-                             replace('.txt','_%i.png'%nn))
-                self.figlist.append(self.sname.replace('$telname$_','').\
-                                    replace('.txt','_%i.png'%nn))
-            except: pass
+        try:
+            self.fig_2d.savefig(self.sname.replace('$telname$_','').\
+                                replace('.txt','_1.png'))
+            self.figlist.append(self.sname.replace('$telname$_','').\
+                                replace('.txt','_1.png'))
+        except: pass
+        try:
+            self.fig_gd.savefig(self.sname.replace('$telname$_','').\
+                                replace('.txt','_2.png'))
+            self.figlist.append(self.sname.replace('$telname$_','').\
+                                replace('.txt','_2.png'))
+        except: pass
+        try:
+            self.fig_gl.savefig(self.sname.replace('$telname$_','').\
+                                replace('.txt','_3.png'))
+            self.figlist.append(self.sname.replace('$telname$_','').\
+                                replace('.txt','_3.png'))
+        except: pass
+        try:
+            self.fig_cum.savefig(self.sname.replace('$telname$_','').\
+                                 replace('.txt','_4.png'))
+            self.figlist.append(self.sname.replace('$telname$_','').\
+                                replace('.txt','_4.png'))
+        except: pass
 
         # - email
         if eval(self.optlist['arg']['email']['activate']):
@@ -1332,7 +1345,7 @@ class main(object):
             if _tt in ['arg','tmp']:continue
             if len(self.optlist[_tt]['scheduler']['py2'])>0:
                 import subprocess
-                for _py in self.optlist[_tt]['data']['py1'].split(','):
+                for _py in self.optlist[_tt]['scheduler']['py2'].split(','):
                     pid = subprocess.Popen(['python',_py],\
                                        stdout=subprocess.PIPE,\
                                        stderr=subprocess.PIPE)
@@ -1342,27 +1355,27 @@ class main(object):
                         if len(error)>0: print('### Error: %s'%error)
 
 def choose(_dicti):
-    done, _dict = False, _dicti   
+    done, _dict, _klast, _odict = False, _dicti, '', {}
     while not done:        
-        answ = input('what to show: %s or [a]ll or [o]uter layer or [q]uit?'%_dict.keys())
+        answ = input('options: %s or [a]ll or [o]uter layer or [q]uit?\t'%list(_dict.keys()))
         if answ == 'q': done=True
         elif answ == 'o':_dict = _dicti
         elif answ in _dict.keys():
-            try:os.system('clear')
-            except:pass
-            print ('>'*5,'go to %s'%answ)            
+            print ('>'*5,'go to %s'%answ)
+            _klast = answ
             _dict = _dict[answ]                 
         elif answ == 'a':
             for _key in _dict:              
                 print ('\t--> %s : %s \n'%(_key,_dict[_key]))
         else: 
-            try:os.system('clear')
-            except:pass
-            print ('Error: wrong input...')
+            print ('!!! Error: wrong input...')
         try: _dict.keys()
         except: 
             print ('\t %s'%_dict)
-            done = True
+            answ1 = input('modify it?')
+            _odict[_klast] = answ1
+            _dict = _dicti
+    return _odict
 
 def build_hp_map(v,mapname,nside,_coord='C'):
     # generate healpix fits map

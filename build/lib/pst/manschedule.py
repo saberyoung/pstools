@@ -59,7 +59,7 @@ def man_search(_fits, _tel, _verbose, _log):
             _paramslist['tmp']['distsigma'], _paramslist['tmp']['distnorm'], \
             _paramslist['tmp']['header'], _paramslist['tmp']['voevent'] = \
                 pst.get_hp_map(_fits,_paramslist['arg']['show']['verbose'],\
-                    _paramslist['arg']['show']['coord'],nside,_dir)
+                               coord,nside,_dir)
     else:
         _paramslist['tmp']['tmap'], _paramslist['tmp']['distmu'], \
             _paramslist['tmp']['distsigma'], _paramslist['tmp']['distnorm'], \

@@ -284,7 +284,7 @@ def pointings(tel='VST',limra=[0,360.],limdec=[-20,90],\
                      fovw=np.zeros(len(limra))+fovw,\
                      fovh=np.zeros(len(limra))+fovh,\
                      shiftw=shiftw,shifth=shifth)
-    print("\t%i pointings generated in %i sec"%(len(tra),int(time.time()-start_time)))
+    if verbose: print("\t%i pointings generated in %i sec"%(len(tra),int(time.time()-start_time)))
     tra,tdec = pst.remove_fields(skipfile,tra,tdec,\
                     np.zeros(len(limra))+fovw,\
                     np.zeros(len(limra))+fovh,verbose)
@@ -319,7 +319,7 @@ def remove_fields(skipfile,tra,tdec,fovw,fovh,verbose):
                 _tra.append(_rap)
                 _tdec.append(_decp)
         tra,tdec = np.array(_tra),np.array(_tdec)
-    print("\t%i pointings remained after removing skip files\n"%(len(tra)))
+    if verbose: print("\t%i pointings remained after removing skip files\n"%(len(tra)))
     return tra,tdec
 
 def gen_pointings(limra=[0,360.],limdec=[-20,90],\
