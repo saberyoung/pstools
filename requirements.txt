@@ -4,7 +4,3 @@ matplotlib
 healpy
 pygcn
 voevent-parse
-email
-smtplib
-slackclient
-twilio
