@@ -18,7 +18,7 @@ VERSION = "0.1.1"
 REQUIRED = [
     'future','astropy','numpy','healpy','matplotlib',
     'astroquery','xmltodict','requests','pygcn',
-    'voevent-parse','logging','email',
+    'voevent-parse','logging','email','meander',
     'slackclient','twilio'
 ]
 

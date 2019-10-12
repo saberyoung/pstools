@@ -78,7 +78,7 @@ def mollview(pparams):
                 unit='', xsize=800, title=title, nest=ordering, min=_min, max=_max, \
                 flip='astro', remove_dip=False, remove_mono=False, gal_cut=0, \
                 format='%g', format2='%g', cbar=False, cmap=cmap, notext=False, \
-                norm=norm, hold=True, margins=None, sub=None, nlocs=2, \
+                norm=norm, hold=True, margins=None, sub=None, \
                 return_projected_map=False)      
 
     hp.graticule() # Set grid lines
