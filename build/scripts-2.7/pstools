@@ -138,12 +138,12 @@ if __name__ == "__main__":
         pst.man_search(args.fits, args.tel, _verbose, _log)
 
     elif _mode == 7:  # - web tutorial
-        if _verbose: print ('https://pstool-cookbook.readthedocs.io/en/latest/')        
+        _html = 'https://pstools-documentation.readthedocs.io/en/latest/'
         try:
             import webbrowser
-            _html = '%s/../../docs/_build/html/index.html'%pst.__path__[0]
             webbrowser.open(_html, new=2)
-        except: pass
+            print ('open %s'%_html)
+        except: print ('Failed to open %s'%_html)
 
     elif _mode == 8:  # - file convert
         if _verbose: 
