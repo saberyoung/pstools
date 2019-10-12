@@ -10,7 +10,6 @@ pygcn
 voevent-parse
 logging
 email
-smtplib
 slackclient
 twilio
 
