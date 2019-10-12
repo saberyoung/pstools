@@ -45,6 +45,21 @@ LD_LIBRARY_PATH=/home/feng/anaconda3/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH</li>
 </ul>
 </div>
+<div class="section" id="error-setuptools-1-0-or-later-is-required-by-astropy-helpers">
+<h2><code class="docutils literal notranslate"><span class="pre">ERROR:</span> <span class="pre">setuptools</span> <span class="pre">1.0</span> <span class="pre">or</span> <span class="pre">later</span> <span class="pre">is</span> <span class="pre">required</span> <span class="pre">by</span> <span class="pre">astropy-helpers</span></code><a class="headerlink" href="#error-setuptools-1-0-or-later-is-required-by-astropy-helpers" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">reason: when installing astroquery, setuptools version is low</p>
+</li>
+<li><p class="first">how to solve:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span> <span class="kn">import</span> <span class="nn">setuptools</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">setuptools</span><span class="o">.</span><span class="n">__path__</span>
+
+<span class="go">see where setuptools is called, and then upgrade it: conda install setuptools/pip install setuptools --upgrade/etc</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
 </div>
 
 
@@ -72,6 +87,7 @@ export LD_LIBRARY_PATH</li>
 <li class="toctree-l1"><a class="reference internal" href="example.html">Example</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Probable errors</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#importerror-lib64-libstdc-so-6"><code class="docutils literal notranslate"><span class="pre">ImportError:</span> <span class="pre">/lib64/libstdc++.so.6</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#error-setuptools-1-0-or-later-is-required-by-astropy-helpers"><code class="docutils literal notranslate"><span class="pre">ERROR:</span> <span class="pre">setuptools</span> <span class="pre">1.0</span> <span class="pre">or</span> <span class="pre">later</span> <span class="pre">is</span> <span class="pre">required</span> <span class="pre">by</span> <span class="pre">astropy-helpers</span></code></a></li>
 </ul>
 </li>
 </ul>
