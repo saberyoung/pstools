@@ -1,0 +1,172 @@
+#!python
+
+"""############################################################################
+2019/1/30 Start version 0.1. Only module avaivale for call..
+2019/3/27 version 0.2. add pstool.py. Init cookbook
+2019/6/22 version 0.3. add slack.py. Possible for multiple telescopes, however limits their FoV composition
+2019/9/17 version 0.4. use class
+""" ############################################################################
+from __future__ import print_function
+from builtins import input
+import argparse,time,sys,os,pst,gcn
+
+start_time = time.time()
+description = ">> PStools main algorithm"
+
+if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser(description=description,\
+        formatter_class=argparse.RawTextHelpFormatter)   
+
+    # mandatory
+    parser.add_argument("mode",choices=[1,2,3,4,5,6,7,8,9,10],type=int,\
+        help='''
+        PSTools mode:
+        Gui:     [1] Init gui mode
+        Slack:   [2] Init slack interface
+        Cmd:     [3] Init configuration 
+                 [4] Check configuration 
+                 [5] Modify configuration 
+                 [6] Serve alert 
+                 [7] Monitor alert
+                 [8] Offline alert 
+                 [9] Web tutorial
+                 [10] covert txt to npz''')
+
+    # optional
+    parser.add_argument("-f", dest="fits",\
+        help='handle healpix fits file or xml voevent')   
+    parser.add_argument("-i", dest="files",\
+        help='txt files')      
+    parser.add_argument("-t", dest="tel",\
+        help='specific telescopes, if multiple divided with `,`')
+    parser.add_argument("-x",dest='xml',\
+        help='xml file that would be served locally')
+    parser.add_argument("-s", dest='server',\
+        default='eApps',choices=['local','eApps',\
+        'Atlantic_2','Atlantic_3','Linode'],\
+        help='GCN server')     
+    parser.add_argument("-p", dest='port',\
+        default='PUBLIC',choices=['PUBLIC','PRIVATE'],\
+        help='GCN port')
+    parser.add_argument("-v", dest="verbose",\
+        default=False,action="store_true",\
+        help='Enable task progress report') 
+
+    # read parameters
+    args = parser.parse_args()
+    _mode = args.mode
+    _verbose = args.verbose
+    _server, _port = args.server, args.port    
+
+    if _mode == 1:  # - GUI
+        pst.pstgui.main()
+
+    elif _mode == 2:  # - SLACK
+        pst.pstslack.main()
+
+    elif _mode == 3:  # - generate configuration
+        if args.tel is None:_tell = input('telescope name:\t')
+        else: _tell = args.tel
+        for _tel in _tell.split(','): 
+            if len(_tel) == 0:continue
+            _config = pst.load_config(_tel)
+            for _class in ['general','telescope']:
+                if _config[_class]['check']:
+                    print('%s %s is ready, modify it with option 4'%\
+                          (_tel,_class))
+                else:            
+                    pst.gen_config(_config[_class]['config'],_class)
+
+    elif _mode == 4:  # - check file
+        if args.tel is None:
+            _config = pst.load_config()
+            if not _config: sys.exit()
+            _tell = _config['general']['params']['react']['telescope']
+            if len(_tell)==0: 
+                sys.exit('### no tel found from %s'%_config['config'])
+        else: _tell = args.tel
+        for _tel in _tell.split(','): 
+            if len(_tel) == 0:continue
+            _config = pst.load_config(_tel,_verbose=True)
+            if not _config: sys.exit()
+            for _class in ['general','telescope']:
+                print('- %s %s configuration: %s'%\
+                      (_tel,_class,_config[_class]['check']))
+
+    elif _mode == 5:  # - revise configuration
+        if args.tel is None:
+            _config = pst.load_config()
+            if not _config: sys.exit()
+            _tell = _config['general']['params']['react']['telescope']
+            if len(_tell)==0:
+                sys.exit('### no tel from input or %s'%\
+                         _config['general']['config'])
+        else: _tell = args.tel
+
+        for _tel in _tell.split(','):
+            if len(_tel) == 0:continue
+            for _class in ['general','telescope']:  
+                _config = pst.load_config(_tel)
+                if not _config: sys.exit()         
+                _d = False
+                while not _d:
+                    answ = input('Modify %s-%s file? (Y/N/Q)'%(_tel,_class))
+                    if answ in ['y','Y']:
+                        pst.choose(_tel,_class,_config)
+                        _d = True
+                    elif answ in ['n','N']:
+                        _d = True
+                    elif answ in ['q','Q']:
+                        sys.exit()
+                    else:
+                        print ('wrong option')
+
+    elif _mode == 6:    # - serve alert
+        from gcn.cmdline import serve_main
+        if args.server != 'local':
+            sys.exit('Only local server can be served')
+        if args.xml is None:
+            sys.exit('Pls specify a XML file to serve')
+        _s1,_s2 = pst.lvc_server(_server, _port, _verbose)
+        _info = 'Serve Mode:\thost:%s:port:%s'%(_s1,_s2)
+        if _verbose: print('## %s'%_info)
+        sys.exit(serve_main(args=[args.xml,'--host', '%s:%s'%(_s1,_s2)]))
+
+    elif _mode == 7:  # - auto listen
+        _s1,_s2 = pst.lvc_server(_server, _port, _verbose)
+        _info = 'Monitor mode: listening host:%s:port:%s'%(_s1,_s2)
+        if _verbose: print('## %s'%_info)
+        gcn.listen(handler = pst.process_gcn, host=_s1, port=_s2)
+
+    elif _mode == 8:  # - manual search   
+        pst.man_search(args.fits, args.tel, _verbose)
+
+    elif _mode == 9:  # - web tutorial
+        _html = 'https://pstools-documentation.readthedocs.io/en/latest/'
+        try:
+            import webbrowser
+            webbrowser.open(_html, new=2)
+            print ('open %s'%_html)
+        except: print ('Failed to open %s'%_html)
+
+    elif _mode == 10:  # - file convert
+        if _verbose: 
+            print ('for each file, need 4 columns, '+\
+                   'i.e. ra, dec, fov1, fov2, split in space')
+        ra,dec,fov1,fov2 = [],[],[],[]
+        for f in read_filelist(flist):
+            for i in open(f).readlines():
+                try:ra.append(float(i[0]))
+                except:ra.append(Null)
+                try:dec.append(float(i[1]))
+                except:dec.append(Null)
+                try:fov1.append(float(i[2]))
+                except:fov1.append(Null)
+                try:fov2.append(float(i[3]))
+                except:fov2.append(Null)
+        np.savez(cachefile,ra=ra,dec=dec,fovw=fovw1,fovh=fov2)
+        print ('%s generated'%cachefile)
+
+print("-"*80)
+print('>>>>> Completed in '+str(int(time.time()-start_time))+' sec\n')

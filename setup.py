@@ -12,14 +12,13 @@ URL1 = 'https://github.com/saberyoung/pst'
 EMAIL = 'saberyoung@gmail.com'
 AUTHOR = 'Sheng Yang'
 REQUIRES_PYTHON = '>=2.7'
-VERSION = "0.1.2"
+VERSION = '0.0.0.1'
 
 # What packages are required for this module to be executed
 REQUIRED = [
     'future','astropy','numpy','healpy','matplotlib',
-    'astroquery','xmltodict','requests','pygcn',
-    'voevent-parse','logging','email','meander',
-    'slackclient','twilio'
+    'astroquery','xmltodict','requests','pygcn','pymysql',
+    'voevent-parse','meander','slackclient','twilio','wget'
 ]
 
 # What packages are optional
@@ -100,7 +99,7 @@ setup(
     include_package_data=True,
     license='MIT license',
 
-    scripts=['bin/pstools','bin/slack'],
+    scripts=['bin/pstools'],
     classifiers=[             
         # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
         # How mature is this project? Common values are

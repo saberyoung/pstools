@@ -1,13 +1,12 @@
-Metadata-Version: 1.2
+Metadata-Version: 2.1
 Name: pstools
-Version: 0.1.2
+Version: 0.0.0.1
 Summary: pstools is a telescope pointing scheduler
 Home-page: https://sngyang.com/pstools
 Author: Sheng Yang
 Author-email: saberyoung@gmail.com
 License: MIT license
 Download-URL: https://github.com/saberyoung/pst
-Description-Content-Type: UNKNOWN
 Description: 
         # PSTools: Pointing Scheduler in responce to Triggers
         
@@ -35,3 +34,4 @@ Classifier: Programming Language :: Python :: 3.3
 Classifier: Programming Language :: Python :: 3.4
 Classifier: Programming Language :: Python :: 3.5
 Requires-Python: >=2.7
+Provides-Extra: source extraction

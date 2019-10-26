@@ -52,10 +52,6 @@ def query_vizier(_catalog,_size,filtro,limra,limdec,limmag,limdist,verbose=False
         _catid, _catname, _columns = 'VII/267', 'GWGC', \
                 ['RAJ2000', 'DEJ2000', '%sMAG'%filtro, \
                  'Dist', 'Name']
-#    elif _catalog == 3:
-#        _catid, _columns = 'VII/240', \
-#                ['RAJ2000', 'DEJ2000', 'Bmag', \
-#                 'z', 'MGC'] 
     else:sys.exit('### Error: wrong galaxy catalogs')
  
 

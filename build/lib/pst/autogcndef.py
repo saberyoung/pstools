@@ -163,9 +163,13 @@ def process_gcn(payload, root):
    
     # read arglist
     # decide which telescopes to be activated
-    arglist,optlist = pst.load_config()
+    _config = pst.load_config()
+    if not _config: return
+    arglist,optlist = _config['general']['params'],\
+                      _config['telescope']['params']
     _tell = arglist['react']['telescope']
     _dir =  arglist['data']['dir']
+
     if _tell is None: return('!!! Error: option tel wrong ...')    
 
     # judge if it's new voevet
@@ -194,7 +198,10 @@ def process_gcn(payload, root):
     _paramslist = {}
     _paramslist['tmp'] = {}
     for tel0 in _tell.split(','):        
-        arglist,optlist = pst.load_config(tel0)           
+        _config = pst.load_config(tel0)           
+        if not _config: return
+        arglist,optlist = _config['general']['params'],\
+                          _config['telescope']['params']
         _paramslist['arg'] = arglist
         _paramslist[tel0] = optlist
         _info = '>>> Read params for telescope:%s'%tel0
@@ -209,7 +216,7 @@ def process_gcn(payload, root):
     _paramslist['tmp']['files'] = [_voname]
     _paramslist['arg']['email']['emailcontent']='online %s alert \n'%root.attrib['role']
     _paramslist['arg']['phone']['phonecontent']='online %s alert: '%root.attrib['role']
-    _paramslist['arg']['slack']['slackcontent']='online %s alert: '%root.attrib['role']
+    _paramslist['arg']['slack']['slackcontent']='online %s alert: \n'%root.attrib['role']
 
     # for auto search, trigger is forced to be activated
     _paramslist['arg']['priorization']['trigger'] = 'True'

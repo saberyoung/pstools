@@ -18,7 +18,7 @@ Probable errors
 
 - how to solve::
 
-   >>>  import setuptools
+   >>> import setuptools
    >>> setuptools.__path__
 
    see where setuptools is called, and then upgrade it: conda install setuptools/pip install setuptools --upgrade/etc

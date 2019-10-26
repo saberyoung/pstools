@@ -1,0 +1,193 @@
+[telescope] ;-------------- define telescope
+
+name:		define telescope name
+		//
+		arg
+		//
+                VST
+
+weight:		telescope priority: telescope with high priority (smaller weight number) will be assigned fields first; telescopes with the same weight number will be assigned fields at the same time.
+		//
+		int
+		//
+		1
+
+lat:		telescope latitude, unit in deg
+		//
+		float
+		//
+                -24.625
+
+lon:		telescope longitude, unit in deg
+		//
+		float
+		//
+                -70.4033
+
+alt:		telescope altitude, unit in meter
+		//
+		float
+		//
+                2635
+
+fovw:		telescope field of view in horizontal direction, unit in deg
+		//
+		float
+		//
+                1.
+
+fovh:		telescope field of view in elevation direction, unit in deg
+		//
+		float
+		//
+                1.
+
+exptime:	estimated time for telescope exposure per frame + field slewing, unit in second
+		//
+		float
+		//
+                60
+
+ovhtime:	estimated time for telescope overhat, unit in second
+		//
+		float
+		//
+                100
+
+[pointings] ;-------------- network/pointings generation
+
+scheduler:	telescope scheduler, options: [T]iling search, for wide FoV telescopes; [G]alaxy targeted search, for relatively small FoV telescopes; [A]utomatic selection, will be decided depends on telescope FoV
+		//
+		T,G,A
+		//
+		A
+
+uarea:		for tiling search, some fields are expected to be skipped for several reasons. Here, $uarea defines a threshold on the tiling coverage, i.e. if part of the tiling is covered and the coverage is larger than $uarea, such tiling will be passed, otherwise, though part of tiling is covered, it would be still remained. Apparently, $uarea can be only varied from 0 to 1, if 0 set, any part of tiling is covered would be removed, if 1 set, only tiling is 100 percent covered would be removed
+		//
+		float
+		//
+		0
+
+limra:		tiling limitation on the Ra range
+		//
+		comma
+		//
+		0,360
+
+limdec:		tiling limitation on the Decl range
+		//
+		comma
+		//
+		-90,90
+
+shift:		for tiling generation, the network was built with an initial FoV and then propagate to high ra,dec. If $shift=0, use a focused tiling network with the initial FoV at 0,0; if $shift>0, will optimise tiling network by a ramdom sampling on initial radec, in order to cover most trigger probs with the top $shift (a int number is needed) fields
+		//
+		int
+		//
+		0
+
+skipfile:	file name in which contains a coordinate list that would be skipped. Was used to avoid: sources from some know catalog, e.g. bright stars, or, fields that had already been done, avoid duplication. Format: should be a npz file containing 4 lists: ra, dec, fovw, fovh (unit in deg). leave blanket if all tilings are acceptable
+		//
+		opt
+		//
+
+[observe] ;------------- observation estimate
+
+obstime:	define the start time for telescope schedule: 1. now: start when receiving an alert; 2. night: start from the beginning of the following night (defined by time when sun < $limsun); 3. specific time in utc, make sure to be readable by astropy.time, e.g.1999-01-01T00:00:00.1234; 4. +/- x minutes, i.e. some time before/later than now, e.g. -30, start 30 mins before, +30, start 30 mins later. If not above given, will start from now
+		//
+		opt
+		//
+		night
+
+timelast:	force stop telescope when reaching a specific time. The begining of time is setted below in $obstime. Unit in hours
+		//
+		float
+		//
+		10
+
+order:		Ranking algorithms for fields: 1. greedy algorithm: rank with priority; 2. conservative algorithm: rank from west to east; 3. optimal algorithm for 1, consider slewing angle; 4. optimal algorithm for 2, consider slewing angle
+		//
+		1,2,3,4
+		//
+		1
+
+remcov:		remain only interesting fields, that cover high probs of priorization map. A float num (0-1) is expected, e.g. 0.5, will remain fields that cover the top 50 percent probs of priorization
+		//
+		float
+		//
+		.9
+
+limfields:	maximum number of fields that can be visited by telescope during night (for telescope which has a limitation on time). If not int given, will set no limitation on fields, Be careful when fields are too many
+		//
+		opt
+		//
+		10
+
+
+
+ob:		OB mode for tiling search, in order to save overhat time, e.g. 3,3, will generate an OB including 3 by 3 pointings inside. 1,1 stands for which without OB mode. Be careful when OB is too big, since it would include also some low prob region by chance
+		//
+		comma
+		//
+		3,3
+
+limsun:		limitation on the sun altitude, for calculaing field visibility
+		//
+		float
+		//
+		-18
+
+limmoon:	limitation on the moon effect. If a float/int number given, e.g. 30 (unit in deg), pointings within 30 deg to moon will be removed; if auto is given, will skip pointing accoring to the lunar phase: moon light is calculated as a number between 0 to 100, and if moon light > 80, $limmoon = 30, if moon light from 40 to 80, $limmoon = 20, if moon light from 10 to 40, $limmoon = 10, if moon light < 10, $limmoon = 1. If not above given, will set to 30
+		//
+		opt
+		//
+		auto
+
+limsobj:	limitation on the objects inside the solor system. Options: mercury,venus,moon,mars,jupiter,saturn,uranus,neptune. Multiple objects should be divided with comma
+		//
+		opt
+		//
+                jupiter,venus
+
+limsobjr:	limiting radius for solor object, unit in deg. If not float, would skip solor removement
+		//
+		opt
+		//
+                2
+
+limalt:		limitation on airmass, avoid telescope being too low
+		//
+		float
+		//
+		2.5
+
+[scheduler]  ;  ------------- scheduler setting
+
+dither:	     	dithering mode. give a number, e.g. 5 (unit in arcsec).
+		//
+		float
+		//
+		0
+
+filter:		telescope filter, put multiple divided by comma
+		//
+		opt
+		//
+		r
+
+nexp:		number of expores per field
+		//
+		int
+		//
+		1
+
+schfile:	name compostion for scheduler: if a name given, e.g. pst_VST.txt, will remove and rebuild pst_VST.txt with yields; if auto given, will set $schfile as {tel name}_{trigger name}_{date time}.txt; if blanket, will not generate schedule file
+		//
+		opt
+		//
+		auto
+
+py2:		after schedule, excute $py2 python codes, for specific functions. Muitiple files shoud be divided by comma. leave blanket to skip
+		//
+		opt
+		//

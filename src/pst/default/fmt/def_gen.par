@@ -1,0 +1,46 @@
+[priorization]
+trigger = 
+galaxy = 
+dist = 
+
+[react]
+telescope = 
+action = 
+
+[data]
+dir = 
+py1 = 
+
+[galaxies]
+catalog = 
+limra = 
+limdec = 
+limdist = 
+filter = 
+limmag = 
+
+[show]
+verbose = 
+showmode = 
+showmap = 
+
+[email]
+activate = 
+from = 
+pwd = 
+smtp = 
+to = 
+sub = 
+
+[phone]
+activate = 
+account = 
+token = 
+to = 
+from = 
+
+[slack]
+activate = 
+token = 
+botname =
+channel = 

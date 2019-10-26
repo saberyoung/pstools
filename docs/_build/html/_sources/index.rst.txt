@@ -25,9 +25,10 @@ in order astronomers to cover the sky localization with less pointings/time.
    :caption: Contents:
 
    install
+   configuration
    usage
-   ref
    example
+   ref
    errors
 
 Author

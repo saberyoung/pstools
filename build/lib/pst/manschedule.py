@@ -9,37 +9,36 @@ import healpy as hp
 import numpy as np
 from pst.default import *
 
-def man_search(_fits, _tel, _verbose, _log):  
+def man_search(_fits, _tel, _verbose):  
 
     # read telescopes
-    arglist,optlist = pst.load_config()    
+    _config = pst.load_config()   
+    if not _config: sys.exit()
+    arglist,optlist = _config['general']['params'],\
+                      _config['telescope']['params']
     _dir =  arglist['data']['dir']
     if _tel is None:
         _tel = arglist['react']['telescope']
 
     _info = '>>> telescope used: %s \n'%_tel
-    if _log: 
-        import logging
-        logging.info(_info)
     if _verbose: print(_info)      
 
     # read params from configure file
     _paramslist = {}
     _paramslist['tmp'] = {}
     for tel0 in _tel.split(','):
-        arglist,optlist = pst.load_config(tel0)           
-        _paramslist['arg'] = arglist
-        _paramslist[tel0] = optlist
+        _config = pst.load_config(tel0)
+        _paramslist['arg'] = _config['general']['params']
+        _paramslist[tel0] = _config['telescope']['params']
         _info = ' - Read params for telescope:%s'%tel0
-        if _log:logging.info(_info)
         if _verbose: print(_info)        
 
     # define email, slack, phone, ...
     _paramslist['tmp']['files'] = [_fits]
     _paramslist['arg']['email']['emailcontent']='offline alert \n'
     _paramslist['arg']['phone']['phonecontent']='offline alert: '
-    _paramslist['arg']['slack']['slackcontent']='offline alert: '
-
+    _paramslist['arg']['slack']['slackcontent']='*offline* alert:\n'
+    
     # decide prioritization method
     _trigger,_gal,_dist = eval(_paramslist['arg']['priorization']['trigger']),\
                           int(_paramslist['arg']['priorization']['galaxy']),\

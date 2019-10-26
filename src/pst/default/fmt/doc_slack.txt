@@ -1,0 +1,71 @@
+[GENERAL] ;  ------------- general setting
+
+help:	     show helper of input command
+	     //
+	     self.helper(_dict)
+
+[PSTOOLS] ;  ------------- pstools setting
+
+conf:	     check params of configure file
+	     //
+	     conf(_dict)
+
+[DATABASE] ;  ------------- query database
+
+url:	     *url:<GraceID>*:
+	     url of our GW page on the trigger
+	     e.g. `url: S190510g`
+	     //
+	     url(_dict)
+
+check:	     *check: <GraceID>*:
+	     check trigger from our database
+	     e.g. `check: S190510g`
+ 	     //
+	     check(_dict)
+
+sql:	     *sql:<mysql commadn>*: \texcute sql in our GW database
+	     e.g. 
+	     `sql: select * from ligoevents limit 10`
+	     `sql: select * from ligoevents where Dmean<100`
+	     //
+	     sql(_dict)
+
+[TOOLS] ;  ------------- tools
+findingchart: *findingchart: ra=<ra> ; dec=<dec> ; image=<fits, default=DSS>*:
+	      create finding chart for specific positions;
+	      if image not given, use DSS
+	      e.g. `findingchart: ra=10;dec=-10`
+	      //
+	      findingchart(_dict)
+
+VST:	     *VST: <GraceID>*:
+	     check VST accomplished OBs from P2 page, 
+	     search also if they're observed or not
+	     e.g. `VST: S190510g`
+	     //
+	     VST(_dict)
+
+GLADE:	     *GLADE: ral= <ra range: [deg,deg]>;
+	     decl=<dec range: [deg,deg]>;
+	     magl=<abs mag range: [mag,mag]>;
+	     distl=<dist range: [mpc,mpc]>*:
+	     check GLADE galaxies
+	     e.g. `GLADE: ral=[12,13];decl=[20,29];distl=[0,60];magl=[-18,-22]`
+	     //
+	     glade(_dict)
+
+visibility:  *visibility: ra=<ra> ; dec=<dec> ; name=<name, default=GWC1>*:
+	     check visibility
+	     //
+	     vis(_dict)
+
+extinction:  *extinction: ra=<ra> ; dec=<dec>*:
+	     check extinction
+	     //
+	     extic(_dict)
+
+asteroid:    *asteroid: ra=<ra> ; dec=<dec> ; time=<time, 'yyyy-mm-dd.dd'> ;
+	     radius=<rad, arcsec> ; mag=<mag cut, V>*:  check minor plantes
+	     //
+	     asteroid(_dict)

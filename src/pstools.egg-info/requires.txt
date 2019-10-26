@@ -7,11 +7,11 @@ astroquery
 xmltodict
 requests
 pygcn
+pymysql
 voevent-parse
-logging
-email
 meander
 slackclient
 twilio
+wget
 
 [source extraction]

@@ -1,0 +1,39 @@
+[telescope]
+name = 
+weight = 
+lat = 
+lon = 
+alt = 
+fovw = 
+fovh = 
+exptime = 
+ovhtime = 
+
+[pointings]
+scheduler = 
+uarea = 
+limra = 
+limdec = 
+shift = 
+skipfile = 
+
+[observe]
+order = 
+obstime = 
+timelast = 
+ob = 
+limfields = 
+remcov =
+limalt = 
+limsun = 
+limmoon = 
+limsobj =
+limsobjr =
+
+
+[scheduler]
+schfile =
+dither = 
+filter = 
+nexp = 
+py2 = 

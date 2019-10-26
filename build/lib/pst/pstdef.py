@@ -12,7 +12,6 @@ import pylab as pl
 import matplotlib.pyplot as plt
 import random
 import os,sys,glob,shutil
-import logging
 
 from astropy.io import fits
 from astropy.table import Table
@@ -24,7 +23,6 @@ import pst
 from pst.default import *
 
 _pstpath = pst.__path__[0]
-
 #################################################
 
 class main(object):
@@ -70,60 +68,79 @@ class main(object):
         if self.verbose:
             print (' [1] Read telescope and strategy: \n')
         self.dec_scheduler()
+        if self.verbose: 
+            print("\t...Finished in %i secs \n"%(int(time.time()-start_time)))
 
         ''' 2 - Check triggers (hp map) '''
         if self.verbose: 
             print (' [2] Check trigger infos: \n')
         self.triggers(contours)
+        if self.verbose: 
+            print("\t...Finished in %i secs \n"%(int(time.time()-start_time)))
 
         # action = 1 will stop here
         if int(self.optlist['arg']['react']['action'])==1:
             return
+        else:
+            # go on, refine files
+            self.filelist, self.figlist = [], []
 
         ''' 3 - Obtain galaxies '''
         if self.verbose:
             print (' [3] Obtain galaxies: \n')
         self.galaxies()       
+        if self.verbose: 
+            print("\t...Finished in %i secs \n"%(int(time.time()-start_time)))
 
         ''' 4 - Priorization algorithm '''
         if self.verbose: 
             print (' [4] Generate 3D priorization map: \n')
         self.priorization()
+        if self.verbose: 
+            print("\t...Finished in %i secs \n"%(int(time.time()-start_time)))
 
         ''' 5 - generate pointings 
         for tiling search '''
         if self.verbose: 
             print (' [5] Obtain pointings: \n')
         self.pointings()
+        if self.verbose: 
+            print("\t...Finished in %i secs \n"%(int(time.time()-start_time)))
 
         ''' 6 - rank pointings/galaxies '''
         if self.verbose: 
             print (' [6] Ranking these fields: \n')
         self.ranking()
+        if self.verbose: 
+            print("\t...Finished in %i secs \n"%(int(time.time()-start_time)))
 
         ''' 7 - remain only important pointings/galaxies '''
         if self.verbose: 
             print (' [7] Remain interesting fields: \n')
         self.cutfields()
+        if self.verbose: 
+            print("\t...Finished in %i secs \n"%(int(time.time()-start_time)))
 
         ''' 8 - scheduler pointings/galaxies '''
         if self.verbose:
             print (' [8] arrange fields: \n')
         self.scheduler()
+        if self.verbose: 
+            print("\t...Finished in %i secs \n"%(int(time.time()-start_time)))
 
         ''' 9 - Visualization '''
         if self.verbose: 
             print (' [9] Visualize above processes: \n')
         self.visualization2()
+        if self.verbose: 
+            print("\t...Finished in %i secs \n"%(int(time.time()-start_time)))
 
         ''' 10 - distributing to users/api/... '''
         if self.verbose: 
             print (' [10] Distribute to users/api: \n')
         self.send()
-
-        ''' Finished !!! '''
         if self.verbose: 
-            print("Finished in %i secs"%(int(time.time()-start_time)))
+            print("\t...Finished in %i secs \n"%(int(time.time()-start_time)))
 
     def dec_scheduler(self):
         # decide which strategy to use
@@ -145,11 +162,10 @@ class main(object):
             elif self.optlist[_ff]['pointings']['scheduler'] in ['G','T']:
                 self.schlist[self.optlist[_ff]['pointings']['scheduler']].\
                     append(self.optlist[_ff])
-                if self.verbose:
-                    print ('\t%s: %s search'%\
-                           (self.optlist[_ff]['telescope']['name'], \
-                            self.optlist[_ff]['pointings']['scheduler']))
-            if self.verbose:print('\n')
+            if self.verbose:
+                print ('\t%s: %s search\n'%\
+                       (self.optlist[_ff]['telescope']['name'], \
+                        self.optlist[_ff]['pointings']['scheduler']))
 
     def trigger_validation(self):
         # validate a trigger by using the header of fits
@@ -160,8 +176,8 @@ class main(object):
             if _ii in self.optlist['tmp']['voevent']:
                 self.str1 += '#\t%s:\t%s\n'%(_ii,self.optlist['tmp']['voevent'][_ii])
                 self.str2 += '%s:%s, '%(_ii,self.optlist['tmp']['voevent'][_ii])
-                self.str3 += '%s:%s, '%(_ii,self.optlist['tmp']['voevent'][_ii])
-                self.indict[_ii] = self.optlist['tmp']['voevent'][_ii]
+                self.str3 += '`%s`:%s, \n'%(_ii,self.optlist['tmp']['voevent'][_ii])
+                self.indict['`%s`'%_ii] = self.optlist['tmp']['voevent'][_ii]
                 if _ii == 'GraceID':
                     self.graceid = self.optlist['tmp']['voevent'][_ii]
                     # use trigger name and date
@@ -171,21 +187,19 @@ class main(object):
             else:
                 self.str1 += '#\t%s:\tNot available\n'%_ii
                 self.str2 += '%s:None, '%_ii
-                self.str3 += '%s:None, '%_ii
-                self.indict[_ii] = None
+                self.str3 += '`%s`:None, \n'%_ii
 
         # show params of the fits header
         for _ii in strhdr:
             if _ii in self.header:            
                 self.str1 += '#\t%s:\t%s\n'%(_ii,self.header[_ii])
                 self.str2 += '%s:%s, '%(_ii,self.header[_ii])
-                self.str3 += '%s:%s, '%(_ii,self.header[_ii])
-                self.indict[_ii] = self.header[_ii]
+                self.str3 += '`%s`:%s, \n'%(_ii,self.header[_ii])
+                self.indict['`%s`'%_ii] = self.header[_ii]
             else:
                 self.str1 += '#\t%s:\tNone\n'%_ii
                 self.str2 += '%s:None, '%_ii
-                self.str3 += '%s:None, '%_ii
-                self.indict[_ii] = None
+                self.str3 += '`%s`:None, \n'%_ii
 
         # check the area of skymap     
         # get area in single pixel, unit in deg
@@ -200,18 +214,17 @@ class main(object):
                              (_cc,_num*self.areasingle)
                 self.str2 += '%.2fsky: %.f sq deg, '%\
                              (_cc,_num*self.areasingle)
-                self.str3 += '%.2fsky: %.f sq deg, '%\
+                self.str3 += '`%.2fsky`: %.f sq deg, \n'%\
                              (_cc,_num*self.areasingle)
                 self.distdict[_cc] = ' %.f%% sky:%.f $deg^2$\n'%\
                             (_cc*100,_num*self.areasingle)
-                self.indict['%.2fsky'%_cc] = _num*self.areasingle
+                self.indict['`loc%i`'%(_cc*100)] = _num*self.areasingle
                 self.area[_cc] = _num*self.areasingle               
             else:
                 self.str1 += ' %.2f%sky:None\n'%(_cc)
                 self.str2 += '%.2fsky:None, '%(_cc)
-                self.str3 += '%.2fsky:None, '%(_cc)
+                self.str3 += '`%.2fsky`:None, \n'%(_cc)
                 self.distdict[_cc] = ' %.f%% sky:None\n'%(_cc*100)
-                self.indict['%.2fsky'%_cc] = None
                 self.area[_cc] = None       
 
         self.str1 += '\n'
@@ -262,12 +275,12 @@ class main(object):
             
             # - email
             if eval(self.optlist['arg']['email']['activate']):
-                for _toaddress in self.optlist['arg']['email']['emailto'].split(','):
-                    _sent = pst.sendemail(self.optlist['arg']['email']['email'],\
-                            self.optlist['arg']['email']['emailpass'],\
-                            self.optlist['arg']['email']['emailsmtp'],\
-                            self.optlist['arg']['email']['emailsub'],\
-                            self.optlist['arg']['email']['email'],\
+                for _toaddress in self.optlist['arg']['email']['to'].split(','):
+                    _sent = pst.sendemail(self.optlist['arg']['email']['from'],\
+                            self.optlist['arg']['email']['pwd'],\
+                            self.optlist['arg']['email']['smtp'],\
+                            self.optlist['arg']['email']['sub'],\
+                            self.optlist['arg']['email']['from'],\
                             _toaddress,self.str1,self.figlist,self.filelist)
                     if self.verbose:
                         if _sent: print ('email sent successful to %s'%_toaddress)
@@ -276,8 +289,8 @@ class main(object):
             # - slack
             if eval(self.optlist['arg']['slack']['activate']):
                 for _toaddress in self.optlist['arg']['slack']['channel'].split(','):
-                    _sent = pst.slack(self.optlist['arg']['slack']['slack_bot_token'], \
-                                      _usr, self.str3)
+                    _sent = pst.slack(self.optlist['arg']['slack']['token'], \
+                                      _toaddress, self.str3, self.figlist+self.filelist)
                     if self.verbose:
                         if _sent: print ('slack sent successful to %s'%_toaddress)
                         else: print ('slack sent failed to %s'%_toaddress) 
@@ -298,7 +311,7 @@ class main(object):
             if len(self.optlist['arg']['data']['py1'])>0:
                 import subprocess
                 for _py in self.optlist['arg']['data']['py1'].split(','):
-                    pid = subprocess.Popen(['python',_py],\
+                    pid = subprocess.Popen(['python',_py,str(self.indict)],\
                                     stdout=subprocess.PIPE,\
                                     stderr=subprocess.PIPE)
                     output,error = pid.communicate()
@@ -314,13 +327,23 @@ class main(object):
         if int(self.optlist['arg']["priorization"]["galaxy"]) in [1,2] or \
            len(self.schlist['G'])>0:
 
+            self.catalog = int(self.optlist['arg']['galaxies']['catalog'])
+            filtro = self.optlist['arg']['galaxies']['filter']
+            limrag = [float(self.optlist['arg']['galaxies']['limra'].split(',')[0]),
+                     float(self.optlist['arg']['galaxies']['limra'].split(',')[1])]
+            limdecg = [float(self.optlist['arg']['galaxies']['limdec'].split(',')[0]),
+                      float(self.optlist['arg']['galaxies']['limdec'].split(',')[1])]
+            limdist = [float(self.optlist['arg']['galaxies']['limdist'].split(',')[0]),
+                       float(self.optlist['arg']['galaxies']['limdist'].split(',')[1])]
+            limmag = [float(self.optlist['arg']['galaxies']['limmag'].split(',')[0]),
+                      float(self.optlist['arg']['galaxies']['limmag'].split(',')[1])]
+
             # query galaxies via vizier
             self.gname,self.gra,self.gdec,self.gmag,self.gdist = \
-                    pst.galaxies(catalog=catalog,verbose = self.verbose,\
+                    pst.galaxies(catalog=self.catalog,size=size,\
                     limra=limrag, limdec=limdecg, limdist=limdist, \
-                    size=size,limmag=limmag,filtro=filtro,\
-                    cachemode=int(self.optlist['arg']['galaxies']['cachemode']),\
-                    cachefile=self.optlist['arg']['galaxies']['cachefile'])
+                    limmag=limmag, filtro=filtro, cachemode=cachemode,\
+                    cachefile=cachefileg,verbose = self.verbose)
 
     def pointings(self):
         # generate pointings
@@ -328,8 +351,8 @@ class main(object):
         if len(self.schlist['T']) > 0:
             for _nt,_tt in enumerate(self.schlist['T']):
                 # read OB mode
-                _obx, _oby = int(_tt['pointings']["ob"].split(',')[0]),\
-                             int(_tt['pointings']["ob"].split(',')[1])
+                _obx, _oby = int(_tt['observe']["ob"].split(',')[0]),\
+                             int(_tt['observe']["ob"].split(',')[1])
                 _fovw, _fovh = float(_tt['telescope']['fovw'])*_oby,\
                                float(_tt['telescope']['fovh'])*_obx
                 # update fov
@@ -344,13 +367,16 @@ class main(object):
                 if _shift == 0: # with shfitw=shifth=0
                     if self.verbose:
                         print ('\tgenerate pointing without shift mode')
+                    if '%s' in cachefilet:
+                        _cachefile = cachefilet%_tt['telescope']['name']
+                    else:
+                        _cachefile = cachefilet
                     _ral,_decl = pst.pointings(
                         tel=_tt['telescope']['name'],limdec=limdect,\
                         limra=limrat,fovh=_fovh,fovw=_fovw,\
                         shifth=0.,shiftw=0.,verbose=self.verbose,\
                         uarea=float(_tt['pointings']['uarea']),\
-                        cachemode=int(_tt['pointings']['cachemode']),\
-                        cachefile=_tt['pointings']['cachefile'],\
+                        cachemode=cachemode,cachefile=_cachefile,\
                         skipfile=_tt['pointings']['skipfile'])
                 else: # running shfitw, shifth
                     if self.verbose:
@@ -419,19 +445,15 @@ class main(object):
             for _nt,_tt in enumerate(self.schlist['G']):
                 try:_cov = float(_tt['observe']['remcov'])
                 except:_cov = False
-                try:_nf = int(_tt['observe']['remfields'])
-                except:_nf = False
                 if _cov<=0 and _cov>=1:_cov=False
-                if _nf<=0:_nf=False
 
                 # cut galaxies on score
                 if self.verbose:
-                    print ('\tG: fields threshold set to %s'%_nf)
+                    print ('\tG: fields threshold set to %s'%remfields)
                 for _key,_val in zip(['ra','dec','score',\
                         'name','dist','mag'],[self.gra,self.gdec,\
                         self.gscore,self.gname,self.gdist,self.gmag]):
-                    if _nf: self.schlist['G'][_nt][_key] = _val[:_nf]
-                    else: self.schlist['G'][_nt][_key] = _val
+                    self.schlist['G'][_nt][_key] = _val[:remfields]
                 if self.verbose: 
                     print ('\tremian %i galaxies for %s'%\
                            (len(self.schlist['G'][_nt]['ra']),\
@@ -466,21 +488,14 @@ class main(object):
             for _nt,_tel in enumerate(self.schlist['T']):
                 try:_cov = float(_tel['observe']['remcov'])
                 except:_cov = False
-                try:_nf = int(_tel['observe']['remfields'])
-                except:_nf = False
                 if _cov<=0 and _cov>=1:_cov=False
-                if _nf<=0:_nf=False
 
                 # cut pointings on score
                 if self.verbose: 
-                    print ('\tT: fields threshold set to %s'%_nf)
+                    print ('\tT: fields threshold set to %s'%remfields)
                 for _key in ['ra','dec','score']:
-                    if _nf:
-                        self.schlist['T'][_nt][_key] = \
-                            self.schlist['T'][_nt][_key][:_nf]
-                    else:
-                        self.schlist['T'][_nt][_key] = \
-                            self.schlist['T'][_nt][_key]
+                    self.schlist['T'][_nt][_key] = \
+                            self.schlist['T'][_nt][_key][:remfields]
                 if self.verbose: 
                     print ('\tremian %i pointings for %s'%\
                            (len(self.schlist['T'][_nt]['ra']),\
@@ -591,6 +606,7 @@ class main(object):
 
         # 3- generate scheduler files
         # write files
+        self.schfile = {}
         for _sch in self.schlist: # schedule: T/G
             if self.verbose:
                 print ('\n\t ### output schedule for %s strategy'%_sch)
@@ -600,8 +616,8 @@ class main(object):
                     print ('\n\t\tfor tel:%s'%_tt['telescope']['name'])
                 fovw,fovh = float(_tt['telescope']['fovw']),\
                             float(_tt['telescope']['fovh'])
-                _obx,_oby = int(_tt['pointings']["ob"].split(',')[0]),\
-                            int(_tt['pointings']["ob"].split(',')[1])
+                _obx,_oby = int(_tt['observe']["ob"].split(',')[0]),\
+                            int(_tt['observe']["ob"].split(',')[1])
                 _nob = 0
                 # get selected ra,dec to tellist
                 tellist = None
@@ -614,23 +630,26 @@ class main(object):
                 if not tellist is None:
                     if len(_tt['scheduler']['schfile'])>0:
                         if _tt['scheduler']['schfile'] == 'auto':
-                            schfile = self.sname.replace('$telname$',\
-                                            _tt['telescope']['name'])
+                            self.schfile[_tt['telescope']['name']] = \
+                                        self.sname.replace('$telname$',\
+                                        _tt['telescope']['name'])
                         else:
-                            schfile = _tt['scheduler']['schfile']
+                            self.schfile[_tt['telescope']['name']] = \
+                                        _tt['scheduler']['schfile']
                     else:
-                        schfile = None
+                        self.schfile[_tt['telescope']['name']] = None
 
-                    if schfile is not None:
+                    if self.schfile[_tt['telescope']['name']] is not None:
                         # read ra,dec,time
                         _strlist,sumscore = '',0
-                        _hdr,_whdr = '#RA(J2000)   DEC(J2000)   Filter      Prob(%)'+\
+                        _hdr,_whdr = '#RA(J2000)   DEC(J2000)   Filter      Nexp     Prob(%)'+\
                                      ' '*6,True
                         ra,dec,date = tellist['ra'],\
                                       tellist['dec'],\
                                       tellist['timelist']
                         _obs, _tf, _tfl = self.def_obs(_tt)
-                        [_exp,_rot,_nf,_rep] = _tfl
+                        [_exp,_rot,_nf,_nexp] = _tfl
+
                         # if dither or filter
                         _dit = float(_tt['scheduler']['dither'])/3600
                         _bands = _tt['scheduler']['filter'].split(',')
@@ -658,20 +677,15 @@ class main(object):
                                 
                                 # OB mode
                                 ral, decl = pst.divide_OB(_rac,_decc,fovw,fovh,_obx,_oby)
-
                                 for _pointing,(_ra,_dec) in enumerate(zip(ral, decl)):
                                     # for 1 pointing of OB
-                                    for _repi in range(_rep):
-                                        # for fields:
-                                        # first assign filters
-                                        _filt = _bands[_repi%len(_bands)]
-                                        # for dither
-                                        angle = random.uniform(0,2*np.pi)
-                                        _ra+=_dit*np.cos(angle)
-                                        _dec+=_dit*np.sin(angle)
+                                    for _nfilt in range(len(_bands)):
+                                        # for different filter
+                                        _filt = _bands[_nfilt]
+
                                         # write ra,dec,score,[name,dist,mag],....
-                                        _strlist += '%-*.5f %-*.5f %-*s %-*.2e '%\
-                                                    (12,_ra,12,_dec,12,_filt,12,score)
+                                        _strlist += '%-*.5f %-*.5f %-*s %-*s %-*.2e '%\
+                                                    (12,_ra,12,_dec,12,_filt,12,_nexp,12,score)
                                         if _sch == 'G':
                                             _name = pst.decomposit(_tt['name'])[index]
                                             _strlist += '%-*s '%(30,_name)
@@ -682,7 +696,7 @@ class main(object):
                                                 if _whdr:_hdr += '%s      '%_key
                                         # get time
                                         _timenow = _time + _exp*_num
-                                        _num += 1
+                                        _num += _nexp
 
                                         # calculate sun and airmass
                                         radecs = astropy.coordinates.SkyCoord(ra=_ra*u.deg, \
@@ -703,15 +717,17 @@ class main(object):
                                             _hdr += 'OB \n'
                                             _whdr = False
                         # write
-                        if os.path.exists(schfile):os.remove(schfile)
-                        rr = open(schfile,'w')
-                        rr.write('%i fields covered %.2f%% Prob\n\n'%\
+                        if os.path.exists(self.schfile[_tt['telescope']['name']]):
+                            os.remove(self.schfile[_tt['telescope']['name']])
+                        rr = open(self.schfile[_tt['telescope']['name']],'w')
+                        rr.write('# %i fields covered %.2f%% Prob\n\n'%\
                                  (len(ra),sumscore*100))
                         rr.write(_hdr)
                         rr.write(_strlist)
                         rr.close()
-                        if self.verbose:print ('\t%s generated'%schfile)
-                        self.filelist.append(schfile)
+                        if self.verbose:
+                            print ('\t%s generated'%self.schfile[_tt['telescope']['name']])
+                        self.filelist.append(self.schfile[_tt['telescope']['name']])
 
     def def_time(self,_tlist): # define time
         _obstime = _tlist['observe']['obstime']
@@ -747,23 +763,18 @@ class main(object):
                     lon=float(_tlist['telescope']['lon'])*u.deg, \
                     height=float(_tlist['telescope']['alt'])*u.m)
 
-        # time per OB
-        try:num = int(_tlist['pointings']['nfields'])
-        except:num=1
-
-        ''' !!! if dithering or not; if dither, specify repeat number>0 !!! '''
-        _repeat = int(_tlist['scheduler']['repeat']) + 1
-        _obx,_oby = int(_tlist['pointings']["ob"].split(',')[0]),\
-                    int(_tlist['pointings']["ob"].split(',')[1])
-        _tf = float(_tlist['telescope']['exptime'])*_repeat*num*_obx*_oby +\
-              float(_tlist['telescope']['rottime'])
+        _nexp = int(_tlist['scheduler']['nexp']) + 1
+        _obx,_oby = int(_tlist['observe']["ob"].split(',')[0]),\
+                    int(_tlist['observe']["ob"].split(',')[1])
+        _tf = float(_tlist['telescope']['exptime'])*_nexp*nfields*_obx*_oby +\
+              float(_tlist['telescope']['ovhtime'])
         _tf = astropy.time.TimeDelta(_tf, format='sec') 
         return observatory,_tf,\
             [astropy.time.TimeDelta(float(_tlist['telescope']['exptime']),\
             format='sec'),\
-            astropy.time.TimeDelta(float(_tlist['telescope']['rottime']),\
+            astropy.time.TimeDelta(float(_tlist['telescope']['ovhtime']),\
             format='sec'),\
-            num,_repeat]
+             nfields,_nexp]
 
     def prob_obs(self,_glist,_cralist,_cdeclist,_cfovw,_cfovh):
 
@@ -775,14 +786,14 @@ class main(object):
             _tellist[_nt] = {}
 
             # define observatory and time per frame
-            _obs, _tf, [_exp,_rot,_numfield,_numrep] = \
+            _obs, _tf, [_exp,_rot,_numfield,_numexp] = \
                                 self.def_obs(_tt)
 
             # define time
             _timenow, _jd = self.def_time(_tt)
 
             # time last
-            _deltat = float(_tt['pointings']['timelast'])            
+            _deltat = float(_tt['observe']['timelast'])            
             _deltat = astropy.time.TimeDelta(_deltat*3600., format='sec') 
 
             # time list
@@ -844,8 +855,8 @@ class main(object):
                     continue
 
                 # if reached pointing limit
-                try: 
-                    nf = float(_glist[ntel]['pointings']['limfields'])
+                try:
+                    nf = float(_glist[ntel]['observe']['limfields'])
                     if sum([bb is not None for bb in \
                             _tellist[ntel]['ra']]) >= nf:
                         if self.verbose:
@@ -887,8 +898,12 @@ class main(object):
                                      float(tel['telescope']['fovh'])
 
                         # remove input ra,dec which should be high priority
+                        _idx = pst.overlapregioncut(_ra,_dec,_cralist,_cdeclist)
                         _cov = pst.overlapregion(_ra,_dec,fovw,fovh,\
-                                    _cralist,_cdeclist,_cfovw,_cfovh)
+                                                 np.array(_cralist)[_idx],\
+                                                 np.array(_cdeclist)[_idx],\
+                                                 np.array(_cfovw)[_idx],\
+                                                 np.array(_cfovh)[_idx])
                         if not _cov is None:
                             _frac = _cov/fovw/fovh
                             if _frac > float(tel['pointings']['uarea']):
@@ -897,9 +912,13 @@ class main(object):
                         # remove already done for the same priority
                         # different telescopes
                         for _ntel in _tellist:
+                            _idx = pst.overlapregioncut(_ra,_dec,\
+                                    _tellist[_ntel]['ra'],_tellist[_ntel]['dec'])
                             _cov = pst.overlapregion(_ra,_dec,fovw,fovh,\
-                                _tellist[_ntel]['ra'],_tellist[_ntel]['dec'],\
-                                _tellist[_ntel]['fovw'],_tellist[_ntel]['fovh'])
+                                    np.array(_tellist[_ntel]['ra'])[_idx],\
+                                    np.array(_tellist[_ntel]['dec'])[_idx],\
+                                    np.array(_tellist[_ntel]['fovw'])[_idx],\
+                                    np.array(_tellist[_ntel]['fovh'])[_idx])
                             if not _cov is None:
                                 _frac = _cov/fovw/fovh
                                 if _frac > float(tel['pointings']['uarea']):
@@ -1124,7 +1143,7 @@ class main(object):
             _pm = False
             if self.showmode == 5: 
                 _pm, self.fig_2d = \
-                    pst.interactive_show(pst.mollview,pparams,optparams)            
+                    pst.interactive_show(pst.mollview,pparams,optparams)
             else:
                 self.fig_2d = pst.mollview(pparams)
             if self.showmode == 4:
@@ -1135,6 +1154,7 @@ class main(object):
     def visualization2(self):
 
         self.ncolor = 0
+        cnl = {1:'GLADE',2:'GWGC'}
         ########## 2 - show for galaxies
         if hasattr(self, 'gra'):
             ''' fignum 1: 2d sky
@@ -1148,7 +1168,7 @@ class main(object):
                 pparams = {'ra':self.gra,'dec':self.gdec,\
                     'theta':theta,'phi':phi,'coord':coord,\
                     'fignum':1,'color':color_field[self.ncolor],\
-                    'label':'%s galaxies(%i)'%(self.catname,len(self.gra))}
+                    'label':'%s galaxies(%i)'%(cnl[self.catolog],len(self.gra))}
                 self.fig_2d = pst.pointview(pparams)
                 self.ncolor+=1
                 if self.showmode in [4, 5]:
@@ -1174,7 +1194,7 @@ class main(object):
                 pparams = {'distmin':dmin,'distmax':dmax,'dist':self.gdist,\
                         'fignum':2,'figsize':figsize,'color1':'k',\
                         'color2':'r','scale':'linear','nbin':10,\
-                        'label':'%s galaxies(%i)'%(self.catname,len(self.gra))}
+                        'label':'%s galaxies(%i)'%(cnl[self.catolog],len(self.gra))}
                 optparams = ['distmin','distmax','nbin','color1',\
                              'color2','scale']
                 if self.showmode == 5:
@@ -1189,7 +1209,7 @@ class main(object):
                 pparams = {'distmin':dmin,'distmax':dmax,'mag':self.gmag,\
                         'figsize':figsize,'dist':self.gdist,'fignum':3,\
                         'scale':'linear','color1':'r','color2':'grey','nbin':1,\
-                        'label':'%s galaxies(%i)'%(self.catname,len(self.gra))}
+                        'label':'%s galaxies(%i)'%(cnl[self.catolog],len(self.gra))}
                 optparams = ['distmin','distmax','nbin','color1',\
                              'color2','scale']
                 if self.showmode == 5:
@@ -1238,7 +1258,7 @@ class main(object):
                     tellist = self.tellist['T'][weight]
                     for _nt in tellist:
                         _tt = tellist[_nt]
-                        if 9 in self.showmap: 
+                        if 8 in self.showmap: 
                             pparams = {'ra':_tt['ra'],'dec':_tt['dec'],\
                                'fignum':1,'color':color_field[self.ncolor],\
                                'theta':theta,'phi':phi,'coord':coord,\
@@ -1247,7 +1267,7 @@ class main(object):
                                        (_tt['name'],len(_tt['ra']))}
                             self.fig_2d = pst.verticeview(pparams)
                             self.ncolor+=1
-                        if 10 in self.showmap:
+                        if 9 in self.showmap:
                             pparams = {'ra':_tt['ra'],'dec':_tt['dec'],\
                                 'time':_tt['timelist'],'fignum':1,\
                                 'color':color_field[self.ncolor],\
@@ -1308,12 +1328,12 @@ class main(object):
 
         # - email
         if eval(self.optlist['arg']['email']['activate']):
-            for _toaddress in self.optlist['arg']['email']['emailto'].split(','):
-                _sent = pst.sendemail(self.optlist['arg']['email']['email'],\
-                            self.optlist['arg']['email']['emailpass'],\
-                            self.optlist['arg']['email']['emailsmtp'],\
-                            self.optlist['arg']['email']['emailsub'],\
-                            self.optlist['arg']['email']['email'],\
+            for _toaddress in self.optlist['arg']['email']['to'].split(','):
+                _sent = pst.sendemail(self.optlist['arg']['email']['from'],\
+                            self.optlist['arg']['email']['pwd'],\
+                            self.optlist['arg']['email']['smtp'],\
+                            self.optlist['arg']['email']['sub'],\
+                            self.optlist['arg']['email']['from'],\
                             _toaddress,self.str1,self.figlist,self.filelist)
                 if self.verbose:
                     if _sent: print ('email sent successful to %s'%_toaddress)
@@ -1321,12 +1341,13 @@ class main(object):
 
         # - slack
         if eval(self.optlist['arg']['slack']['activate']):
-            for _usr in self.optlist['arg']['slack']['channel'].split(','):
-                _slack = pst.slack(self.optlist['arg']['slack']['slack_bot_token'], \
-                                   _usr, self.str3)
+            for _toaddress in self.optlist['arg']['slack']['channel'].split(','):
+                _sent = pst.slack(self.optlist['arg']['slack']['token'], \
+                        _toaddress, self.str3, self.figlist+self.filelist,\
+                        _msg=False)
                 if self.verbose:
-                    if _slack: print ('slack sent successful to %s'%_usr)
-                    else: print ('slack sent failed to %s\tno slackclient'%_usr) 
+                    if _sent: print ('slack sent successful to %s'%_toaddress)
+                    else: print ('slack sent failed to %s'%_toaddress) 
 
         # - SMS
         if eval(self.optlist['arg']['phone']['activate']):
@@ -1346,36 +1367,19 @@ class main(object):
             if len(self.optlist[_tt]['scheduler']['py2'])>0:
                 import subprocess
                 for _py in self.optlist[_tt]['scheduler']['py2'].split(','):
-                    pid = subprocess.Popen(['python',_py],\
-                                       stdout=subprocess.PIPE,\
-                                       stderr=subprocess.PIPE)
+                    _ff = self.schfile[self.optlist[_tt]['telescope']['name']]
+                    if hasattr(self,'graceid'):_id=self.graceid
+                    else:_id='Ttrigger'
+                    pid = subprocess.Popen(['python',_py,_ff,_id,\
+                            self.optlist[_tt]['observe']['limalt'],\
+                            self.optlist[_tt]['scheduler']['dither'],\
+                            self.optlist[_tt]['scheduler']['nexp'],\
+                            self.optlist[_tt]['telescope']['exptime']],\
+                            stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                     output,error = pid.communicate()
                     if self.verbose: 
                         if len(output)>0: print('### Info: %s'%output)
                         if len(error)>0: print('### Error: %s'%error)
-
-def choose(_dicti):
-    done, _dict, _klast, _odict = False, _dicti, '', {}
-    while not done:        
-        answ = input('options: %s or [a]ll or [o]uter layer or [q]uit?\t'%list(_dict.keys()))
-        if answ == 'q': done=True
-        elif answ == 'o':_dict = _dicti
-        elif answ in _dict.keys():
-            print ('>'*5,'go to %s'%answ)
-            _klast = answ
-            _dict = _dict[answ]                 
-        elif answ == 'a':
-            for _key in _dict:              
-                print ('\t--> %s : %s \n'%(_key,_dict[_key]))
-        else: 
-            print ('!!! Error: wrong input...')
-        try: _dict.keys()
-        except: 
-            print ('\t %s'%_dict)
-            answ1 = input('modify it?')
-            _odict[_klast] = answ1
-            _dict = _dicti
-    return _odict
 
 def build_hp_map(v,mapname,nside,_coord='C'):
     # generate healpix fits map

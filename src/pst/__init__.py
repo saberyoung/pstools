@@ -7,12 +7,13 @@ Python.
 from .version import __version__
 from . import pstdef,default
 
+from .pstgui import main
+from .pstslack import main
 from .autogcndef import process_gcn
 from .manschedule import man_search
 from .server import lvc_server
 from .pstdef import (
-    main,
-    choose,    
+    main,    
     gwdist,
     get_skymap,  
     build_hp_map, 
@@ -31,11 +32,13 @@ from .configure import (
     config_init,
     load_config,
     gen_config,
-    modify_config)
+    modify_config,
+    choose)
 from .link import (
     sendemail,
     wechat,
     createSSHClient,
+    read_id,
     slack,
     phone)
 from .priorization import (
@@ -73,4 +76,8 @@ from .scheme import (
     gen_pointings,
     galaxies,
     pointngsshift,
-    overlapregion)
+    overlapregion,
+    overlapregioncut)
+from .sqlconn import *
+from .p2api import *
+from .scheduler import *

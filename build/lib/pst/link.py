@@ -4,7 +4,7 @@ define some functions for linking soft/email/etc
 """ ############################################################################
 from __future__ import print_function
 from builtins import input
-import os
+import os,sys
 
 def sendemail(email,emailpass,emailsmtp,subj,\
               fromaddr,toaddrs,text,Imglist=[],Filelist=[]):
@@ -97,14 +97,52 @@ def wechat(_name,_msg,_img):
     # send img
     if _img: my_friend.send_image(_img)
 
-def slack(token, usr, content):
-    # pip install slackclient   
-    try: from slackclient import SlackClient
-    except: return False
+def read_id(_token):
+    #check bot id
+    if sys.version_info>(3,0,0): 
+        from slack import WebClient as SlackClient
+    else: 
+        from slackclient import SlackClient
+    _idl,_idl1 = {}, {}
+    slack_client = SlackClient(_token)
+    # user and channel list
+    for _cc,_dd in zip(["users.list", "channels.list"], \
+                       ['members', 'channels']):
+        api_call = slack_client.api_call(_cc)
+        if api_call.get('ok'):
+            # retrieve all users so we can find our bot
+            users = api_call.get(_dd)
+            for user in users:
+                if 'name' in user:
+                    _idl[user.get('name')] = user.get('id')
+                    _idl1[user.get('id')] = user.get('name')
+    return _idl,_idl1
 
-    slack_client = SlackClient(token)    
-    slack_client.api_call("chat.postMessage", channel=usr,
-                          text=content, as_user=True)
+def slack(token, channel, content, _files=[], _msg=True):
+    # pip install slackclient
+    if sys.version_info>(3,0,0): 
+        from slack import WebClient as SlackClient
+    else: 
+        from slackclient import SlackClient
+    slack_client = SlackClient(token)
+
+    _idlist,_idrlist = read_id(token)
+    if channel in _idlist: 
+        # channel is name, need to find id
+        channel = _idlist[channel]
+    if _msg:
+        if sys.version_info>(3,0,0):
+            slack_client.api_call("chat.postMessage", \
+                            json={'channel':channel,'text':content})
+        else:
+            slack_client.api_call("chat.postMessage", channel=channel,
+                                  text=content, as_user=True)
+    for _file in _files:
+        if sys.version_info>(3,0,0):
+            slack_client.files_upload(channels=channel,file=_file)
+        else:
+            slack_client.api_call("files.upload",channels=channel,
+                                  file=open(_file, 'rb'),filename=_file)
     return True
 
 def phone(_account,_token,_from,_to,_txt):

@@ -3,10 +3,12 @@
 ''' contents to show'''
 # - from XML:
 strxml = ['GraceID', 'AlertType', 'Group', 'FAR', \
-           'Terrestrial', 'HasNS', 'Instruments', 'EventPage' ]
+          'Terrestrial', 'HasNS', 'HasRemnant', \
+          'BNS', 'BBH', 'NSBH', \
+          'Instruments', 'EventPage' ]
 # - from fits header:
 strhdr = ['DISTMEAN', 'DISTSTD', 'DATE-OBS', \
-           'MJD-OBS', 'CREATOR']
+          'MJD-OBS']
 
 ''' healpix resolution'''
 # default nside of priorization map
@@ -75,33 +77,27 @@ title = '2D sky map'
 test = False
 
 ''' galaxy construction'''
-# Vizier query for galaxy catalog, options:
-# 1. GLADE, VII/281
-# 2. GWGC, VII/267
-catalog = 1
 
 # size for querying the galaxy catalog
 # 100 for 100 lines of catalog
 # -1 for the full catalog
 size = -1
 
-# filter for galaxy absolute magnitude
-# for GLADE, there're B and K
-# for GWGC, there're only B
-filtro = 'B'
+# cache mode for galaxy and tiling generation: 
+# 1. read galaxies/tilings from $cachefile (if setted and exists), see if cashed galaxies/tilings could also meet the galaxy/tiling cuts (i.e. ra, dec, mag, fov, ...), if everything works, read cached galaxies/tilings and stored them into $cachefile, otherwise, clobber $cachefile, query Vizier/generate tilings, and store to a new $cachefile; 
+# 2. the same as 1, but instead not store to a new $cachefile; 
+# 3. always query Vizier/generate tilings, clobber exiting $cachefile if any, and then store yields to a new $cachefile; 
+# 4. the same as 3, but instead not store to a new $cachefile
+cachemode = 1
 
-# distance range (in Mpc) for galaxy selection
-# if trigger (CBC GW, or?) distance available,
-#     auto select galaxy range
-#      otherwise, applied settings here.
-#    Notice: GWGC/GLADE is imcomplete beyond within 40/100 Mpc
-limdist = 0,1000
+# file name in which provides pre-defined galaxies. Since npz file would be used, if no .npz included in the file suffix, a .npz will be put in the end. If blanket will skip
+cachefileg = 'tmp_pst_galaxies.npz'
 
-# Ra range (in deg) for galaxy selection
-limrag = 0,360
+# file name in which provides pre-defined tilings. Since npz file would be used, if not .npz included in the suffix, a .npz will be put in the end. leave blanket will skip
+cachefilet = 'tmp_pst_%s.npz'
 
-# Dec range (in deg) for galaxy selection
-limdecg = -90,90
+# in order to save time, set a number that will calculate visibility every a number of fields, only when trigger is not huge so that they are in the same portion of sky. If not int given, will calculate visibility for each fields, namely, nfields=1
+nfields = 1
 
-# absolute magnitude range (in mag) for galaxy selection
-limmag = -12,-20
+# remain a number of fields, otherwise, sometimes there're so many fields, especially for galaxy case, will slow down the process a lot
+remfields = 1000

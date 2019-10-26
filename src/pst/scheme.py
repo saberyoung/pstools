@@ -421,7 +421,7 @@ def galaxies(catalog=1,filtro='B',limra=[0,360.],limdec=[-20,90],\
                                 _indict['filtro']            
 
                 # check if it's OK
-                if catalog==_cat and filtro == _filter and \
+                if catalog==_cat and str(filtro) == str(_filter) and \
                limra[0] >= _limra[0] and limra[1] <= _limra[1] and \
                limdec[0] >= _limdec[0] and limdec[1] <= _limdec[1] and \
                limmag[0] >= _limmag[0] and limmag[1] <= _limmag[1] and \
@@ -542,3 +542,10 @@ def overlapregion(ra1,dec1,fovw1,fovh1,ra2,dec2,fovw2,fovh2,nside=1024):
     _ilist = np.unique(_ilist)
     _cpix = len(list(set(index1)&set(_ilist)))
     return _cpix*areasingle
+
+def overlapregioncut(ra1,dec1,ra2,dec2,radius=100):
+    ra2, dec2 = np.array(ra2), np.array(dec2)
+    dist = np.sqrt(((ra2-ra1)*15*np.cos(dec1))**2+\
+                   (dec2-dec1)**2)
+    idx = np.where(dist<=radius)
+    return idx

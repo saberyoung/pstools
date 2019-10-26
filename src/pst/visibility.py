@@ -10,7 +10,6 @@ import astropy.coordinates
 import astropy.time
 import astropy.units as u
 import numpy as np
-import math as mt
 
 def moon_phase(month, day, year):
     ages = [18, 0, 11, 22, 3, 14, 25, 6, 17, 28, 9, 20, 1, 12, 23, 4, 15, 26, 7]
@@ -42,7 +41,7 @@ def moon_phase(month, day, year):
 def slew_angle(ra,dec,ral,decl):
     ral, decl, idl = np.array(ral), np.array(decl), []
     while len(idl)<len(ral):
-        dist = np.sqrt(((ral-ra)*15*mt.cos(dec))**2+\
+        dist = np.sqrt(((ral-ra)*15*np.cos(dec))**2+\
                        (decl-dec)**2)
         _new,_nn = False,0
         while not _new:

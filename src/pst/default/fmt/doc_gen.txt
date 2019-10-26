@@ -1,0 +1,197 @@
+[priorization] ;  ------------- what infos used for priorization 
+
+trigger:        ; healper
+		if include trigger infos into priorization if any
+		//
+		; format: 
+		; arg/opt/comma/int/float and else for options
+		True,False
+		//
+		; default value
+		True
+
+galaxy:		if include galaxy infos into priorization. Option: 0. no galaxy infos; 1. galaxy mass/luminosity; 2. galaxy count
+		//
+		0,1,2
+		//
+		1
+
+dist:		if include galaxy distance infos into priorization. It is the gaussian PDF (Gaussian was built with mean, var from trigger info), therefore, if True, works only when trigger = True and galaxy = 1 or 2
+		//
+		True,False
+		//
+		True
+
+[react]  ;  ------------- for trigger search, when/how to response
+
+telescope:	define which telescopes is going to be activated
+		//
+		arg
+		//
+
+action:		if just receive alert or activate also telescope scheduler: 1. only GW/GRB/etc alert; 2. alert + telescope pointing scheduler
+		//
+		1,2
+		//
+		2
+
+[data]  ;  ------------- define directory for putting data
+
+dir:		define a directory to put yields
+		//
+		arg
+		//
+                ./
+
+py1:		after alert, excute $py1 python codes for specific tasks. If blanket will skip
+		//
+		opt
+		//
+
+[galaxies] ;  ------------- galaxy selection
+
+catalog:	Vizier query for galaxy catalog, options: 1. GLADE, VII/281; 2. GWGC, VII/267
+		//
+		1,2
+		//
+		1
+
+limra:		Ra range (in deg) for galaxy selection
+		//
+		comma
+		//
+		0,360
+
+limdec:		Dec range (in deg) for galaxy selection
+		//
+		comma
+		//
+		-90,90
+
+limdist:	distance range (in Mpc) for galaxy selection. If trigger (CBC GW, or?) distance available, select galaxies according to trigger, otherwise, applied settings here. Notice: GWGC/GLADE is imcomplete beyond within 100 Mpc
+		//
+		comma
+		//
+		0,1000
+
+filter:		filter for galaxy absolute magnitude. For GLADE, there're B and K, while, for GWGC, there're only B
+		//
+		B,K
+		//
+		B
+
+limmag:		absolute magnitude range for galaxy selection
+		//
+		comma
+		//
+		-12,-20
+
+[show] ;  ------------- visualization setting, for plots and terminal
+
+verbose:	verbose mode, decide if show detialed infos
+		//
+		True,False
+		//
+		True
+
+showmode:	how to deal with figures: 1. no plot; 2. plot what you want, however not show, but circulate to users via email/SMS/slack; 3. plot and show all figures together at the end; 4. plot and pause whenever a figure is done; 5. interactive mode, will enable user to change plots
+		//
+		1,2,3,4,5
+		//
+		1
+
+showmap:	define which plots to show, options: 1. 2d sky with trigger contours if any (figrue 1); 2. all galaxies (figure 1); 3. selected galaxies (figure 1); 4. galaxy distance distribution (figure 2); 5. galaxy luminosity distribution (figure 3); 6. cumulative galaxy score distribution (figure 4); 7. all telescope tilings (figure 1); 8. selected telescope tilings (figure 1); 9. route for scheduled tilings (figure 1); 10. cumulative tiling score (figure 5)
+		//
+		comma
+		//
+		1,3,8
+
+[email] ;  ------------- email setting
+
+activate:	if send email or not
+		//
+		True,False
+		//
+		False
+
+from:		set email sender account. leave blanket if activate False
+		//
+		opt
+		//
+
+pwd:		set email password. leave blanket if activate False
+		//
+		opt
+		//
+
+smtp:		set email sender host and port
+		leave blanket if activate False
+		//
+		opt
+		//
+
+to:		set email receiver account. leave blanket if activate False
+		//
+		opt
+		//
+
+sub:		
+		set email subject. leave blanket if activate False
+		//
+		opt
+		//
+
+[phone] ;  ------------- phone message setting, by using Twilio
+
+activate:	if send SMS or not
+		//
+		True,False
+		//
+		False
+
+account:	set twilio account. leave blanket if activate False
+		//
+		opt
+		//
+
+token:		set twilio token. leave blanket if activate False
+		//
+		opt
+		//
+
+to:		set SMS receiver. leave blanket if activate False
+		//
+		opt
+		//
+
+from:		set SMS sender. leave blanket if activate False
+		//
+		opt
+		//
+
+[slack] ;-------------- define slack configuration
+
+activate:	if send slack or not
+		//
+		True,False
+		//
+		False
+
+token:		set slack token. leave blanket if activate False
+		go to: api.slack.com/apps/AJZAB9GDC/oauth?
+		find: Bot User OAuth Access Token
+		//
+		opt
+		//
+
+botname:	set bot name. leave blanket if activate False
+		check api.slack.com/apps/AJZAB9GDC/oauth?
+		//
+		opt
+		//
+
+channel:	
+		set slack channel (or user name) to receive msg. leave blanket if activate False
+		//
+		opt
+		//

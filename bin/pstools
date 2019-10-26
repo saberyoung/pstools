@@ -16,15 +16,22 @@ description = ">> PStools main algorithm"
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description=description,\
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)   
+        formatter_class=argparse.RawTextHelpFormatter)   
 
     # mandatory
-    parser.add_argument("mode",choices=[1,2,3,4,5,6,7],type=int,\
-        help='PSTools mode: [1] Generate configuration; '+\
-            '[2] Check configuration; [3] Modify configuration; '+\
-            '[4] Serve alert; [5] Monitor alert; '+\
-            '[6] Offline alert; [7] Web tutorial; '+\
-            '[8] covert txt to npz')
+    parser.add_argument("mode",choices=[1,2,3,4,5,6,7,8,9,10],type=int,\
+        help='''
+        PSTools mode:
+        Gui:     [1] Init gui mode
+        Slack:   [2] Init slack interface
+        Cmd:     [3] Init configuration 
+                 [4] Check configuration 
+                 [5] Modify configuration 
+                 [6] Serve alert 
+                 [7] Monitor alert
+                 [8] Offline alert 
+                 [9] Web tutorial
+                 [10] covert txt to npz''')
 
     # optional
     parser.add_argument("-f", dest="fits",\
@@ -44,78 +51,78 @@ if __name__ == "__main__":
         help='GCN port')
     parser.add_argument("-v", dest="verbose",\
         default=False,action="store_true",\
-        help='Enable task progress report')  
-    parser.add_argument("-l", dest="log",\
-        default=False,action="store_true",\
-        help='Recording task progress report')
+        help='Enable task progress report') 
 
     # read parameters
     args = parser.parse_args()
     _mode = args.mode
-    _log = args.log
     _verbose = args.verbose
-    _server, _port = args.server, args.port
+    _server, _port = args.server, args.port    
 
-    if _log: # if record
-        import logging
-        if os.path.exists('pstools.log'):os.remove('pstools.log')
-        logging.basicConfig(filename='pstools.log', \
-            level=logging.INFO,format='%(asctime)s.%(msecs)03d '+\
-            '%(levelname)s %(module)s - %(funcName)s: %(message)s',\
-            datefmt='%Y-%m-%d %H:%M:%S')
-        for key in logging.Logger.manager.loggerDict:
-            logging.getLogger(key).setLevel(logging.CRITICAL)
-    
-    if _mode == 1:  # - generate configuration
-        if args.tel is None:
-            arglist,optlist = pst.load_config()
-            _tell = arglist['react']['telescope']
-            if len(_tell)==0:
-                sys.exit('### Error: option tel wrong ...')
+    if _mode == 1:  # - GUI
+        pst.pstgui.main()
+
+    elif _mode == 2:  # - SLACK
+        pst.pstslack.main()
+
+    elif _mode == 3:  # - generate configuration
+        if args.tel is None:_tell = input('telescope name:\t')
         else: _tell = args.tel
         for _tel in _tell.split(','): 
-            _cfile,arglist,optlist = pst.load_config(_tel,_cfile=True)
-            if _cfile: 
-                for _cfilei in _cfile:
-                    print ('- %s configuration: %s'%(_tel,_cfilei))
-                    pst.gen_config(_cfilei)
+            if len(_tel) == 0:continue
+            _config = pst.load_config(_tel)
+            for _class in ['general','telescope']:
+                if _config[_class]['check']:
+                    print('%s %s is ready, modify it with option 4'%\
+                          (_tel,_class))
+                else:            
+                    pst.gen_config(_config[_class]['config'],_class)
 
-    elif _mode == 2:  # - check file
+    elif _mode == 4:  # - check file
         if args.tel is None:
-            arglist,optlist = pst.load_config()
-            _tell = arglist['react']['telescope']
+            _config = pst.load_config()
+            if not _config: sys.exit()
+            _tell = _config['general']['params']['react']['telescope']
             if len(_tell)==0: 
-                sys.exit('### Error: option tel wrong ...')
+                sys.exit('### no tel found from %s'%_config['config'])
         else: _tell = args.tel
         for _tel in _tell.split(','): 
-            print('- %s configuration:'%_tel)
-            arglist,optlist = pst.load_config(_tel,\
-                            _verbose=True,_check=True)
-            print('\t--> OK\n')
+            if len(_tel) == 0:continue
+            _config = pst.load_config(_tel,_verbose=True)
+            if not _config: sys.exit()
+            for _class in ['general','telescope']:
+                print('- %s %s configuration: %s'%\
+                      (_tel,_class,_config[_class]['check']))
 
-    elif _mode == 3:  # - show configuration
+    elif _mode == 5:  # - revise configuration
         if args.tel is None:
-            arglist,optlist = pst.load_config()
-            _tell = arglist['react']['telescope']
+            _config = pst.load_config()
+            if not _config: sys.exit()
+            _tell = _config['general']['params']['react']['telescope']
             if len(_tell)==0:
-                sys.exit('### Error: option tel wrong ...')
+                sys.exit('### no tel from input or %s'%\
+                         _config['general']['config'])
         else: _tell = args.tel
-        _dict,_cfilel = {},{}
-        for _tel in _tell.split(','): 
-            _dict[_tel] = {}
-            _cfile,arglist,optlist = pst.load_config(_tel,\
-                            _verbose=_verbose, _cfile=True)
-            _dict[_tel]['general'],_dict[_tel]['telescope']=\
-                                                arglist, optlist
-            _cfilel[_tel] = _cfile
-        for _tel in _dict:
-            for _num,_nn in enumerate(['general','telescope']):
-                answ = input('Modify %s-%s file? (Y/N)'%(_tel,_nn))
-                if answ == 'Y':
-                    _odict = pst.choose(_dict[_tel][_nn])
-                    pst.modify_config(_cfilel[_tel][_num],_odict)
 
-    elif _mode == 4:    # - serve alert
+        for _tel in _tell.split(','):
+            if len(_tel) == 0:continue
+            for _class in ['general','telescope']:  
+                _config = pst.load_config(_tel)
+                if not _config: sys.exit()         
+                _d = False
+                while not _d:
+                    answ = input('Modify %s-%s file? (Y/N/Q)'%(_tel,_class))
+                    if answ in ['y','Y']:
+                        pst.choose(_tel,_class,_config)
+                        _d = True
+                    elif answ in ['n','N']:
+                        _d = True
+                    elif answ in ['q','Q']:
+                        sys.exit()
+                    else:
+                        print ('wrong option')
+
+    elif _mode == 6:    # - serve alert
         from gcn.cmdline import serve_main
         if args.server != 'local':
             sys.exit('Only local server can be served')
@@ -124,20 +131,18 @@ if __name__ == "__main__":
         _s1,_s2 = pst.lvc_server(_server, _port, _verbose)
         _info = 'Serve Mode:\thost:%s:port:%s'%(_s1,_s2)
         if _verbose: print('## %s'%_info)
-        if _log: logging.info(_info)
         sys.exit(serve_main(args=[args.xml,'--host', '%s:%s'%(_s1,_s2)]))
 
-    elif _mode == 5:  # - auto listen
+    elif _mode == 7:  # - auto listen
         _s1,_s2 = pst.lvc_server(_server, _port, _verbose)
         _info = 'Monitor mode: listening host:%s:port:%s'%(_s1,_s2)
         if _verbose: print('## %s'%_info)
-        if _log: logging.info(_info)
         gcn.listen(handler = pst.process_gcn, host=_s1, port=_s2)
 
-    elif _mode == 6:  # - manual search   
-        pst.man_search(args.fits, args.tel, _verbose, _log)
+    elif _mode == 8:  # - manual search   
+        pst.man_search(args.fits, args.tel, _verbose)
 
-    elif _mode == 7:  # - web tutorial
+    elif _mode == 9:  # - web tutorial
         _html = 'https://pstools-documentation.readthedocs.io/en/latest/'
         try:
             import webbrowser
@@ -145,7 +150,7 @@ if __name__ == "__main__":
             print ('open %s'%_html)
         except: print ('Failed to open %s'%_html)
 
-    elif _mode == 8:  # - file convert
+    elif _mode == 10:  # - file convert
         if _verbose: 
             print ('for each file, need 4 columns, '+\
                    'i.e. ra, dec, fov1, fov2, split in space')
