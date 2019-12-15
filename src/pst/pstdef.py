@@ -284,7 +284,7 @@ class main(object):
                             _toaddress,self.str1,self.figlist,self.filelist)
                     if self.verbose:
                         if _sent: print ('email sent successful to %s'%_toaddress)
-                        else: print ('email sent failed to %s'%_toaddress) 
+                        else: print ('email sent failed to %s'%_toaddress)             
 
             # - slack
             if eval(self.optlist['arg']['slack']['activate']):

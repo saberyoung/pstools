@@ -4,14 +4,13 @@ numpy
 healpy
 matplotlib
 astroquery
-xmltodict
 requests
 pygcn
 pymysql
+wget
 voevent-parse
 meander
 slackclient
 twilio
-wget
 
 [source extraction]

@@ -104,11 +104,11 @@ def read_id(_token):
     else: 
         from slackclient import SlackClient
     _idl,_idl1 = {}, {}
-    slack_client = SlackClient(_token)
+    slack_client = SlackClient(_token)       
     # user and channel list
     for _cc,_dd in zip(["users.list", "channels.list"], \
                        ['members', 'channels']):
-        api_call = slack_client.api_call(_cc)
+        api_call = slack_client.api_call(_cc)        
         if api_call.get('ok'):
             # retrieve all users so we can find our bot
             users = api_call.get(_dd)

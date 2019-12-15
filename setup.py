@@ -17,8 +17,8 @@ VERSION = '0.0.0.1'
 # What packages are required for this module to be executed
 REQUIRED = [
     'future','astropy','numpy','healpy','matplotlib',
-    'astroquery','xmltodict','requests','pygcn','pymysql',
-    'voevent-parse','meander','slackclient','twilio','wget'
+    'astroquery','requests','pygcn','pymysql','wget',
+    'voevent-parse','meander','slackclient','twilio'
 ]
 
 # What packages are optional
@@ -92,6 +92,8 @@ setup(
     python_requires=REQUIRES_PYTHON,
     url=URL,
     download_url = URL1,
+    package_data = {'': ['src/pst/default/fmt/*txt',
+                         'src/pst/default/fmt/*par']},
     package_dir = {'': 'src'},
     packages=['pst'],    
     install_requires=REQUIRED,

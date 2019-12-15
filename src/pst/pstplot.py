@@ -167,14 +167,19 @@ def plot_sky(r,optlist,coord,timenow,fignum=1):
             _smlabel=True
             for _timeplus in np.arange(0,360,1):
                 # define observatory
+                # sometimes finals2000A is needed by astropy.utils.iers.iers, however blocked
+                # download from: ftp://ftp.iers.org/products/eop/rapid/standard/finals2000A.all
                 newAltAzcoordiantes = astropy.coordinates.SkyCoord(alt = 0*u.deg, \
                                         az = 0*u.deg + _timeplus*u.deg, \
                                         obstime = timenow, frame = 'altaz', \
                                         location = observatory)
+
                 # transform to theta phi
                 _htheta,_hphi = pst.RadecToThetaphi(newAltAzcoordiantes.icrs.ra.deg, \
-                                        newAltAzcoordiantes.icrs.dec.deg)            
+                                        newAltAzcoordiantes.icrs.dec.deg)
+
                 _htheta,_hphi = r(_htheta,_hphi)
+
                 # plot
                 if _smlabel:
                     hp.projplot(_htheta,_hphi,'.', color = _colorlist[_ntt], \

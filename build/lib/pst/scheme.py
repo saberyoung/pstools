@@ -265,8 +265,7 @@ def pointings(tel='VST',limra=[0,360.],limdec=[-20,90],\
             # store to cachefile
             np.savez(cachefile,tel=tel,ra=tra,dec=tdec,\
                      limra=limra,limdec=limdec,\
-                     fovw=np.zeros(len(limra))+fovw,\
-                     fovh=np.zeros(len(limra))+fovh,\
+                     fovw=fovw,fovh=fovh,\
                      shiftw=shiftw,shifth=shifth)
 
     elif cachemode in [3,4]:
@@ -281,13 +280,12 @@ def pointings(tel='VST',limra=[0,360.],limdec=[-20,90],\
             if verbose: print('\tstore cachefile')
             np.savez(cachefile,tel=tel,ra=tra,dec=tdec,\
                      limra=limra,limdec=limdec,\
-                     fovw=np.zeros(len(limra))+fovw,\
-                     fovh=np.zeros(len(limra))+fovh,\
+                     fovw=fovw,fovh=fovh,\
                      shiftw=shiftw,shifth=shifth)
     if verbose: print("\t%i pointings generated in %i sec"%(len(tra),int(time.time()-start_time)))
     tra,tdec = pst.remove_fields(skipfile,tra,tdec,\
-                    np.zeros(len(limra))+fovw,\
-                    np.zeros(len(limra))+fovh,verbose)
+                    np.zeros(len(tra))+fovw,\
+                    np.zeros(len(tra))+fovh,verbose)
     return tra,tdec
 
 def remove_fields(skipfile,tra,tdec,fovw,fovh,verbose):

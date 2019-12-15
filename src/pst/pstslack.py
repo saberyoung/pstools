@@ -181,6 +181,7 @@ def main():
 
     # read all user name and id
     _idlist,_idrlist = pst.read_id(token)
+    input(_idlist)
 
     # get bot id
     if bname in _idlist:BOT_ID = _idlist[bname]
