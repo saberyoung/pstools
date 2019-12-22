@@ -3,18 +3,18 @@
 **tutorial**
 https://pstools-documentation.readthedocs.io/en/latest/
 
-**structure**
-===================================
+structure
+=============
 
-l0
+layer 0
 --
 * autogcn
 
-l1
+layer 1
 --
 * tilings
 * galaxies
 
-l2
+layer 2
 --
 * prob
