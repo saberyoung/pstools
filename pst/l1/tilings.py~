@@ -29,19 +29,79 @@ import logging
 
 # self import
 import pst
-    
-def IndexToDeclRa(NSIDE,index):
-    theta,phi=hp.pixelfunc.pix2ang(NSIDE,index)
-    return -np.degrees(theta-np.pi/2.),np.degrees(phi)
 
-def DeclRaToIndex(decl,RA,NSIDE):
-    return hp.pixelfunc.ang2pix(NSIDE,np.radians(-decl+90.),np.radians(RA))
-    
-def RadecToThetaphi(ra,dec):
-    return np.pi/2.-np.radians(dec),np.radians(ra)
+class DecentFilter(AbsAlertFilter):
+	"""
+		General-purpose filter with ~ 0.6% acceptance. It selects alerts based on:
+			* numper of previous detections
+			* positive subtraction flag
+			* loose cuts on image quality (fwhm, elongation, number of bad pixels, and the
+			difference between PSF and aperture magnitude)
+			* distance to known SS objects
+			* real-bogus
+			* detection of proper-motion and paralax for coincidence sources in GAIA DR2
+		
+		The filter has a very weak dependence on the real-bogus score and it is independent
+		on the provided PS1 star-galaxy classification.
+	"""
 
-def ThataphiToRadec(theta,phi):
-    return np.degrees(phi),np.degrees(np.pi/2.-theta)
+	# Static version info
+	version = 1.0
+	resources = ('catsHTM.default',)
+	
+	
+	class RunConfig(BaseModel):
+		"""
+ 		Necessary class to validate configuration.
+		"""
+		
+	
+	def __init__(self, on_match_t2_units, base_config=None, run_config=None, logger=None):
+		"""
+		"""
+		if run_config is None:
+			raise ValueError("Please check you run configuration")
+
+		self.on_match_t2_units = on_match_t2_units
+		self.logger = logger if logger is not None else logging.getLogger()
+		
+		# parse the run config
+		rc_dict = run_config.dict()
+		for k, val in rc_dict.items():
+			self.logger.info("Using %s=%s" % (k, val))
+
+	def _alert_has_keys(self, photop):
+		"""
+			check that given photopoint contains all the keys needed to filter
+		"""
+		for el in self.keys_to_check:
+			if el not in photop:
+				self.logger.info(None, extra={"missing": el})
+				return False
+			if photop[el] is None:
+				self.logger.info(None, extra={"isNone": el})
+				return False
+		return True
+	def apply(self, alert):
+		"""
+		Mandatory implementation.
+		To exclude the alert, return *None*
+		To accept it, either return
+			* self.on_match_t2_units
+			* or a custom combination of T2 unit names
+		"""
+		
+		# --------------------------------------------------------------------- #
+		#					CUT ON THE HISTORY OF THE ALERT						#
+		# --------------------------------------------------------------------- #
+		
+		npp = len(alert.pps)
+		if npp < self.min_ndet:
+			#self.logger.debug("rejected: %d photopoints in alert (minimum required %d)"% (npp, self.min_ndet))
+			self.logger.info(None, extra={'nDet': npp})
+			return None
+
+
 
 def vertices(ra,dec,fovw,fovh):
     """Finding the vertices of a FoV given the central location (ra[deg], dec[deg])
@@ -353,126 +413,6 @@ def gen_pointings(limra=[0,360.],limdec=[-20,90],\
                 declist.append(dec)                 
     declist,ralist = np.array(declist),np.array(ralist)
     return ralist,declist
-
-def galaxies(catalog=1,filtro='B',limra=[0,360.],limdec=[-20,90],\
-             limdist=[0,1000.],limmag=[-10.,-18.],size=-1,\
-             verbose=False,cachemode=3,cachefile='tmp_glade.npz'):
-    """
-    Galaxy selection with:
-    - catalog:GLADE/GWGC/2MASS/etc
-    - ra,dec cut
-    - distance cut
-    - extinction cut
-    - absolute magnitude cut
-    - size, size of catalog, -1 for full
-
-    the other parameters are for healpix plotting:
-    - rot_theta,rot_phi
-    - nside: divide sky into 12*nside**2 pieces with equal area
-    - ordering T:nest F:string
-    - coord: C,G,E 
-       C/equational:ra/dec <-> G/galactic:lon/lat theta/phi
-    - norm: healpy color normalization: log,hist,None
-    
-    the other parameters
-    - verbose    
-    - cache/cachefile
-    - nbindist/nbinlums
-    """
-
-    start_time = time.time()
-    if verbose: 
-        print('\tcat:%s, filter:%s, ra:%s, dec:%s, mag:%s, dist:%s'%(catalog,filtro,limra,limdec,limmag,limdist))    
-    for _dd in [limra,limdec,limmag,limdist]:
-        if len(_dd)==2:pass
-        else:sys.exit('check limra,limdec,limmag,limdist...')
-
-    # get galaxies
-    if verbose: print('\tcache mode: %i; cachefile: %s'%(cachemode,cachefile))
-    if len(cachefile)>0 and not '.npz' in cachefile: cachefile += '.npz'
-    if cachemode in [1,2]:
-        if os.path.exists(cachefile):# if exists
-            _indict = np.load(cachefile)
-            _cs = [ii in _indict for ii in ['limra','limdec',\
-                                            'limmag','limdist',\
-                                            'cat','filtro','name',\
-                                            'ra','dec','mag','dist']]
-            if sum(_cs) != len(_cs):
-                # missing fields in cachefile
-                if verbose: print('\tmissing fields in cachefile')                
-                os.remove(cachefile) # clobber
-
-                # download galaxy catalog 
-                if verbose: print('\tquery vizier')
-                gname,gra,gdec,gmag,gdist = pst.query_vizier(catalog,\
-                                            size,filtro,limra,limdec,\
-                                            limmag,limdist,verbose)
-            else:
-                if verbose: print('\tcachefile exists, read')
-                # read infos
-                _limra,_limdec,_limmag,_limdist,_cat,_filter = \
-                                _indict['limra'],\
-                                _indict['limdec'],\
-                                _indict['limmag'],\
-                                _indict['limdist'],\
-                                _indict['cat'],\
-                                _indict['filtro']            
-
-                # check if it's OK
-                if catalog==_cat and str(filtro) == str(_filter) and \
-               limra[0] >= _limra[0] and limra[1] <= _limra[1] and \
-               limdec[0] >= _limdec[0] and limdec[1] <= _limdec[1] and \
-               limmag[0] >= _limmag[0] and limmag[1] <= _limmag[1] and \
-               limdist[0] >= _limdist[0] and limdist[1] <= _limdist[1]:
-                    if verbose: print('\tcachefile meets galaxy settings')
-                    gname,gra,gdec,gmag,gdist = _indict['name'],\
-                                                _indict['ra'],\
-                                                _indict['dec'],\
-                                                _indict['mag'],\
-                                                _indict['dist']
-                else: # no, generate galaxies
-                    if verbose: print('\tcachefile do not meet galaxy settings, remove')
-                    os.remove(cachefile) # clobber
-
-                    # download galaxy catalog 
-                    if verbose: print('\tquery vizier')
-                    gname,gra,gdec,gmag,gdist = pst.query_vizier(catalog,\
-                                                size,filtro,limra,limdec,\
-                                                limmag,limdist,verbose)
-        else:           
-            if verbose: print('\tcachefile not exists, query vizier')
-            # download galaxy catalog 
-            gname,gra,gdec,gmag,gdist = pst.query_vizier(catalog,\
-                                        size,filtro,limra,limdec,\
-                                        limmag,limdist,verbose)
-        if cachemode == 1 and \
-           not os.path.exists(cachefile):
-            if verbose: print('\tstore cachefile')
-            # store to cachefile
-            np.savez(cachefile,cat=catalog,filtro=filtro,\
-                     limra=limra,limdec=limdec,\
-                     limmag=limmag,limdist=limdist,\
-                     name=gname,ra=gra,dec=gdec,\
-                     mag=gmag,dist=gdist)
-
-    elif cachemode in [3,4]:
-        if verbose: print('\tquery vizier')
-        gname,gra,gdec,gmag,gdist = pst.query_vizier(catalog,\
-                                size,filtro,limra,limdec,\
-                                limmag,limdist,verbose)
-        if cachemode == 3 and os.path.exists(cachefile):            
-            os.remove(cachefile) # clobber
-            if verbose: print('\tremove cachefile')
-            # store to cachefile
-            if verbose: print('\tstore cachefile')
-            np.savez(cachefile,cat=catalog,filtro=filtro,\
-                     limra=limra,limdec=limdec,\
-                     limmag=limmag,limdist=limdist,\
-                     name=gname,ra=gra,dec=gdec,\
-                     mag=gmag,dist=gdist)
-
-    print("\t%i galaxies obtained in %i sec\n"%(len(gra),int(time.time()-start_time)))
-    return gname,gra,gdec,gmag,gdist
 
 def pointngsshift(skymap,num,limra=False,limdec=False,fovh=3.,fovw=3.,\
                verbose=False,skipfile=''):
