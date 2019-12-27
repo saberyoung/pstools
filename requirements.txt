@@ -1,6 +1,0 @@
-astropy
-numpy
-matplotlib
-healpy
-pygcn
-voevent-parse

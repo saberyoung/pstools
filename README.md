@@ -6,15 +6,11 @@ https://pstools-documentation.readthedocs.io/en/latest/
 structure
 =============
 
-layer 0
---
-* autogcn
-
-layer 1
+pipeline
 --
 * tilings
 * galaxies
 
-layer 2
+view
 --
-* prob
+* plot
