@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>healpy.rotator.rotateVector &#8212; healpy 1.12.10 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="healpy-rotator-rotatevector">
+<h1>healpy.rotator.rotateVector<a class="headerlink" href="#healpy-rotator-rotatevector" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="healpy.rotator.rotateVector">
+<code class="sig-prename descclassname">healpy.rotator.</code><code class="sig-name descname">rotateVector</code><span class="sig-paren">(</span><em class="sig-param">rotmat</em>, <em class="sig-param">vec</em>, <em class="sig-param">vy=None</em>, <em class="sig-param">vz=None</em>, <em class="sig-param">do_rot=True</em><span class="sig-paren">)</span><a class="headerlink" href="#healpy.rotator.rotateVector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rotate a vector (or a list of vectors) using the rotation matrix
+given as first argument.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>rotmat</strong><span class="classifier">float, array-like shape (3,3)</span></dt><dd><p>The rotation matrix</p>
+</dd>
+<dt><strong>vec</strong><span class="classifier">float, scalar or array-like</span></dt><dd><p>The vector to transform (shape (3,) or (3,N)),
+or x component (scalar or shape (N,)) if vy and vz are given</p>
+</dd>
+<dt><strong>vy</strong><span class="classifier">float, scalar or array-like, optional</span></dt><dd><p>The y component of the vector (scalar or shape (N,))</p>
+</dd>
+<dt><strong>vz</strong><span class="classifier">float, scalar or array-like, optional</span></dt><dd><p>The z component of the vector (scalar or shape (N,))</p>
+</dd>
+<dt><strong>do_rot</strong><span class="classifier">bool, optional</span></dt><dd><p>if True, really perform the operation, if False do nothing.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>vec</strong><span class="classifier">float, array</span></dt><dd><p>The component of the rotated vector(s).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="healpy.rotator.Rotator.html#healpy.rotator.Rotator" title="healpy.rotator.Rotator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Rotator</span></code></a></dt><dd></dd>
+</dl>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">healpy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">healpy tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">Licenses</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;CC/BY/4.0/International.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/generated/healpy.rotator.rotateVector.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

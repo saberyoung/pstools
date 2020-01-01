@@ -1,0 +1,137 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>healpy.sphtfunc.alm2map_der1 &#8212; healpy 1.12.10 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="healpy-sphtfunc-alm2map-der1">
+<h1>healpy.sphtfunc.alm2map_der1<a class="headerlink" href="#healpy-sphtfunc-alm2map-der1" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="healpy.sphtfunc.alm2map_der1">
+<code class="sig-prename descclassname">healpy.sphtfunc.</code><code class="sig-name descname">alm2map_der1</code><span class="sig-paren">(</span><em class="sig-param">alm</em>, <em class="sig-param">nside</em>, <em class="sig-param">lmax=None</em>, <em class="sig-param">mmax=None</em><span class="sig-paren">)</span><a class="headerlink" href="#healpy.sphtfunc.alm2map_der1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes a Healpix map and its first derivatives given the alm.</p>
+<p>The alm are given as a complex array. You can specify lmax
+and mmax, or they will be computed from array size (assuming
+lmax==mmax).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>alm</strong><span class="classifier">array, complex</span></dt><dd><p>A complex array of alm. Size must be of the form mmax(lmax-mmax+1)/2+lmax</p>
+</dd>
+<dt><strong>nside</strong><span class="classifier">int</span></dt><dd><p>The nside of the output map.</p>
+</dd>
+<dt><strong>lmax</strong><span class="classifier">None or int, optional</span></dt><dd><p>Explicitly define lmax (needed if mmax!=lmax)</p>
+</dd>
+<dt><strong>mmax</strong><span class="classifier">None or int, optional</span></dt><dd><p>Explicitly define mmax (needed if mmax!=lmax)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>m, d_theta, d_phi</strong><span class="classifier">tuple of arrays</span></dt><dd><p>The maps correponding to alm, and its derivatives with respect to
+theta and phi. d_phi is already divided by sin(theta)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">healpy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">healpy tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">Licenses</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;CC/BY/4.0/International.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/generated/healpy.sphtfunc.alm2map_der1.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -5,7 +5,11 @@ setup(
     name='pstools',
     version=version,
     packages=[
+        'pst',
         'pst.pipeline',
+        'pst.view',
+        'pst.circulate',
+        'pst.interface',
     ],
     zip_safe = False
 )

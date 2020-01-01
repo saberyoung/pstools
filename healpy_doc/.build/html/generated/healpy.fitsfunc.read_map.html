@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>healpy.fitsfunc.read_map &#8212; healpy 1.12.10 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="healpy-fitsfunc-read-map">
+<h1>healpy.fitsfunc.read_map<a class="headerlink" href="#healpy-fitsfunc-read-map" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="healpy.fitsfunc.read_map">
+<code class="sig-prename descclassname">healpy.fitsfunc.</code><code class="sig-name descname">read_map</code><span class="sig-paren">(</span><em class="sig-param">filename</em>, <em class="sig-param">field=0</em>, <em class="sig-param">dtype=&lt;class 'numpy.float64'&gt;</em>, <em class="sig-param">nest=False</em>, <em class="sig-param">partial=False</em>, <em class="sig-param">hdu=1</em>, <em class="sig-param">h=False</em>, <em class="sig-param">verbose=True</em>, <em class="sig-param">memmap=False</em><span class="sig-paren">)</span><a class="headerlink" href="#healpy.fitsfunc.read_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read a healpix map from a fits file.  Partial-sky files,
+if properly identified, are expanded to full size and filled with UNSEEN.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename</strong><span class="classifier">str or HDU or HDUList or pathlib.Path instance</span></dt><dd><p>the fits file name</p>
+</dd>
+<dt><strong>field</strong><span class="classifier">int or tuple of int, or None, optional</span></dt><dd><p>The column to read. Default: 0.
+By convention 0 is temperature, 1 is Q, 2 is U.
+Field can be a tuple to read multiple columns (0,1,2)
+If the fits file is a partial-sky file, field=0 corresponds to the
+first column after the pixel index column.
+If None, all columns are read in.</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier">data type or list of data types, optional</span></dt><dd><p>Force the conversion to some type. Passing a list allows different
+types for each field. In that case, the length of the list must
+correspond to the length of the field parameter. Default: np.float64
+if None, keep the dtype of the input FITS file</p>
+</dd>
+<dt><strong>nest</strong><span class="classifier">bool, optional</span></dt><dd><p>If True return the map in NEST ordering, otherwise in RING ordering;
+use fits keyword ORDERING to decide whether conversion is needed or not
+If None, no conversion is performed.</p>
+</dd>
+<dt><strong>partial</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, fits file is assumed to be a partial-sky file with explicit indexing,
+if the indexing scheme cannot be determined from the header.
+If False, implicit indexing is assumed.  Default: False.
+A partial sky file is one in which OBJECT=PARTIAL and INDXSCHM=EXPLICIT,
+and the first column is then assumed to contain pixel indices.
+A full sky file is one in which OBJECT=FULLSKY and INDXSCHM=IMPLICIT.
+At least one of these keywords must be set for the indexing
+scheme to be properly identified.</p>
+</dd>
+<dt><strong>hdu</strong><span class="classifier">int, optional</span></dt><dd><p>the header number to look at (start at 0)</p>
+</dd>
+<dt><strong>h</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, return also the header. Default: False.</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, print a number of diagnostic messages</p>
+</dd>
+<dt><strong>memmap</strong><span class="classifier">bool, optional</span></dt><dd><p>Argument passed to astropy.io.fits.open, if True, the map is not read into memory,
+but only the required pixels are read when needed. Default: False.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>m | (m0, m1, …) [, header]</strong><span class="classifier">array or a tuple of arrays, optionally with header appended</span></dt><dd><p>The map(s) read from the file, and the header if <em>h</em> is True.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">healpy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">healpy tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">Licenses</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;CC/BY/4.0/International.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/generated/healpy.fitsfunc.read_map.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>healpy.fitsfunc.read_alm &#8212; healpy 1.12.10 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="healpy-fitsfunc-read-alm">
+<h1>healpy.fitsfunc.read_alm<a class="headerlink" href="#healpy-fitsfunc-read-alm" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="healpy.fitsfunc.read_alm">
+<code class="sig-prename descclassname">healpy.fitsfunc.</code><code class="sig-name descname">read_alm</code><span class="sig-paren">(</span><em class="sig-param">filename</em>, <em class="sig-param">hdu=1</em>, <em class="sig-param">return_mmax=False</em><span class="sig-paren">)</span><a class="headerlink" href="#healpy.fitsfunc.read_alm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read alm from a fits file.</p>
+<p>In the fits file, the alm are written
+with explicit index scheme, index = l**2+l+m+1, while healpix cxx
+uses index = m*(2*lmax+1-m)/2+l. The conversion is done in this
+function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filename</strong><span class="classifier">str or HDUList or HDU or pathlib.Path instance</span></dt><dd><p>The name of the fits file to read</p>
+</dd>
+<dt><strong>hdu</strong><span class="classifier">int, or tuple of int, optional</span></dt><dd><p>The header to read. Start at 0. Default: hdu=1</p>
+</dd>
+<dt><strong>return_mmax</strong><span class="classifier">bool, optional</span></dt><dd><p>If true, both the alms and mmax is returned in a tuple. Default: return_mmax=False</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>alms[, mmax]</strong><span class="classifier">complex array or tuple of a complex array and an int</span></dt><dd><p>The alms read from the file and optionally mmax read from the file</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">healpy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">healpy tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">Licenses</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;CC/BY/4.0/International.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/generated/healpy.fitsfunc.read_alm.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

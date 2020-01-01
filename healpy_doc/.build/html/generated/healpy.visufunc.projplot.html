@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>healpy.visufunc.projplot &#8212; healpy 1.12.10 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="healpy-visufunc-projplot">
+<h1>healpy.visufunc.projplot<a class="headerlink" href="#healpy-visufunc-projplot" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="healpy.visufunc.projplot">
+<code class="sig-prename descclassname">healpy.visufunc.</code><code class="sig-name descname">projplot</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#healpy.visufunc.projplot" title="Permalink to this definition">¶</a></dt>
+<dd><p>projplot is a wrapper around <code class="xref py py-func docutils literal notranslate"><span class="pre">matplotlib.Axes.plot()</span></code> to take into account the
+spherical projection.</p>
+<p>You can call this function as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">projplot</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span>        <span class="c1"># plot a line going through points at coord (theta, phi)</span>
+<span class="n">projplot</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="s1">&#39;bo&#39;</span><span class="p">)</span>  <span class="c1"># plot &#39;o&#39; in blue at coord (theta, phi)</span>
+<span class="n">projplot</span><span class="p">(</span><span class="n">thetaphi</span><span class="p">)</span>          <span class="c1"># plot a line going through points at coord (thetaphi[0], thetaphi[1])</span>
+<span class="n">projplot</span><span class="p">(</span><span class="n">thetaphi</span><span class="p">,</span> <span class="s1">&#39;bx&#39;</span><span class="p">)</span>    <span class="c1"># idem but with blue &#39;x&#39;</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>theta, phi</strong><span class="classifier">float, array-like</span></dt><dd><p>Coordinates of point to plot. Can be put into one 2-d array, first line is
+then <em>theta</em> and second line is <em>phi</em>. See <em>lonlat</em> parameter for unit.</p>
+</dd>
+<dt><strong>fmt</strong><span class="classifier">str</span></dt><dd><p>A format string (see <code class="xref py py-func docutils literal notranslate"><span class="pre">matplotlib.Axes.plot()</span></code> for details)</p>
+</dd>
+<dt><strong>lonlat</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, theta and phi are interpreted as longitude and latitude
+in degree, otherwise, as colatitude and longitude in radian</p>
+</dd>
+<dt><strong>coord</strong><span class="classifier">{‘E’, ‘G’, ‘C’, None}</span></dt><dd><p>The coordinate system of the points, only used if the coordinate
+coordinate system of the Axes has been defined and in this
+case, a rotation is performed</p>
+</dd>
+<dt><strong>rot</strong><span class="classifier">None or sequence</span></dt><dd><p>rotation to be applied =(lon, lat, psi) : lon, lat will be position of the
+new Z axis, and psi is rotation around this axis, all in degree.
+if None, no rotation is performed</p>
+</dd>
+<dt><strong>direct</strong><span class="classifier">bool</span></dt><dd><p>if True, the rotation to center the projection is not
+taken into account</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="healpy.visufunc.projscatter.html#healpy.visufunc.projscatter" title="healpy.visufunc.projscatter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">projscatter</span></code></a>, <a class="reference internal" href="healpy.visufunc.projtext.html#healpy.visufunc.projtext" title="healpy.visufunc.projtext"><code class="xref py py-obj docutils literal notranslate"><span class="pre">projtext</span></code></a></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>Other keywords are passed to <code class="xref py py-func docutils literal notranslate"><span class="pre">matplotlib.Axes.plot()</span></code>.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">healpy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">healpy tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">Licenses</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;CC/BY/4.0/International.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/generated/healpy.visufunc.projplot.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

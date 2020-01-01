@@ -1,0 +1,270 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pixelfunc – Pixelisation related functions &#8212; pstools  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="pixelfunc-pixelisation-related-functions">
+<h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">pixelfunc</span></code> – Pixelisation related functions<a class="headerlink" href="#pixelfunc-pixelisation-related-functions" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="conversion-from-to-sky-coordinates">
+<h2>conversion from/to sky coordinates<a class="headerlink" href="#conversion-from-to-sky-coordinates" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">pix2ang</span></code>(nside, ipix[, nest, lonlat])</p></td>
+<td><p>pix2ang : nside,ipix,nest=False,lonlat=False -&gt; theta[rad],phi[rad] (default RING)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">pix2vec</span></code>(nside, ipix[, nest])</p></td>
+<td><p>pix2vec : nside,ipix,nest=False -&gt; x,y,z (default RING)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ang2pix</span></code>(nside, theta, phi[, nest, lonlat])</p></td>
+<td><p>ang2pix : nside,theta[rad],phi[rad],nest=False,lonlat=False -&gt; ipix (default:RING)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">vec2pix</span></code>(nside, x, y, z[, nest])</p></td>
+<td><p>vec2pix : nside,x,y,z,nest=False -&gt; ipix (default:RING)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">vec2ang</span></code>(vectors[, lonlat])</p></td>
+<td><p>vec2ang: vectors [x, y, z] -&gt; theta[rad], phi[rad]</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ang2vec</span></code>(theta, phi[, lonlat])</p></td>
+<td><p>ang2vec : convert angles to 3D position vector</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_all_neighbours</span></code>(nside, theta[, phi, …])</p></td>
+<td><p>Return the 8 nearest pixels.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_interp_weights</span></code>(nside, theta[, phi, …])</p></td>
+<td><p>Return the 4 closest pixels on the two rings above and below the location and corresponding weights.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_interp_val</span></code>(m, theta, phi[, nest, lonlat])</p></td>
+<td><p>Return the bi-linear interpolation value of a map using 4 nearest neighbours.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="conversion-between-nested-and-ring-schemes">
+<h2>conversion between NESTED and RING schemes<a class="headerlink" href="#conversion-between-nested-and-ring-schemes" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nest2ring</span></code>(nside, ipix)</p></td>
+<td><p>Convert pixel number from NESTED ordering to RING ordering.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ring2nest</span></code>(nside, ipix)</p></td>
+<td><p>Convert pixel number from RING ordering to NESTED ordering.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">reorder</span></code>(map_in[, inp, out, r2n, n2r])</p></td>
+<td><p>Reorder a healpix map from RING/NESTED ordering to NESTED/RING</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="nside-npix-resolution">
+<h2>nside/npix/resolution<a class="headerlink" href="#nside-npix-resolution" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nside2npix</span></code>(nside)</p></td>
+<td><p>Give the number of pixels for the given nside.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">npix2nside</span></code>(npix)</p></td>
+<td><p>Give the nside parameter for the given number of pixels.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nside2order</span></code>(nside)</p></td>
+<td><p>Give the resolution order for a given nside.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">order2nside</span></code>(order)</p></td>
+<td><p>Give the nside parameter for the given resolution order.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nside2resol</span></code>(nside[, arcmin])</p></td>
+<td><p>Give approximate resolution (pixel size in radian or arcmin) for nside.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">nside2pixarea</span></code>(nside[, degrees])</p></td>
+<td><p>Give pixel area given nside in square radians or square degrees.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">max_pixrad</span></code>(nside[, degrees])</p></td>
+<td><p>Maximum angular distance between any pixel center and its corners</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">isnsideok</span></code>(nside[, nest])</p></td>
+<td><p>Returns <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code> if nside is a valid nside parameter, <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">isnpixok</span></code>(npix)</p></td>
+<td><p>Return <code class="xref py py-const docutils literal notranslate"><span class="pre">True</span></code> if npix is a valid value for healpix map size, <code class="xref py py-const docutils literal notranslate"><span class="pre">False</span></code> otherwise.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_map_size</span></code>(m)</p></td>
+<td><p>Returns the npix of a given map (implicit or explicit pixelization).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_min_valid_nside</span></code>(npix)</p></td>
+<td><p>Returns the minimum acceptable nside so that npix &lt;= nside2npix(nside).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_nside</span></code>(m)</p></td>
+<td><p>Return the nside of the given map.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">maptype</span></code>(m)</p></td>
+<td><p>Describe the type of the map (valid, single, sequence of maps).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ud_grade</span></code>(map_in, nside_out[, pess, …])</p></td>
+<td><p>Upgrade or degrade resolution of a map (or list of maps).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="masking-pixels">
+<h2>Masking pixels<a class="headerlink" href="#masking-pixels" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">UNSEEN</span></code></p></td>
+<td><p>Special value used for masked pixels</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">mask_bad</span></code>(m[, badval, rtol, atol])</p></td>
+<td><p>Returns a bool array with <code class="docutils literal notranslate"><span class="pre">True</span></code> where m is close to badval.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">mask_good</span></code>(m[, badval, rtol, atol])</p></td>
+<td><p>Returns a bool array with <code class="docutils literal notranslate"><span class="pre">False</span></code> where m is close to badval.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">ma</span></code>(m[, badval, rtol, atol, copy])</p></td>
+<td><p>Return map as a masked array, with <code class="docutils literal notranslate"><span class="pre">badval</span></code> pixels masked.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="map-data-manipulation">
+<h2>Map data manipulation<a class="headerlink" href="#map-data-manipulation" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_dipole</span></code>(m[, nest, bad, gal_cut])</p></td>
+<td><p>Fit a dipole and a monopole to the map, excluding bad pixels.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_monopole</span></code>(m[, nest, bad, gal_cut])</p></td>
+<td><p>Fit a monopole to the map, excluding unseen pixels.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_dipole</span></code>(m[, nest, bad, gal_cut, …])</p></td>
+<td><p>Fit and subtract the dipole and the monopole from the given map m.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_monopole</span></code>(m[, nest, bad, gal_cut, …])</p></td>
+<td><p>Fit and subtract the monopole from the given map m.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_interp_val</span></code>(m, theta, phi[, nest, lonlat])</p></td>
+<td><p>Return the bi-linear interpolation value of a map using 4 nearest neighbours.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">pstools</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example.html">Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ref.html">Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../errors.html">Probable errors</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;CC/BY/4.0/International.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/doc/healpy_pix.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

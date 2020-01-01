@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>healpy.projector.SphericalProj &#8212; healpy 1.12.10 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="healpy-projector-sphericalproj">
+<h1>healpy.projector.SphericalProj<a class="headerlink" href="#healpy-projector-sphericalproj" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="healpy.projector.SphericalProj">
+<em class="property">class </em><code class="sig-prename descclassname">healpy.projector.</code><code class="sig-name descname">SphericalProj</code><span class="sig-paren">(</span><em class="sig-param">rot=None</em>, <em class="sig-param">coord=None</em>, <em class="sig-param">flipconv=None</em>, <em class="sig-param">**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#healpy.projector.SphericalProj" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class defines functions for spherical projection.</p>
+<p>This class contains class method for spherical projection computation. It 
+should not be instantiated. It should be inherited from and methods should
+be overloaded for desired projection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><a class="reference internal" href="healpy.projector.SphericalProj.arrayinfo.html#healpy.projector.SphericalProj.arrayinfo" title="healpy.projector.SphericalProj.arrayinfo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">arrayinfo</span></code></a></dt><dd><p>Dictionary with information on the projection array</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="healpy.projector.SphericalProj.ang2xy.html#healpy.projector.SphericalProj.ang2xy" title="healpy.projector.SphericalProj.ang2xy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ang2xy</span></code></a>(self, theta[, phi, lonlat, direct])</p></td>
+<td><p>From angular direction to position in the projection plane (%s).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="healpy.projector.SphericalProj.get_center.html#healpy.projector.SphericalProj.get_center" title="healpy.projector.SphericalProj.get_center"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_center</span></code></a>(self[, lonlat])</p></td>
+<td><p>Get the center of the projection.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="healpy.projector.SphericalProj.get_extent.html#healpy.projector.SphericalProj.get_extent" title="healpy.projector.SphericalProj.get_extent"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_extent</span></code></a>(self)</p></td>
+<td><p>Get the extension of the projection plane.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="healpy.projector.SphericalProj.get_fov.html#healpy.projector.SphericalProj.get_fov" title="healpy.projector.SphericalProj.get_fov"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_fov</span></code></a>(self)</p></td>
+<td><p>Get the field of view in degree of the plane of projection</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="healpy.projector.SphericalProj.ij2xy.html#healpy.projector.SphericalProj.ij2xy" title="healpy.projector.SphericalProj.ij2xy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ij2xy</span></code></a>(self[, i, j])</p></td>
+<td><p>From image array indices to position in projection plane (%s).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="healpy.projector.SphericalProj.projmap.html#healpy.projector.SphericalProj.projmap" title="healpy.projector.SphericalProj.projmap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">projmap</span></code></a>(self, map, vec2pix_func[, rot, coord])</p></td>
+<td><p>Create an array containing the projection of the map.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="healpy.projector.SphericalProj.set_flip.html#healpy.projector.SphericalProj.set_flip" title="healpy.projector.SphericalProj.set_flip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_flip</span></code></a>(self, flipconv)</p></td>
+<td><p>flipconv is either ‘astro’ or ‘geo’.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="healpy.projector.SphericalProj.vec2xy.html#healpy.projector.SphericalProj.vec2xy" title="healpy.projector.SphericalProj.vec2xy"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vec2xy</span></code></a>(self, vx[, vy, vz, direct])</p></td>
+<td><p>From unit vector direction to position in the projection plane (%s).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="healpy.projector.SphericalProj.xy2ang.html#healpy.projector.SphericalProj.xy2ang" title="healpy.projector.SphericalProj.xy2ang"><code class="xref py py-obj docutils literal notranslate"><span class="pre">xy2ang</span></code></a>(self, x[, y, lonlat, direct])</p></td>
+<td><p>From position in the projection plane to angular direction (%s).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="healpy.projector.SphericalProj.xy2ij.html#healpy.projector.SphericalProj.xy2ij" title="healpy.projector.SphericalProj.xy2ij"><code class="xref py py-obj docutils literal notranslate"><span class="pre">xy2ij</span></code></a>(self, x[, y])</p></td>
+<td><p>From position in the projection plane to image array index (%s).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="healpy.projector.SphericalProj.xy2vec.html#healpy.projector.SphericalProj.xy2vec" title="healpy.projector.SphericalProj.xy2vec"><code class="xref py py-obj docutils literal notranslate"><span class="pre">xy2vec</span></code></a>(self, x[, y, direct])</p></td>
+<td><p>From position in the projection plane to unit vector direction (%s).</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 70%" />
+<col style="width: 30%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>get_proj_plane_info</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>mkcoord</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>set_proj_plane_info</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">healpy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">healpy tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">Licenses</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;CC/BY/4.0/International.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/generated/healpy.projector.SphericalProj.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,14 @@
+from pst.pipeline.tilings import PstGetTilings
+
+a=PstGetTilings()
+b=PstGetTilings()
+c=PstGetTilings()
+
+a.generate(limra=[0,360],limdec=[-20,90],fovra=1.,fovdec=1.)
+a.divide_OB(3,3)
+input(a.astrotab())
+
+b.generate(limra=[10,60],limdec=[30,90],fovra=1.,fovdec=1.)
+
+c.overlapregion(10,10,10,10,
+                b.data['ra'],b.data['dec'],b.data['fovra'],b.data['fovdec'],128)

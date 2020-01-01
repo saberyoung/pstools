@@ -1,0 +1,142 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>healpy.rotator.vec2dir &#8212; healpy 1.12.10 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="healpy-rotator-vec2dir">
+<h1>healpy.rotator.vec2dir<a class="headerlink" href="#healpy-rotator-vec2dir" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="healpy.rotator.vec2dir">
+<code class="sig-prename descclassname">healpy.rotator.</code><code class="sig-name descname">vec2dir</code><span class="sig-paren">(</span><em class="sig-param">vec</em>, <em class="sig-param">vy=None</em>, <em class="sig-param">vz=None</em>, <em class="sig-param">lonlat=False</em><span class="sig-paren">)</span><a class="headerlink" href="#healpy.rotator.vec2dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transform a vector to angle given by theta,phi.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>vec</strong><span class="classifier">float, scalar or array-like</span></dt><dd><p>The vector to transform (shape (3,) or (3,N)),
+or x component (scalar or shape (N,)) if vy and vz are given</p>
+</dd>
+<dt><strong>vy</strong><span class="classifier">float, scalar or array-like, optional</span></dt><dd><p>The y component of the vector (scalar or shape (N,))</p>
+</dd>
+<dt><strong>vz</strong><span class="classifier">float, scalar or array-like, optional</span></dt><dd><p>The z component of the vector (scalar or shape (N,))</p>
+</dd>
+<dt><strong>lonlat</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, return angles will be longitude and latitude in degree,
+otherwise, angles will be longitude and co-latitude in radians (default)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>angles</strong><span class="classifier">float, array</span></dt><dd><p>The angles (unit depending on <em>lonlat</em>) in an array of
+shape (2,) (if scalar input) or (2, N)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="healpy.rotator.dir2vec.html#healpy.rotator.dir2vec" title="healpy.rotator.dir2vec"><code class="xref py py-func docutils literal notranslate"><span class="pre">dir2vec()</span></code></a>, <code class="xref py py-func docutils literal notranslate"><span class="pre">pixelfunc.ang2vec()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">pixelfunc.vec2ang()</span></code></dt><dd></dd>
+</dl>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">healpy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">healpy tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">Licenses</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;CC/BY/4.0/International.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/generated/healpy.rotator.vec2dir.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

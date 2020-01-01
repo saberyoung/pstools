@@ -1,0 +1,146 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>healpy.query_disc &#8212; healpy 1.12.10 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="healpy-query-disc">
+<h1>healpy.query_disc<a class="headerlink" href="#healpy-query-disc" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="healpy.query_disc">
+<code class="sig-prename descclassname">healpy.</code><code class="sig-name descname">query_disc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#healpy.query_disc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns pixels whose centers lie within the disk defined by
+<em>vec</em> and <em>radius</em> (in radians) (if <em>inclusive</em> is False), or which
+overlap with this disk (if <em>inclusive</em> is True).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>nside</strong><span class="classifier">int</span></dt><dd><p>The nside of the Healpix map.</p>
+</dd>
+<dt><strong>vec</strong><span class="classifier">float, sequence of 3 elements</span></dt><dd><p>The coordinates of unit vector defining the disk center.</p>
+</dd>
+<dt><strong>radius</strong><span class="classifier">float</span></dt><dd><p>The radius (in radians) of the disk</p>
+</dd>
+<dt><strong>inclusive</strong><span class="classifier">bool, optional</span></dt><dd><p>If False, return the exact set of pixels whose pixel centers lie 
+within the disk; if True, return all pixels that overlap with the disk,
+and maybe a few more. Default: False</p>
+</dd>
+<dt><strong>fact</strong><span class="classifier">int, optional</span></dt><dd><p>Only used when inclusive=True. The overlapping test will be done at
+the resolution fact*nside. For NESTED ordering, fact must be a power of 2, less than 2**30,
+else it can be any positive integer. Default: 4.</p>
+</dd>
+<dt><strong>nest: bool, optional</strong></dt><dd><p>if True, assume NESTED pixel ordering, otherwise, RING pixel ordering</p>
+</dd>
+<dt><strong>buff: int array, optional</strong></dt><dd><p>if provided, this numpy array is used to contain the return values and must be
+at least long enough to do so</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>ipix</strong><span class="classifier">int, array</span></dt><dd><p>The pixels which lie within the given disk.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">healpy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">healpy tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">Licenses</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;CC/BY/4.0/International.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/generated/healpy.query_disc.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

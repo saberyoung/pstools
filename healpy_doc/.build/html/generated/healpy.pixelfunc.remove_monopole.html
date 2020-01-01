@@ -1,0 +1,146 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>healpy.pixelfunc.remove_monopole &#8212; healpy 1.12.10 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="healpy-pixelfunc-remove-monopole">
+<h1>healpy.pixelfunc.remove_monopole<a class="headerlink" href="#healpy-pixelfunc-remove-monopole" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="healpy.pixelfunc.remove_monopole">
+<code class="sig-prename descclassname">healpy.pixelfunc.</code><code class="sig-name descname">remove_monopole</code><span class="sig-paren">(</span><em class="sig-param">m</em>, <em class="sig-param">nest=False</em>, <em class="sig-param">bad=-1.6375e+30</em>, <em class="sig-param">gal_cut=0</em>, <em class="sig-param">fitval=False</em>, <em class="sig-param">copy=True</em>, <em class="sig-param">verbose=True</em><span class="sig-paren">)</span><a class="headerlink" href="#healpy.pixelfunc.remove_monopole" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit and subtract the monopole from the given map m.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>m</strong><span class="classifier">float, array-like</span></dt><dd><p>the map to which a monopole is fitted and subtracted</p>
+</dd>
+<dt><strong>nest</strong><span class="classifier">bool</span></dt><dd><p>if <code class="docutils literal notranslate"><span class="pre">False</span></code> m is assumed in RING scheme, otherwise map is NESTED</p>
+</dd>
+<dt><strong>bad</strong><span class="classifier">float</span></dt><dd><p>bad values of pixel, default to <a class="reference internal" href="healpy.pixelfunc.UNSEEN.html#healpy.pixelfunc.UNSEEN" title="healpy.pixelfunc.UNSEEN"><code class="xref py py-const docutils literal notranslate"><span class="pre">UNSEEN</span></code></a>.</p>
+</dd>
+<dt><strong>gal_cut</strong><span class="classifier">float [degrees]</span></dt><dd><p>pixels at latitude in [-gal_cut;+gal_cut] are not taken into account</p>
+</dd>
+<dt><strong>fitval</strong><span class="classifier">bool</span></dt><dd><p>whether to return or not the fitted value of monopole</p>
+</dd>
+<dt><strong>copy</strong><span class="classifier">bool</span></dt><dd><p>whether to modify input map or not (by default, make a copy)</p>
+</dd>
+<dt><strong>verbose: bool</strong></dt><dd><p>whether to print values of monopole</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>res</strong><span class="classifier">array or tuple of length 3</span></dt><dd><p>if fitval is False, returns map with monopole subtracted,
+otherwise, returns map (array, in res[0]) and monopole (float, in res[1])</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="healpy.pixelfunc.fit_dipole.html#healpy.pixelfunc.fit_dipole" title="healpy.pixelfunc.fit_dipole"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_dipole</span></code></a>, <a class="reference internal" href="healpy.pixelfunc.fit_monopole.html#healpy.pixelfunc.fit_monopole" title="healpy.pixelfunc.fit_monopole"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fit_monopole</span></code></a>, <a class="reference internal" href="healpy.pixelfunc.remove_dipole.html#healpy.pixelfunc.remove_dipole" title="healpy.pixelfunc.remove_dipole"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_dipole</span></code></a></dt><dd></dd>
+</dl>
+</div>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">healpy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">healpy tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">Licenses</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;CC/BY/4.0/International.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/generated/healpy.pixelfunc.remove_monopole.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
