@@ -4,7 +4,6 @@ LICENSE
 README.md
 pst.bash
 setup.py
-tmp_pst.txt
 dist/pstools-0.0.1-py3.6.egg
 docs/Makefile
 docs/conf.py
@@ -904,10 +903,12 @@ pst/interface/pstgui.py
 pst/interface/pstools
 pst/interface/pstslack.py
 pst/pipeline/galaxies.py
+pst/pipeline/galaxies.py~
 pst/pipeline/galaxy_old.py
 pst/pipeline/query.py
 pst/pipeline/tilings.py
 pst/pipeline/triggers.py
+pst/pipeline/__pycache__/galaxies.cpython-36.pyc
 pst/pipeline/__pycache__/tilings.cpython-36.pyc
 pst/pipeline/__pycache__/triggers.cpython-36.pyc
 pst/pipeline/__pycache__/triggers.cpython-37.pyc

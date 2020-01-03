@@ -12,6 +12,9 @@ import healpy as hp
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import logging
+import astropy.coordinates
+import astropy.time
+import astropy.units as u
 
 __all__ = ('PstPlotter')
 
@@ -24,11 +27,7 @@ class PstPlotter():
 
     # Static version info
     version = 1.0
-    
-    colors_contour = ['b','g','k','y','c','m']
-    colors_field = ['b','g','k','y','c','m']    
-    figsize = (15,10)
-    
+        
     def __init__(self, interactive=True, plot_dir=None,
                  plot_name_tmpl="{objectId}.png",
                  defconf=None, logger = None):
@@ -42,21 +41,26 @@ class PstPlotter():
 
         # ----- define default parameters ----- #
         self.run_config(defconf)
-
+        
+        self.colors_contour = ['b','g','k','y','c','m']
+        self.colors_field = ['b','g','k','y','c','m']    
+        self.figsize = (15,10)
+    
     def run_config(self, defconf):
                      
         self.conf = {
             'contours':    [.5,.9],     # 2D contours to show for triggers
             'obstime':     None,        # observing time
-            'theta':       0,           # theta = pi/2 - decl, unit in deg
-            'phi':         0,           # phi = ra, unit in deg            
+            'theta':       0,           # longtitude, theta = pi/2 - decl, unit in deg
+            'phi':         0,           # latitude, phi = ra, unit in deg            
             'nest':        False,       # healpix ordering
             'norm':        'None',      # normalization, options:
                                         # hist: histagram / log: logarithmic / None: linear
             'coord':       'C',         # coordinate system, options: C, E, G               
             'vmin':        0,           # minimum range value for 2d normalized map
             'vmax':        1e-4,        # maximum range value for 2d normalized map
-            'ptype':       'm'          # healpix plot type
+            'ptype':       'm',         # healpix plot type
+            'nside':       64           # healpix resolution for contour view
         }
         
         if defconf is None: return        
@@ -71,8 +75,8 @@ class PstPlotter():
         # create figure
         fig = plt.figure(fignum, figsize=figsize)
     
-    def trigger(self, psttrigger, contours=None, theta=None, phi=None,
-                nest=None, coord=None, norm=None, vmin=None, vmax=None,
+    def locshow(self, psttrigger, theta=None, phi=None, nest=None,
+                coord=None, norm=None, vmin=None, vmax=None,
                 fignum=1, ptype=None, title='sky localization'):
 
         """ 2d trigger healpix map
@@ -87,34 +91,14 @@ class PstPlotter():
         
         # read parameters        
         if theta is None:    theta    =  self.conf['theta']
-        if phi is None:      phi      =  self.conf['phi']           
+        if phi is None:      phi      =  self.conf['phi']        
         if nest is None:     nest     =  self.conf['nest']        
         if coord is None:    coord    =  self.conf['coord']
         if norm is None:     norm     =  self.conf['norm']        
         if vmin is None:     vmin     =  self.conf['vmin']
-        if vmax is None:     vmax     =  self.conf['vmax']
-        if contours is None: contours =  self.conf['contours']
+        if vmax is None:     vmax     =  self.conf['vmax']        
         if ptype is None:    ptype    =  self.conf['ptype']   
-
-        '''
-        # define rotate scheme
-#        _r = hp.Rotator(coord=coord, inv=None, deg=True,
-#                        rot=[phi,theta], eulertype='ZYX')        
-#        _r1 = hp.Rotator(deg=True, rot=[-phi, np.pi/2. - theta])
-
-        # define resolution
-        nside = hp.npix2nside(len(hpx))
-        
-        # rotate map
-        # Get theta, phi for non-rotated map
-        t,p = hp.pix2ang(nside, np.arange(len(hpx)), nest=nest)
-
-        # Get theta, phi under rotated co-ordinates, r1
-        trot, prot = _r(t,p)
-
-        # Interpolate map onto these co-ordinates
-        rot_map = hp.get_interp_val(hpx, trot, prot, nest=nest)
-        '''
+       
         
         # Choose color map and set background to white
         cmap = cm.YlOrRd
@@ -129,7 +113,7 @@ class PstPlotter():
                     norm=norm, hold=True, margins=None, sub=None, \
                     return_projected_map=False)      
         elif ptype == 'g':
-            hp.gnomview(map=rot_map, fig=fignum, rot=None, coord=coord,\
+            hp.gnomview(map=hpx, fig=fignum, rot=[theta,phi], coord=coord,\
                     unit='', xsize=5000, ysize=None, reso=1.5, title=title, \
                     nest=nest, remove_dip=False, remove_mono=False, gal_cut=0, \
                     min=vmin, max=vmax, flip='astro', format='%.3g', cbar=False, \
@@ -137,7 +121,7 @@ class PstPlotter():
                     hold=True, sub=None, margins=None, notext=False, \
                     return_projected_map=False, no_plot=False)
         elif ptype == 'c':
-            hp.cartview(map=rot_map, fig=fignum, rot=None, \
+            hp.cartview(map=hpx, fig=fignum, rot=[theta,phi], \
                     zat=None, coord=coord, unit='', xsize=800, ysize=None, \
                     lonra=None, latra=None, title=title, nest=nest, \
                     remove_dip=False, remove_mono=False, gal_cut=0, \
@@ -146,7 +130,7 @@ class PstPlotter():
                     norm=norm, aspect=None, hold=False, sub=None, margins=None, \
                     notext=False, return_projected_map=False)
         elif ptype == 'o':
-            hp.orthview(map=rot_map, fig=fignum, rot=None, coord=coord, \
+            hp.orthview(map=hpx, fig=fignum, rot=[theta,phi], coord=coord, \
                     unit='', xsize=800, half_sky=False, title=title, nest=nest, \
                     min=vmin, max=vmax, flip='astro', remove_dip=False, \
                     remove_mono=False, gal_cut=0, format='%g', format2='%g', \
@@ -158,28 +142,47 @@ class PstPlotter():
             return
         
         # Set grid lines
-        hp.graticule(dpar=None, dmer=None, coord=coord)
-        input('...')
+        hp.graticule(dpar=None, dmer=None, coord=coord)        
+
+    def contshow(self, psttrigger, contours=None, theta=None, phi=None,
+                 nest=None, coord=None, nside=None, fignum=1):
+
+        """ 2d trigger healpix map, contours
+        """        
+        
+        from pst.cookbook import is_seq, is_seq_of_seq
+        if is_seq_of_seq(psttrigger.data['hpmap']):
+            (hpx, hpd1, hpd2, hpd3) = psttrigger.data['hpmap']
+        elif is_seq(psttrigger.data['hpmap']):
+            hpx = psttrigger.data['hpmap']
+        else: return        
+        
+        # read parameters        
+        if theta is None:    theta    =  self.conf['theta']
+        if phi is None:      phi      =  self.conf['phi']        
+        if nest is None:     nest     =  self.conf['nest']        
+        if coord is None:    coord    =  self.conf['coord']                   
+        if contours is None: contours =  self.conf['contours']
+        if nside is None:    nside    =  self.conf['nside']
         
         # contour plots
         from pst.cookbook import is_seq, is_seq_of_seq
         if is_seq(contours):
-            theta_contour, phi_contour = self.compute_contours(contours,hpx)
-            print (theta_contour, phi_contour)
-            input('here')
-            for ndd,dd in enumerate(theta_contour):
-                # for .5, .9, ....
+            theta_contour, phi_contour = self.compute_contours(contours,hpx,nside=nside)
+            for ndd,dd in enumerate(theta_contour):                
                 _theta_contour, _phi_contour = theta_contour[dd], phi_contour[dd]        
-                for i in range(len(_theta_contour)):
-                    # for each contour
+                for i in range(len(_theta_contour)):                    
                     if len(_theta_contour[i])==0:continue
-                    _theta,_phi = _r(_theta_contour[i],_phi_contour[i])
-                    hp.projplot(_theta,_phi,linewidth=1,c=colors[ndd])
-        input('...')
+                    hp.projplot(_theta_contour[i],_phi_contour[i],rot=[90-theta,phi],
+                                coord=coord, linewidth=1, c=self.colors_contour[ndd])
+
+    def ss(self):
         
         # coordinate
-        plot_coord(_r,coord)
+        self.plot_coord(theta,phi,coord=coord)
 
+        input('...here')
+        
         # write labels
         xx,yy = -2.,1.
         plt.text(xx, .9, 'sun: $\odot$',fontsize=20,\
@@ -196,39 +199,27 @@ class PstPlotter():
         # plot the sky: sun, moon, horizon, galactic plane, ...
         plot_sky(_r,tellist,coord,timenow,1)
         return fig
-    
-    def plot_coord(r,coord='C'):
+
+    @staticmethod
+    def plot_coord(theta,phi,coord):
         """
         show specific coordiantes in healpy plots
-        """
-
-        _tlist,_plist = [60,120,180,240,300,360],\
-            [30,60,-30,-60]
-
-        for _t in _tlist:
+        """             
+        for _t in [60,120,180,240,300,360]:
+            
             # deg to hms
-            c= astropy.coordinates.SkyCoord(ra=_t*u.degree, \
-                                            dec=0*u.degree, frame='icrs')
-
-            # select some special points
-            theta,phi = pst.RadecToThetaphi(_t,0) 
-
-            # apply rotation
-            theta,phi = r(theta,phi)
+            c= astropy.coordinates.SkyCoord(ra=_t*u.degree,
+                                dec=0*u.degree, frame='icrs')          
         
             # visualization
-            hp.projtext(theta,phi, '%ih'%c.ra.hms.h, coord=coord)
+            hp.projtext(theta,phi, '%ih'%c.ra.hms.h,
+                        coord=coord, lonlat=True, rot=[theta, phi])
 
-        for _p in _plist:
-       
-            # select some special points
-            theta,phi = pst.RadecToThetaphi(0,_p) 
-
-            # apply rotation
-            theta,phi = r(theta,phi)
+        for _p in [30,60,-30,-60]:       
         
             # visualization
-            hp.projtext(theta,phi, '%.f$^\circ$'%_p, coord=coord)
+            hp.projtext(theta,phi, '%.f$^\circ$'%_p,
+                        coord=coord, lonlat=True, rot=[theta, phi])
 
     def plot_sky(r,optlist,coord,obstime=None,fignum=1):
 
@@ -307,7 +298,7 @@ class PstPlotter():
         for _nd in np.arange(0,5,1):
             _timeplus = _nd*24
             timelater = timenow + astropy.time.TimeDelta(_timeplus*3600, \
-                                                         format='sec')                           
+                                                         format='sec')
             _mra,_mdec = astropy.coordinates.get_moon(timelater).\
                 ra.deg,astropy.coordinates.get_moon(timelater).dec.deg
             _mtheta,_mphi = pst.RadecToThetaphi(_mra,_mdec)        
@@ -336,10 +327,14 @@ class PstPlotter():
         return obstime
 
     @staticmethod
-    def compute_contours(proportions,samples):
+    def compute_contours(proportions, samples, nside=64):
         r''' Plot containment contour around desired level.
         E.g 90% containment of a PDF on a healpix map
-        '''        
+        '''
+        # binnned map to lower resolution in order to save time
+        samples = hp.pixelfunc.ud_grade(samples,nside)
+        samples = samples/np.sum(samples)
+            
         levels = []
         sorted_samples = list(reversed(list(sorted(samples))))
         nside = hp.pixelfunc.get_nside(samples)
@@ -354,10 +349,8 @@ class PstPlotter():
 
         import meander        
         contours_by_level = meander.spherical_contours(sample_points, samples, levels)
-        input(contours_by_level)
         theta_list = {}; phi_list={}
-        for cc,contours in enumerate(contours_by_level):
-            print (cc, len(contours_by_level))
+        for cc,contours in enumerate(contours_by_level):            
             _cnt = proportions[cc]
             try:theta_list[_cnt]; phi_list[_cnt]
             except: theta_list[_cnt] = []; phi_list[_cnt] = []

@@ -13,5 +13,7 @@ b.url('https://gracedb.ligo.org/api/superevents/S190510g/files/bayestar.fits.gz'
 
 import pylab as pl
 pl.ion()
-d=d.trigger(b,vmax=10**-5, ptype='m',phi=70)
-print (d)
+d.locshow(b,vmax=10**-5, ptype='m')
+input('..')
+d.contshow(b,nside=16)
+input('..')
