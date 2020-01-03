@@ -9,13 +9,9 @@
 import sys
 import numpy as np
 import healpy as hp
-import math as mt
-import pylab as pl
 import matplotlib.pyplot as plt
 from matplotlib import cm
-import astropy.coordinates
-import astropy.units as u
-import astropy.time
+import logging
 
 __all__ = ('PstPlotter')
 
@@ -28,9 +24,14 @@ class PstPlotter():
 
     # Static version info
     version = 1.0
-   
+    
+    colors_contour = ['b','g','k','y','c','m']
+    colors_field = ['b','g','k','y','c','m']    
+    figsize = (15,10)
+    
     def __init__(self, interactive=True, plot_dir=None,
-                 plot_name_tmpl="{objectId}.png", logger = None):
+                 plot_name_tmpl="{objectId}.png",
+                 defconf=None, logger = None):
 
         # ----- define logger ----- #
         if logger is None:
@@ -41,24 +42,21 @@ class PstPlotter():
 
         # ----- define default parameters ----- #
         self.run_config(defconf)
-                
+
     def run_config(self, defconf):
                      
         self.conf = {
-            'limra':      [0,360.],  # `range`   [0,360.]
-            'limdec':     [-90,90],  # `range`   [-90.,90.]
-            'fovra':      1.,        # `float`   > 0
-            'fovdec':     1.,        # `float`   > 0
-            'shiftra':    0.,        # `float`   abs(shiftra) < fovra
-            'shiftdec':   0.,        # `float`   abs(shiftdec) < fovdec
-            'skipfile':   None,      # `str`     options: `txt`, `npz`
-            'skipfrac':   0.,        # `float`   [0, 1]
-            'nside':      512,       # `int`     default healpix resolution
-            'wdir':       '/tmp/',   # `str`     working directory
-            'savetype':   'npz',     # `str`     options: `txt`, `npz`
-            'savename':   'tmp_pst'  # `str`     tilings file name
-                                     #           relative path, use wdir set directory
-                                     #           without suffix
+            'contours':    [.5,.9],     # 2D contours to show for triggers
+            'obstime':     None,        # observing time
+            'theta':       0,           # theta = pi/2 - decl, unit in deg
+            'phi':         0,           # phi = ra, unit in deg            
+            'nest':        False,       # healpix ordering
+            'norm':        'None',      # normalization, options:
+                                        # hist: histagram / log: logarithmic / None: linear
+            'coord':       'C',         # coordinate system, options: C, E, G               
+            'vmin':        0,           # minimum range value for 2d normalized map
+            'vmax':        1e-4,        # maximum range value for 2d normalized map
+            'ptype':       'm'          # healpix plot type
         }
         
         if defconf is None: return        
@@ -68,70 +66,107 @@ class PstPlotter():
             else:
                 self.logger.info ('### Warning: use default value for %s'%_k)
 
-    def trigger(self, psttrigger, plot_contour=None, time=None,
-                theta=None, phi=None, title=None, color=None,
-                order=None, norm=None, figsize=None, fignum=None,
-                vmin=None, vmax=None):
-
-        """ 2d trigger healpix map
-        """
-
-        # read parameters
-        theta = float(pparams['theta'])   
-        phi = float(pparams['phi'])
-        fignum = int(pparams['fignum'])
-        title = pparams['title']
-        ordering = pparams['ordering']
-        coord = pparams['coord']
-        norm = str(pparams['norm'])      
-        _figsize = (int(pparams['figsize'].split(',')[0]),\
-                    int(pparams['figsize'].split(',')[1]))    
-        _min = float(pparams['min'])
-        _max = float(pparams['max'])
-        theta_contour = pparams['theta_contour']
-        phi_contour = pparams['phi_contour']
-        colors = pparams['colors']
-        distinfo = pparams['distinfo']
-        tellist = pparams['tellist']
-        timenow = pparams['timenow']       
-
-        # define rotate scheme
-        _r = hp.Rotator(deg=True, rot=[phi,theta])
-        # map is going reverse with coordinates
-        _r1 = hp.Rotator(deg=True, rot=[-phi, np.pi/2. - theta])
-
-        # rotate map
-        nside = hp.npix2nside(len(hpmap))
-
-        # Get theta, phi for non-rotated map
-        t,p = hp.pix2ang(nside, np.arange(hp.nside2npix(nside))) #theta, phi
-
-        # Get theta, phi under rotated co-ordinates
-        trot, prot = _r1(t,p)
-
-        # Interpolate map onto these co-ordinates
-        rot_map = hp.get_interp_val(hpmap, trot, prot)
+    def initfig(self):
 
         # create figure
-        fig = plt.figure(fignum, figsize=_figsize)
+        fig = plt.figure(fignum, figsize=figsize)
+    
+    def trigger(self, psttrigger, contours=None, theta=None, phi=None,
+                nest=None, coord=None, norm=None, vmin=None, vmax=None,
+                fignum=1, ptype=None, title='sky localization'):
 
+        """ 2d trigger healpix map
+        """        
+        
+        from pst.cookbook import is_seq, is_seq_of_seq
+        if is_seq_of_seq(psttrigger.data['hpmap']):
+            (hpx, hpd1, hpd2, hpd3) = psttrigger.data['hpmap']
+        elif is_seq(psttrigger.data['hpmap']):
+            hpx = psttrigger.data['hpmap']
+        else: return        
+        
+        # read parameters        
+        if theta is None:    theta    =  self.conf['theta']
+        if phi is None:      phi      =  self.conf['phi']           
+        if nest is None:     nest     =  self.conf['nest']        
+        if coord is None:    coord    =  self.conf['coord']
+        if norm is None:     norm     =  self.conf['norm']        
+        if vmin is None:     vmin     =  self.conf['vmin']
+        if vmax is None:     vmax     =  self.conf['vmax']
+        if contours is None: contours =  self.conf['contours']
+        if ptype is None:    ptype    =  self.conf['ptype']   
+
+        '''
+        # define rotate scheme
+#        _r = hp.Rotator(coord=coord, inv=None, deg=True,
+#                        rot=[phi,theta], eulertype='ZYX')        
+#        _r1 = hp.Rotator(deg=True, rot=[-phi, np.pi/2. - theta])
+
+        # define resolution
+        nside = hp.npix2nside(len(hpx))
+        
+        # rotate map
+        # Get theta, phi for non-rotated map
+        t,p = hp.pix2ang(nside, np.arange(len(hpx)), nest=nest)
+
+        # Get theta, phi under rotated co-ordinates, r1
+        trot, prot = _r(t,p)
+
+        # Interpolate map onto these co-ordinates
+        rot_map = hp.get_interp_val(hpx, trot, prot, nest=nest)
+        '''
+        
         # Choose color map and set background to white
         cmap = cm.YlOrRd
         cmap.set_under("w")
 
         # Plot GW skymap in Mollweide projection
-        hp.mollview(map=rot_map, fig=fignum, rot=None, coord=coord, \
-                    unit='', xsize=800, title=title, nest=ordering, min=_min, max=_max, \
+        if ptype == 'm':
+            hp.mollview(map=hpx, fig=fignum, rot=[theta,phi], coord=coord, \
+                    unit='', xsize=800, title=title, nest=nest, min=vmin, max=vmax, \
                     flip='astro', remove_dip=False, remove_mono=False, gal_cut=0, \
                     format='%g', format2='%g', cbar=False, cmap=cmap, notext=False, \
                     norm=norm, hold=True, margins=None, sub=None, \
                     return_projected_map=False)      
-
-        hp.graticule() # Set grid lines
-
+        elif ptype == 'g':
+            hp.gnomview(map=rot_map, fig=fignum, rot=None, coord=coord,\
+                    unit='', xsize=5000, ysize=None, reso=1.5, title=title, \
+                    nest=nest, remove_dip=False, remove_mono=False, gal_cut=0, \
+                    min=vmin, max=vmax, flip='astro', format='%.3g', cbar=False, \
+                    cmap=cmap, badcolor='gray', bgcolor='white', norm=norm, \
+                    hold=True, sub=None, margins=None, notext=False, \
+                    return_projected_map=False, no_plot=False)
+        elif ptype == 'c':
+            hp.cartview(map=rot_map, fig=fignum, rot=None, \
+                    zat=None, coord=coord, unit='', xsize=800, ysize=None, \
+                    lonra=None, latra=None, title=title, nest=nest, \
+                    remove_dip=False, remove_mono=False, gal_cut=0, \
+                    min=vmin, max=vmax, flip='astro', format='%.3g', \
+                    cbar=False, cmap=cmap, badcolor='gray', bgcolor='white', \
+                    norm=norm, aspect=None, hold=False, sub=None, margins=None, \
+                    notext=False, return_projected_map=False)
+        elif ptype == 'o':
+            hp.orthview(map=rot_map, fig=fignum, rot=None, coord=coord, \
+                    unit='', xsize=800, half_sky=False, title=title, nest=nest, \
+                    min=vmin, max=vmax, flip='astro', remove_dip=False, \
+                    remove_mono=False, gal_cut=0, format='%g', format2='%g', \
+                    cbar=False, cmap=cmap, badcolor='gray', bgcolor='white', \
+                    notext=False, norm=norm, hold=False, margins=None, sub=None, \
+                    return_projected_map=False)
+        else:
+            self.logger.info ('### Error: wrong option for ptype [m, g, c, o]')
+            return
+        
+        # Set grid lines
+        hp.graticule(dpar=None, dmer=None, coord=coord)
+        input('...')
+        
         # contour plots
-        if theta_contour is not None and \
-           phi_contour is not None:
+        from pst.cookbook import is_seq, is_seq_of_seq
+        if is_seq(contours):
+            theta_contour, phi_contour = self.compute_contours(contours,hpx)
+            print (theta_contour, phi_contour)
+            input('here')
             for ndd,dd in enumerate(theta_contour):
                 # for .5, .9, ....
                 _theta_contour, _phi_contour = theta_contour[dd], phi_contour[dd]        
@@ -140,7 +175,8 @@ class PstPlotter():
                     if len(_theta_contour[i])==0:continue
                     _theta,_phi = _r(_theta_contour[i],_phi_contour[i])
                     hp.projplot(_theta,_phi,linewidth=1,c=colors[ndd])
-
+        input('...')
+        
         # coordinate
         plot_coord(_r,coord)
 
@@ -161,127 +197,178 @@ class PstPlotter():
         plot_sky(_r,tellist,coord,timenow,1)
         return fig
     
-def plot_coord(r,coord='C'):
-    """
-    show specific coordiantes in healpy plots
-    """
+    def plot_coord(r,coord='C'):
+        """
+        show specific coordiantes in healpy plots
+        """
 
-    _tlist,_plist = [60,120,180,240,300,360],\
-                    [30,60,-30,-60]
+        _tlist,_plist = [60,120,180,240,300,360],\
+            [30,60,-30,-60]
 
-    for _t in _tlist:
-        # deg to hms
-        c= astropy.coordinates.SkyCoord(ra=_t*u.degree, \
-                                        dec=0*u.degree, frame='icrs')
+        for _t in _tlist:
+            # deg to hms
+            c= astropy.coordinates.SkyCoord(ra=_t*u.degree, \
+                                            dec=0*u.degree, frame='icrs')
 
-        # select some special points
-        theta,phi = pst.RadecToThetaphi(_t,0) 
+            # select some special points
+            theta,phi = pst.RadecToThetaphi(_t,0) 
 
-        # apply rotation
-        theta,phi = r(theta,phi)
+            # apply rotation
+            theta,phi = r(theta,phi)
         
-        # visualization
-        hp.projtext(theta,phi, '%ih'%c.ra.hms.h, coord=coord)
+            # visualization
+            hp.projtext(theta,phi, '%ih'%c.ra.hms.h, coord=coord)
 
-    for _p in _plist:
+        for _p in _plist:
        
-        # select some special points
-        theta,phi = pst.RadecToThetaphi(0,_p) 
+            # select some special points
+            theta,phi = pst.RadecToThetaphi(0,_p) 
 
-        # apply rotation
-        theta,phi = r(theta,phi)
+            # apply rotation
+            theta,phi = r(theta,phi)
         
-        # visualization
-        hp.projtext(theta,phi, '%.f$^\circ$'%_p, coord=coord)
+            # visualization
+            hp.projtext(theta,phi, '%.f$^\circ$'%_p, coord=coord)
 
-def plot_sky(r,optlist,coord,timenow,fignum=1):
+    def plot_sky(r,optlist,coord,obstime=None,fignum=1):
 
-    _colorlist = ['b','g','k','y','c','m']
-    plt.figure(fignum)
+        _colorlist = ['b','g','k','y','c','m']
+        plt.figure(fignum)
 
-    # plot the horizon
-    for _st in optlist:
-        for _ntt,_tt in enumerate(optlist[_st]):
-            # for each telescope
-            _tt,_hlat,_hlon,_halt = _tt['telescope']['name'],\
-                                    _tt['telescope']['lat'],\
-                                    _tt['telescope']['lon'],\
-                                    _tt['telescope']['alt']       
-            observatory = astropy.coordinates.EarthLocation(lat=float(_hlat)*u.deg, \
-                                                            lon=float(_hlon)*u.deg, \
-                                                            height=float(_halt)*u.m)
-            _smlabel=True
-            for _timeplus in np.arange(0,360,1):
-                # define observatory
-                # sometimes finals2000A is needed by astropy.utils.iers.iers, however blocked
-                # download from: ftp://ftp.iers.org/products/eop/rapid/standard/finals2000A.all
-                newAltAzcoordiantes = astropy.coordinates.SkyCoord(alt = 0*u.deg, \
-                                        az = 0*u.deg + _timeplus*u.deg, \
-                                        obstime = timenow, frame = 'altaz', \
-                                        location = observatory)
+        # plot the horizon
+        for _st in optlist:
+            for _ntt,_tt in enumerate(optlist[_st]):
+                # for each telescope
+                _tt,_hlat,_hlon,_halt = _tt['telescope']['name'],\
+                    _tt['telescope']['lat'],\
+                    _tt['telescope']['lon'],\
+                    _tt['telescope']['alt']       
+                observatory = astropy.coordinates.EarthLocation(lat=float(_hlat)*u.deg, \
+                                                                lon=float(_hlon)*u.deg, \
+                                                                height=float(_halt)*u.m)
+                _smlabel=True
+                for _timeplus in np.arange(0,360,1):
+                    # define observatory
+                    # sometimes finals2000A is needed by astropy.utils.iers.iers, however blocked
+                    # download from: ftp://ftp.iers.org/products/eop/rapid/standard/finals2000A.all
+                    newAltAzcoordiantes = astropy.coordinates.SkyCoord(alt = 0*u.deg, \
+                                                            az = 0*u.deg + _timeplus*u.deg, \
+                                                            obstime = timenow, frame = 'altaz', \
+                                                                       location = observatory)
 
-                # transform to theta phi
-                _htheta,_hphi = pst.RadecToThetaphi(newAltAzcoordiantes.icrs.ra.deg, \
-                                        newAltAzcoordiantes.icrs.dec.deg)
+                    # transform to theta phi
+                    _htheta,_hphi = pst.RadecToThetaphi(newAltAzcoordiantes.icrs.ra.deg, \
+                                                        newAltAzcoordiantes.icrs.dec.deg)
 
-                _htheta,_hphi = r(_htheta,_hphi)
+                    _htheta,_hphi = r(_htheta,_hphi)
 
-                # plot
-                if _smlabel:
-                    hp.projplot(_htheta,_hphi,'.', color = _colorlist[_ntt], \
-                            coord=coord, ms = 2, label='%s horizon now'%_tt)
-                    _smlabel=False
-                else:
-                    hp.projplot(_htheta,_hphi,'.', color = _colorlist[_ntt], \
-                            coord=coord, ms = 2)
+                    # plot
+                    if _smlabel:
+                        hp.projplot(_htheta,_hphi,'.', color = _colorlist[_ntt], \
+                                    coord=coord, ms = 2, label='%s horizon now'%_tt)
+                        _smlabel=False
+                    else:
+                        hp.projplot(_htheta,_hphi,'.', color = _colorlist[_ntt], \
+                                    coord=coord, ms = 2)
 
-    # plot the galactic plane        
-    _hral = np.arange(0,360,10)
-    _hdecl = np.zeros(len(_hral))
-    _smlabel=True
-    for _hra,_hdec in zip(_hral,_hdecl):
+        # plot the galactic plane        
+        _hral = np.arange(0,360,10)
+        _hdecl = np.zeros(len(_hral))
+        _smlabel=True
+        for _hra,_hdec in zip(_hral,_hdecl):
         
-        # from galactic coordinates to equatorial
-        _hradecs = astropy.coordinates.SkyCoord(l=_hra*u.deg, \
-                                                b=_hdec*u.deg, frame='galactic')                
+            # from galactic coordinates to equatorial
+            _hradecs = astropy.coordinates.SkyCoord(l=_hra*u.deg, \
+                                                    b=_hdec*u.deg, frame='galactic')                
 
-        # transform to theta phi
-        _htheta,_hphi = pst.RadecToThetaphi(_hradecs.icrs.ra.deg,\
-                                            _hradecs.icrs.dec.deg)
-        _htheta,_hphi = r(_htheta,_hphi)
+            # transform to theta phi
+            _htheta,_hphi = pst.RadecToThetaphi(_hradecs.icrs.ra.deg,\
+                                                _hradecs.icrs.dec.deg)
+            _htheta,_hphi = r(_htheta,_hphi)
 
-        # plot
-        if _smlabel:
-            hp.projplot(_htheta,_hphi,'x', color = 'k', \
-                        coord=coord, ms = 10, label='galactic plane')
-            _smlabel=False
-        else:
-            hp.projplot(_htheta,_hphi,'x', color = 'k', \
-                         coord=coord, ms = 10)
+            # plot
+            if _smlabel:
+                hp.projplot(_htheta,_hphi,'x', color = 'k', \
+                            coord=coord, ms = 10, label='galactic plane')
+                _smlabel=False
+            else:
+                hp.projplot(_htheta,_hphi,'x', color = 'k', \
+                            coord=coord, ms = 10)
 
-    # plot the sun
-    _sra,_sdec = astropy.coordinates.get_sun(timenow).\
-                 ra.deg,astropy.coordinates.get_sun(timenow).dec.deg
-    _stheta,_sphi = pst.RadecToThetaphi(_sra,_sdec)    
-    _stheta,_sphi = r(_stheta,_sphi)
-    hp.projtext(_stheta,_sphi,'$\odot$', color = 'y', \
-                coord=coord,fontsize=20)     
+        # plot the sun
+        _sra,_sdec = astropy.coordinates.get_sun(timenow).\
+            ra.deg,astropy.coordinates.get_sun(timenow).dec.deg
+        _stheta,_sphi = pst.RadecToThetaphi(_sra,_sdec)    
+        _stheta,_sphi = r(_stheta,_sphi)
+        hp.projtext(_stheta,_sphi,'$\odot$', color = 'y', \
+                    coord=coord,fontsize=20)     
 
-    # plot the moon lasting 5 days
-    for _nd in np.arange(0,5,1):
-        _timeplus = _nd*24
-        timelater = timenow + astropy.time.TimeDelta(_timeplus*3600, \
-                                                     format='sec')                           
-        _mra,_mdec = astropy.coordinates.get_moon(timelater).\
-                     ra.deg,astropy.coordinates.get_moon(timelater).dec.deg
-        _mtheta,_mphi = pst.RadecToThetaphi(_mra,_mdec)        
-        _mtheta,_mphi = r(_mtheta,_mphi)          
-        hp.projtext(_mtheta,_mphi,'$\oplus$', color = 'b', \
-                    coord=coord,fontsize=20)
-        hp.projtext(_mtheta,_mphi-.1,'%id'%_nd, color = 'b', \
-                    coord=coord,fontsize=12)
-    plt.legend()
+        # plot the moon lasting 5 days
+        for _nd in np.arange(0,5,1):
+            _timeplus = _nd*24
+            timelater = timenow + astropy.time.TimeDelta(_timeplus*3600, \
+                                                         format='sec')                           
+            _mra,_mdec = astropy.coordinates.get_moon(timelater).\
+                ra.deg,astropy.coordinates.get_moon(timelater).dec.deg
+            _mtheta,_mphi = pst.RadecToThetaphi(_mra,_mdec)        
+            _mtheta,_mphi = r(_mtheta,_mphi)          
+            hp.projtext(_mtheta,_mphi,'$\oplus$', color = 'b', \
+                        coord=coord,fontsize=20)
+            hp.projtext(_mtheta,_mphi-.1,'%id'%_nd, color = 'b', \
+                        coord=coord,fontsize=12)
+        plt.legend()
 
+    @staticmethod
+    def obstime(t=None):
+        """ define observing time
+        t: None, or float, unit in sec, or astropy.time
+        """                
+        if t is None:
+            obstime = astropy.time.Time.now()                 
+        elif type(t) in [int,float]:
+            obstime = astropy.time.Time.now() + \
+                astropy.time.TimeDelta(t, format='sec')            
+        elif type(t) == str:
+            try:
+                obstime = astropy.time.Time(t, scale='utc')
+            except:
+                obstime = astropy.time.Time.now()                
+        return obstime
+
+    @staticmethod
+    def compute_contours(proportions,samples):
+        r''' Plot containment contour around desired level.
+        E.g 90% containment of a PDF on a healpix map
+        '''        
+        levels = []
+        sorted_samples = list(reversed(list(sorted(samples))))
+        nside = hp.pixelfunc.get_nside(samples)
+        sample_points = np.array(hp.pix2ang(nside,np.arange(len(samples)))).T        
+        for proportion in proportions:
+            level_index = (np.cumsum(sorted_samples) > \
+                           proportion).tolist().index(True)
+            level = (sorted_samples[level_index] + \
+                     (sorted_samples[level_index+1] \
+                      if level_index+1 < len(samples) else 0)) / 2.0
+            levels.append(level)        
+
+        import meander        
+        contours_by_level = meander.spherical_contours(sample_points, samples, levels)
+        input(contours_by_level)
+        theta_list = {}; phi_list={}
+        for cc,contours in enumerate(contours_by_level):
+            print (cc, len(contours_by_level))
+            _cnt = proportions[cc]
+            try:theta_list[_cnt]; phi_list[_cnt]
+            except: theta_list[_cnt] = []; phi_list[_cnt] = []
+            for contour in contours:            
+                theta, phi = contour.T
+                phi[phi<0] += 2.0*np.pi
+                theta_list[_cnt].append(theta)
+                phi_list[_cnt].append(phi)
+        return theta_list, phi_list
+
+    
 """ galaxy plots """
 def pointview(pparams):
    

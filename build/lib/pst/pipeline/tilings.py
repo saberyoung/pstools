@@ -30,9 +30,8 @@ class PstGetTilings():
         # Static version info
         version = 1.0
    
-        def __init__(self, ra=None, dec=None,
-                     fovra=None, fovdec=None,
-                     defconf=None, logger=None):
+        def __init__(self, ra=None, dec=None, fovra=None, fovdec=None,
+                     index=None, defconf=None, logger=None):
                 """
                 generate tiling network
 
@@ -42,6 +41,7 @@ class PstGetTilings():
                 dec         `list`           tiling dec list
                 fovra       `list`           tiling field of view list in ra direction
                 fovdec      `list`           tiling field of view list in dec direction
+                index       `list`           tiling index list
                 defconf     `dict`           default configure
                 logger      `class`          logger
                 """
@@ -54,7 +54,7 @@ class PstGetTilings():
                         self.logger = logger
 
                 # ----- set tiling properties ----- #
-                self.data   =   {'ra':ra, 'dec':dec,
+                self.data   =   {'ra':ra, 'dec':dec,'n':index,
                                  'fovra':fovra, 'fovdec':fovdec}
 
                 # ----- define default parameters ----- #
@@ -74,15 +74,16 @@ class PstGetTilings():
                         'skipfile':   None,      # `str`     options: `txt`, `npz`
                         'skipfrac':   0.,        # `float`   [0, 1]
                         'nside':      512,       # `int`     default healpix resolution
+                        'nest':       False,     # `bool`  healpix map defualt ordering: nest or ring
                         'wdir':       '/tmp/',   # `str`     working directory
                         'filetype':   'npz',     # `str`     options: `txt`, `npz`
-                        'filename':   'tmp_pst', # `str`     tilings file name
-                                                 #           relative path, use wdir set directory
-                                                 #           without suffix
-                        'obstime':    None,      #
-                        'lat':        24.625,    # la parma
-                        'lon':        70.403,    # la parma
-                        'alt':        2635       # la parma
+                        'filename':   'pst_tilings', # `str`     tilings file name
+                                                     #           relative path, use wdir set directory
+                                                     #           without suffix
+                        'obstime':    None,          #
+                        'lat':        24.625,        # la parma
+                        'lon':        70.403,        # la parma
+                        'alt':        2635           # la parma
                 }
         
                 if defconf is None: return        
@@ -142,18 +143,77 @@ class PstGetTilings():
                                         ralist.append(float('%.5f'%_ra))
                                         declist.append(float('%.5f'%_dec))
                                         fovralist.append(float('%.5f'%self.conf['fovra']))
-                                        fovdeclist.append(float('%.5f'%self.conf['fovdec']))                
-                self.data = {'ra':      np.array(ralist),
-                             'dec':     np.array(declist),
-                             'n':       np.arange(len(ralist)),
+                                        fovdeclist.append(float('%.5f'%self.conf['fovdec']))
+                                        
+                self.data = {'n':       np.arange(len(ralist)),
+                             'ra':      np.array(ralist),
+                             'dec':     np.array(declist),                             
                              'fovra':   np.array(fovralist),
                              'fovdec':  np.array(fovdeclist)}
 
+        def generate_mc(self, skymap, num,
+                        limra=None,limdec=None,
+                        fovra=None,fovdec=None):
+                """
+                create pointings by tiling sky
+                monte carlo approach to maxmize trigger probability with num pointings
+                """
+                _hp = self.checkdata()
+                if _hp: return
+                
+                if not limra is None: self.conf['limra'] = limra
+                if not limdec is None: self.conf['limdec'] = limdec
+                if not fovra is None: self.conf['fovra'] = fovra
+                if not fovdec is None: self.conf['fovdec'] = fovdec                
+
+                # monte carlo for tiling
+                _log, _nloop = [0.], 3
+                shifthi, shiftwi = 0, 0
+                for nn in [5.,10.,20.]:
+                        if verbose: 
+                                print(' - searching in fovh/%i fovw/%i'%(nn,nn))
+                        shifth, shiftw=fovh/nn, fovw/nn
+
+                        nloop = 0
+                        answ1 = False
+                        while not answ1:  # if angle OK: loop 100 times
+                                angle = random.uniform(0,2*np.pi)
+                                if verbose: print('\t %i with angle: %.2f'%(nloop,angle))
+                                _shifth,_shiftw = np.sqrt(shifth**2+shiftw**2)*np.sin(angle),\
+                                        np.sqrt(shifth**2+shiftw**2)*np.cos(angle) 
+            
+                                answ2 = False
+                                while not answ2:  # if OK, go on, if no, change
+                                        shifthi += _shifth
+                                        shiftwi += _shiftw
+                                        
+                                        # generate pointings
+                                        _ral,_decl = pst.gen_pointings(limdec=limdec,limra=limra,\
+                                                fovh=fovh,fovw=fovw,shifth=shifthi,shiftw=shiftwi)
+                                        # cal prob for tiling list
+                                        t = pst.calprob_tile(skymap,_ral,_decl,fovh,fovw)  
+
+                                        # judge converge or not
+                                        if sum(t)>_log[-1]:  # accept, direction correct
+                                                _log.append(sum(t))
+                                                print ('\t\tcovered %.5e probs'%_log[-1])
+                                        else:  # reject, change direction
+                                                nloop+=1
+                                                answ2 = True
+                                                if nloop>=_nloop: answ1=True
+                                        _ral,_decl = pst.gen_pointings(limdec=limdec,limra=limra,\
+                                                fovh=fovh,fovw=fovw,shifth=shifthi,shiftw=shiftwi)
+                                        _ral,_decl = pst.remove_fields(skipfile,_ral,_decl,\
+                                                                np.zeros(len(limra))+fovw,\
+                                                                np.zeros(len(limra))+fovh,verbose)
+                return _ral,_decl
+
+
         def checkdata(self):
                 if not self.data['ra'] is None and \
-                   not self.data['ra'] is None and \
+                   not self.data['dec'] is None and \
                    not self.data['fovra'] is None and \
-                   not self.data['fovra'] is None:
+                   not self.data['fovdec'] is None:
                         self.logger.info ('tilings has already been parsed')
                         return True
                 else:
@@ -184,7 +244,7 @@ class PstGetTilings():
                         if os.path.exists(cachefile):
                                 for _k in ['ra','dec','fovra','fovdec','n']:
                                         try:
-                                                _data[_k] = np.load(cachefile)[_k]                                        
+                                                _data[_k] = np.load(cachefile)[_k]
                                         except:
                                                 self.logger.info ('### Warning: missing keyword %s'%_k)
                                                 return                               
@@ -242,7 +302,8 @@ class PstGetTilings():
                              names=('n', 'ra', 'dec', 'fovra', 'fovdec'))                 
                
 
-        def remove_fileds_coo(self, ra, dec, fovra, fovdec, nside=None, skipfrac=None):                
+        def remove_fileds_coo(self, ra, dec, fovra, fovdec,
+                              nside=None, nest=None, skipfrac=None):
                 _hp = self.checkdata()
                 if not _hp:
                         self.logger.info ('### Warning: no pointings found')
@@ -250,10 +311,12 @@ class PstGetTilings():
                 
                 if not skipfrac is None: self.conf['skipfrac'] = skipfrac
                 if not nside is None: self.conf['nside'] = nside
+                if not nest is None: self.conf['nest'] = nest
                
                 _frac = self.overlapregion(self.data['ra'],self.data['dec'],
                                            self.data['fovra'],self.data['fovdec'],
-                                           ra,dec,fovra,fovdec,self.conf['nside'])               
+                                           ra,dec,fovra,fovdec,self.conf['nside'],
+                                           self.conf['nest'])               
                 _idx = np.where(np.array(_frac) <= self.conf['skipfrac'])
                 self.data['ra']     =   self.data['ra'][_idx]
                 self.data['dec']    =   self.data['dec'][_idx]
@@ -311,13 +374,13 @@ class PstGetTilings():
                         ww = open(cachefile,'w')                       
                         ww.write('# ra dec fovra fovdec n \n')
                         for _ra,_dec,_fra,_fdec,_n in zip(self.data['ra'], self.data['dec'],
-                                        self.data['fovra'],self.data['fovdec'],self.data['n']):                                
-                                ww.write('%.5f %.5f %.2f %.2f %i \n'%(_ra,_dec,_fra,_fdec,_n))
+                                        self.data['fovra'],self.data['fovdec'],self.data['n']):
+                                ww.write('%i %.5f %.5f %.2f %.2f \n'%(_n,_ra,_dec,_fra,_fdec))
                         ww.close()
                 else:
                         self.logger.info ('### Warning: filetype %s unknown'%self.conf['filetype'])
 
-        def calc_prob_loc(self, triggerobj):
+        def calc_prob_loc(self, triggerobj, nest=None):
                 '''
                 triggerobj   PstParseTriggers object
                 '''
@@ -326,7 +389,8 @@ class PstGetTilings():
                 if not _hp:
                         self.logger.info ('### Warning: no pointings found')
                         return
-
+                if nest is None: nest = self.conf['nest']
+                
                 from pst.cookbook import is_seq, is_seq_of_seq
                 if is_seq_of_seq(triggerobj.data['hpmap']):
                         (hpx, hpd1, hpd2, hpd3) = triggerobj.data['hpmap']
@@ -337,14 +401,14 @@ class PstGetTilings():
                 probs, ns = [], []
                 nside = hp.get_nside(hpx)
                 for _ra,_dec,_fovw,_fovh,_n in zip(self.data['ra'], self.data['dec'],
-                                self.data['fovra'], self.data['fovdec'], self.data['n']):                        
-                        ipix_poly=(self.ipix_in_box(_ra,_dec,_fovw,_fovh,nside))
+                                self.data['fovra'], self.data['fovdec'], self.data['n']):
+                        ipix_poly=(self.ipix_in_box(_ra,_dec,_fovw,_fovh,nside,nest))
                         _probs = hpx[ipix_poly].sum()
                         probs.append(_probs)
                         ns.append(_n)
                 return Table([ns, probs], names=('n', 'prob'))  
         
-        def calc_prob_dis(self, triggerobj, limdist=400):
+        def calc_prob_dis(self, triggerobj, nest=None, limdist=400):
                 '''
                 triggerobj   PstParseTriggers object
                 '''
@@ -353,7 +417,8 @@ class PstGetTilings():
                 if not _hp:
                         self.logger.info ('### Warning: no pointings found')
                         return
-
+                if nest is None: nest = self.conf['nest']
+                
                 from pst.cookbook import is_seq, is_seq_of_seq
                 if is_seq_of_seq(triggerobj.data['hpmap']):
                         (hpx, hpd1, hpd2, hpd3) = triggerobj.data['hpmap']
@@ -365,14 +430,34 @@ class PstGetTilings():
                 r = np.linspace(0, limdist)
 
                 nside = hp.get_nside(hpx)
-                pixarea = hp.nside2pixarea(nside, degrees=True)                
-                ipix = hp.pixelfunc.ang2pix(nside,np.radians(-self.data['dec']+90.),
-                                            np.radians(360.-self.data['ra']))                
+                pixarea = hp.nside2pixarea(nside, degrees=True)
+                theta, phi = np.pi/2.-np.radians(self.data['dec']),np.radians(self.data['ra'])
+                ipix = hp.ang2pix(nside,theta,phi,nest=nest)                
                 dmu, dsigma, dnorm = hpd1[ipix], hpd2[ipix], hpd3[ipix]
                 probl = [dnorm * norm(dmu, dsigma).pdf(rr)/pixarea for rr in r]
                 probs = [max(ii) for ii in list(map(list, zip(*probl)))]               
                 return Table([self.data['n'], probs], names=('n', 'prob'))  
 
+        def calc_prob_mass(self, galaxyobj, nside=None, nest=None):
+                '''
+                galaxyobj   PstGetGalaxies object
+                '''
+                _hp = self.checkdata()
+                if not _hp:
+                        self.logger.info ('### Warning: no pointings found')
+                        return
+                if nside is None: nside = self.conf['nside']
+                if nest is None: nest = self.conf['nest']
+                
+                hpx = galaxyobj.hpmap(nside=nside)
+                probs, ns = [], []               
+                for _ra,_dec,_fovw,_fovh,_n in zip(self.data['ra'], self.data['dec'],
+                                self.data['fovra'], self.data['fovdec'], self.data['n']):
+                        ipix_poly=(self.ipix_in_box(_ra,_dec,_fovw,_fovh,nside,nest))
+                        _probs = hpx[ipix_poly].sum()
+                        probs.append(_probs)
+                        ns.append(_n)
+                return Table([ns, probs], names=('n', 'prob'))        
                 
         def lightcurve(self, lcfile=None):
                 return
@@ -391,17 +476,19 @@ class PstGetTilings():
                 if lat is None: lat = self.conf['lat']
                 if lon is None: lon = self.conf['lon']
                 if alt is None: alt = self.conf['alt']     
-                observatory = astropy.coordinates.EarthLocation(lat=lat*u.deg, lon=lon*u.deg, height=alt*u.m)
+                observatory = astropy.coordinates.EarthLocation(lat=lat*u.deg,
+                                                                lon=lon*u.deg, height=alt*u.m)
                 
                 # ra dec of all fields
-                radecs = astropy.coordinates.SkyCoord(ra=self.data['ra']*u.deg, dec=self.data['dec']*u.deg)               
+                radecs = astropy.coordinates.SkyCoord(ra=self.data['ra']*u.deg,
+                                                      dec=self.data['dec']*u.deg)               
 
                 # Alt/az reference frame at observatory, now
                 frame = astropy.coordinates.AltAz(obstime=obstime, location=observatory)
 
                 # Transform grid to alt/az coordinates at observatory, now
                 altaz = radecs.transform_to(frame)
-                return altaz
+                return altaz, obstime, observatory
                 
         def calc_airmass(self, obstime=None, lat=None, lon=None, alt=None):
 
@@ -409,7 +496,7 @@ class PstGetTilings():
                 if not _hp:
                         self.logger.info ('### Warning: no pointings found')
                         return
-                altaz = self.altaz(obstime=obstime, lat=lat, lon=lon, alt=alt)
+                altaz, obstime, observatory = self.altaz(obstime=obstime, lat=lat, lon=lon, alt=alt)
                 return Table([self.data['n'], altaz.secz], names=('n', 'airmass'))  
         
         def calc_sun(self, obstime=None, lat=None, lon=None, alt=None):
@@ -418,38 +505,32 @@ class PstGetTilings():
                 if not _hp:
                         self.logger.info ('### Warning: no pointings found')
                         return
-                altaz = self.altaz(obstime=obstime, lat=lat, lon=lon, alt=alt)
-
-                # observiting time
-                if obstime is None: obstime = self.conf['obstime']                
-                obstime = self.obstime(obstime)
+                altaz, obstime, observatory = self.altaz(obstime=obstime, lat=lat, lon=lon, alt=alt)
                 
                 # Where is the sun, now?
-                sun_altaz = astropy.coordinates.get_sun(obstime).transform_to(altaz)                                     
+                sun_altaz = astropy.coordinates.get_sun(obstime).transform_to(altaz)
                 return sun_altaz.alt
 
-        def calc_moon(self, obstime=None, lat=None, lon=None, alt=None):
-
+        def calc_solar(self, sobj, obstime=None, lat=None, lon=None, alt=None):
+                
                 _hp = self.checkdata()
                 if not _hp:
                         self.logger.info ('### Warning: no pointings found')
                         return
+                if not sobj in ['moon','mercury','venus','mars','jupiter','saturn','uranus','neptune']:
+                        self.logger.info ('sobj should be selected from: '+
+                                          'mercury, venus, mars, jupiter, saturn, uranus, neptune')
+                        return
                 
-                # observiting time
-                if obstime is None: obstime = self.conf['obstime']
-
-                # observatory
-                if lat is None: lat = self.conf['lat']
-                if lon is None: lon = self.conf['lon']
-                if alt is None: alt = self.conf['alt']     
-                observatory = astropy.coordinates.EarthLocation(lat=lat*u.deg, lon=lon*u.deg, height=alt*u.m)
-                                
-                moonloc = astropy.coordinates.get_body('moon', obstime, observatory).transform_to(altaz)
-                sep = gradecs.separation(_loc)
-                return
-        
-        def priorizatin(self):
-                return
+                # ra dec of all fields
+                radecs = astropy.coordinates.SkyCoord(ra=self.data['ra']*u.deg,
+                                                      dec=self.data['dec']*u.deg)
+                
+                altaz, obstime, observatory = self.altaz(obstime=obstime, lat=lat, lon=lon, alt=alt)
+                
+                # Where is the solar object, now
+                moonloc = astropy.coordinates.get_body(sobj, obstime, observatory).transform_to(altaz)
+                return Table([self.data['n'], radecs.separation(moonloc)], names=('n', 'dist'))        
         
         def divide_OB(self, nobw=None, nobh=None):
                 
@@ -524,7 +605,7 @@ class PstGetTilings():
                 return  ralist,declist, fovralist,fovdeclist 
         
         @staticmethod
-        def ipix_in_box(ra,dec,width,height,nside):
+        def ipix_in_box(ra,dec,width,height,nside,nest):
                 """Finding the healpix indices of a given box
                 """
                 v1_ra, v2_ra, v3_ra, v4_ra, v1_dec, v2_dec, v3_dec, v4_dec = \
@@ -534,7 +615,7 @@ class PstGetTilings():
                 theta = 0.5 * np.pi - np.deg2rad(dec_vertices)
                 phi = np.deg2rad(ra_vertices)
                 xyz = hp.ang2vec(theta, phi)
-                ipix_fov_box = hp.query_polygon(nside, xyz)
+                ipix_fov_box = hp.query_polygon(nside, xyz, nest=nest)
                 return ipix_fov_box
 
         @staticmethod
@@ -557,7 +638,7 @@ class PstGetTilings():
                         vert_dec[0], vert_dec[1], vert_dec[3], vert_dec[2]
 
         @staticmethod
-        def overlapregion(ra1,dec1,fovw1,fovh1,ra2,dec2,fovw2,fovh2,nside):
+        def overlapregion(ra1,dec1,fovw1,fovh1,ra2,dec2,fovw2,fovh2,nside,nest):
                 # ra1,dec1,fovw1,fovh1: input tilings
                 # ra2,dec2,fovw2,fovh2: remove tilings
                 # nside: for calculating area, unit in sq. deg
@@ -570,139 +651,13 @@ class PstGetTilings():
                 areasingle =  hp.nside2pixarea(nside, degrees=True)                
                 index1, index2 = [],[]                
                 for _index,_ral,_decl,_fovwl,_fovhl in zip([index1,index2],
-                                [ra1,ra2],[dec1,dec2],[fovw1,fovw2],[fovh1,fovh2]):                        
-                        for _ra,_dec,_fovw,_fovh in zip(_ral,_decl,_fovwl,_fovhl):                                
-                                _idx = PstGetTilings.ipix_in_box(_ra,_dec,_fovw,_fovh,nside)
+                                [ra1,ra2],[dec1,dec2],[fovw1,fovw2],[fovh1,fovh2]):
+                        for _ra,_dec,_fovw,_fovh in zip(_ral,_decl,_fovwl,_fovhl):
+                                _idx = PstGetTilings.ipix_in_box(_ra,_dec,_fovw,_fovh,nside,nest)
                                 _index.append(_idx)
 
                 # all slices should be skipped
                 index2 = [j for i in index2 for j in i]
 
                 return [len(set(index1[ii]) & set(index2))*areasingle/fovw1[ii]/fovh1[ii]
-                        for ii in range(len(index1))]        
-
-
-
-
-        
-def compute_contours(proportions,samples):
-    r''' Plot containment contour around desired level.
-    E.g 90% containment of a PDF on a healpix map
-    '''
-
-    levels = []
-    sorted_samples = list(reversed(list(sorted(samples))))
-    nside = hp.pixelfunc.get_nside(samples)
-    sample_points = np.array(hp.pix2ang(nside,np.arange(len(samples)))).T
-    for proportion in proportions:
-        level_index = (np.cumsum(sorted_samples) > \
-                       proportion).tolist().index(True)
-        level = (sorted_samples[level_index] + \
-                 (sorted_samples[level_index+1] \
-                  if level_index+1 < len(samples) else 0)) / 2.0
-        levels.append(level)        
-
-    try: import meander
-    except: sys.exit('### Error: install meander via pip...')
-    contours_by_level = meander.spherical_contours(sample_points, samples, levels)
-
-    theta_list = {}; phi_list={}
-    for cc,contours in enumerate(contours_by_level):
-        _cnt = proportions[cc]
-        try:theta_list[_cnt]; phi_list[_cnt]
-        except: theta_list[_cnt] = []; phi_list[_cnt] = []
-        for contour in contours:            
-            theta, phi = contour.T
-            phi[phi<0] += 2.0*np.pi
-            theta_list[_cnt].append(theta)
-            phi_list[_cnt].append(phi)
-    return theta_list, phi_list
-
-
-def radec2skycell(rac,decc,fovw,fovh,idlist=None,ralist=None,declist=None,obx=1,oby=1,shifth=0.,shiftw=0.):
-
-    if idlist is None:
-        # generate skycells
-        cell_list,ralist,declist,fig = pointings(limdec=[-89.,89.],limra=[0,360],fovh=fovh,fovw=fovw,obx=obx,oby=oby,shifth=shifth,shiftw=shiftw)
-    else: cell_list,ralist,declist = idlist,ralist,declist
-
-    # which cell
-    _netlist = {'ra':[],'dec':[],'cell':[]}
-    for _skycell,_ra,_dec in zip(cell_list,ralist,declist):        
-        for _subcell in range(len(_ra)):
-            _netlist['ra'].append(_ra[_subcell])
-            _netlist['dec'].append(_dec[_subcell])
-            _netlist['cell'].append('%i-%i'%(_skycell,_subcell))      
-
-    _ralist,_declist = np.array(_netlist['ra']),np.array(_netlist['dec'])
-    _dist = np.sqrt((rac-_ralist)**2 + (decc-_declist)**2)
-    _index = np.argmin(_dist)
-    _skycell,_pra,_pdec = np.array(_netlist['cell'])[_index],_ralist[_index],_declist[_index]
-    return _skycell,_pra,_pdec
-
-def skycell2radec(skycell,subcell,fovw,fovh,ralist=None,declist=None,obx=1,oby=1,shifth=0.,shiftw=0.):
-
-    # generate skycells
-    cell_list,ralist,declist,fig = pointings(ralist=ralist,declist=declist,limdec=[-89.,89.],limra=[0,360],fovh=fovh,fovw=fovw,obx=obx,oby=oby,shifth=shifth,shiftw=shiftw)
-
-    # which cell
-    _netlist = {'ra':[],'dec':[],'cell':[]}
-    for _skycell,_ra,_dec in zip(cell_list,ralist,declist):        
-        for _subcell in range(len(_ra)):
-            _netlist['ra'].append(_ra[_subcell])
-            _netlist['dec'].append(_dec[_subcell])
-            _netlist['cell'].append('%i-%i'%(_skycell,_subcell))      
-
-    _index = np.where(np.array(_netlist['cell']) == '%i-%i'%(skycell,subcell))
-    return np.array(_netlist['ra'])[_index],np.array(_netlist['dec'])[_index]
-
-def pointngsshift(skymap,num,limra=False,limdec=False,fovh=3.,fovw=3.,\
-               verbose=False,skipfile=''):
-
-    if not limra and not limdec:
-        theta,phi = pst.compute_contours([.99],skymap)
-        ra,dec = pst.ThataphiToRadec(theta,phi)
-        limra = [min(ra),max(ra)]
-        limdec = [min(dec),max(dec)]
-
-    # monte carlo for tiling
-    _log, _nloop = [0.], 3
-    shifthi, shiftwi = 0, 0
-    for nn in [5.,10.,20.]:
-        if verbose: 
-            print(' - searching in fovh/%i fovw/%i'%(nn,nn))
-        shifth, shiftw=fovh/nn, fovw/nn
-
-        nloop = 0
-        answ1 = False
-        while not answ1:  # if angle OK: loop 100 times
-            angle = random.uniform(0,2*np.pi)
-            if verbose: print('\t %i with angle: %.2f'%(nloop,angle))
-            _shifth,_shiftw = np.sqrt(shifth**2+shiftw**2)*np.sin(angle),\
-                              np.sqrt(shifth**2+shiftw**2)*np.cos(angle) 
-            
-            answ2 = False
-            while not answ2:  # if OK, go on, if no, change
-                shifthi += _shifth
-                shiftwi += _shiftw
-
-                # generate pointings
-                _ral,_decl = pst.gen_pointings(limdec=limdec,limra=limra,\
-                                fovh=fovh,fovw=fovw,shifth=shifthi,shiftw=shiftwi)
-                # cal prob for tiling list
-                t = pst.calprob_tile(skymap,_ral,_decl,fovh,fovw)  
-
-                # judge converge or not
-                if sum(t)>_log[-1]:  # accept, direction correct
-                    _log.append(sum(t))
-                    print ('\t\tcovered %.5e probs'%_log[-1])
-                else:  # reject, change direction
-                    nloop+=1
-                    answ2 = True
-                    if nloop>=_nloop: answ1=True
-    _ral,_decl = pst.gen_pointings(limdec=limdec,limra=limra,\
-                        fovh=fovh,fovw=fovw,shifth=shifthi,shiftw=shiftwi)
-    _ral,_decl = pst.remove_fields(skipfile,_ral,_decl,\
-                        np.zeros(len(limra))+fovw,\
-                        np.zeros(len(limra))+fovh,verbose)
-    return _ral,_decl
+                        for ii in range(len(index1))] 

@@ -84,7 +84,8 @@ class PstParseTriggers():
             'wdir':      '/tmp/',   # `str`   working directory
             'savefits':  None,      # `str`   save file or not
             'nside':     512,       # `int`   healpix map default resolution
-            'coord':     'C',       # `str`   healpix map defualt coordinate system
+            'coord':     'C',       # `str`   healpix map defualt coordinate system: G, C, E
+            'nest':      False,     # `bool`  healpix map defualt ordering: nest or ring
             'cls':       [.5,.9],   # `list`  confidence levels for contours
             'style':     'sms'      # `str`   report type
         }
@@ -129,16 +130,17 @@ class PstParseTriggers():
                 self.logger.info ('### Warning: failed to download skymap,'+\
                                   'install wget or requests first')
             
-    def fits(self, skymap):
+    def fits(self, skymap, nest=None):
         """ 
         apply parser on healpix fits or fits url
         """
         
         _hp = self.checkhp()
         if _hp: return
+        if not nest is None: self.conf['nest'] = nest
 
         if not skymap is None:            
-            hpmap, fitsinfos = self.read_skymap(skymap)
+            hpmap, fitsinfos = self.read_skymap(skymap, self.conf['nest'])
             self.data['hpmap'] = hpmap            
             self.data['fithdr'] = fitsinfos
 
@@ -194,7 +196,8 @@ class PstParseTriggers():
                 self.url(url, wdir=self.conf['wdir'],
                          savefits=self.conf['savefits'])
             
-    def coo(self, coo, wdir=None, savefits=None, nside=None, coord=None):
+    def coo(self, coo, wdir=None, savefits=None,
+            nside=None, coord=None, nest=None):
         """ 
         apply parser on ra, dec, error box
         obtain hpmap
@@ -204,23 +207,26 @@ class PstParseTriggers():
         if not savefits is None: self.conf['savefits'] = savefits
         if not nside is None: self.conf['nside'] = nside
         if not coord is None: self.conf['coord'] = coord
+        if not nest is None: self.conf['nest'] = nest
         
         _hp = self.checkhp()
         if _hp: return
 
         _ra,_dec,_loc = coo
-        _radius = _loc*2*np.pi/360 # from deg to radians
+        _radius = np.radians(_loc) # from deg to radians
+        _theta, _phi = np.pi/2.-np.radians(_dec),np.radians(_ra)        
         _pmap = np.zeros(hp.nside2npix(self.conf['nside']))
-        _index = hp.pixelfunc.ang2pix(self.conf['nside'],
-                        np.radians(-_dec+90.), np.radians(_ra))
+        _index = hp.ang2pix(self.conf['nside'], _theta, _phi,
+                            nest=self.conf['nest'])
         _pmap[_index]+=1
-        _pmap=hp.sphtfunc.smoothing(_pmap,fwhm=_radius)                
+        _pmap=hp.smoothing(_pmap,fwhm=_radius,sigma=None)                
         self.data['hpmap'] = _pmap/sum(_pmap)
 
         # savefits
         if not self.conf['savefits'] is None:
             flag = self.make_hpmap(self.conf['wdir'],
                                    self.conf['savefits'],
+                                   self.conf['nest'],
                                    self.conf['coord'])
             if flag:
                 self.logger.info ('make healpix map')            
@@ -234,12 +240,12 @@ class PstParseTriggers():
         else:
             return False
         
-    def make_hpmap(self, wdir, tempfile, coord):
+    def make_hpmap(self, wdir, tempfile, nest, coord):
         # generate map       
         
         skymap = '%s/%s' % (wdir, tempfile)
         try:
-            hp.write_map(skymap, self.data['hpmap'], coord=coord,
+            hp.write_map(skymap, self.data['hpmap'], nest=nest, coord=coord,
                          extra_header=self.data['fithdr'], overwrite=True)
             return True
         except:
@@ -446,13 +452,14 @@ class PstParseTriggers():
         self.data[_k] = None
         
     @staticmethod
-    def read_skymap(_fits):
+    def read_skymap(_fits,nest):
         # get healpix fits        
         try: # read 3D trigger healpix map (for GW)            
-            tmap, header = hp.read_map(_fits, field=[0, 1, 2, 3],h=True)
+            tmap, header = hp.read_map(_fits,field=[0, 1, 2, 3],
+                                       nest=nest,h=True)
         except: # if failed, read 2D map            
             try:
-                tmap, header = hp.read_map(_fits, h=True)                
+                tmap, header = hp.read_map(_fits, nest=nest,h=True)                
             except:
                 tmap, header = None, None
         return tmap, dict(header)
