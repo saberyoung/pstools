@@ -1,7 +1,6 @@
 .DS_Store
 .gitmodules
 .readthedocs.yml
-.rtd-environment.yml
 LICENSE
 README.md
 pst.bash
