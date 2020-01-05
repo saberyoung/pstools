@@ -1,0 +1,170 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>pst.pipeline.PstPlotter &#8212; pstools  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="pst-pipeline-pstplotter">
+<h1>pst.pipeline.PstPlotter<a class="headerlink" href="#pst-pipeline-pstplotter" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pst.view.PstPlotter.PstPlotter">
+<em class="property">class </em><code class="sig-prename descclassname">pst.view.PstPlotter.</code><code class="sig-name descname">PstPlotter</code><span class="sig-paren">(</span><em class="sig-param">interactive=True</em>, <em class="sig-param">plot_dir=None</em>, <em class="sig-param">plot_name_tmpl='{objectId}.png'</em>, <em class="sig-param">defconf=None</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter" title="Permalink to this definition">¶</a></dt>
+<dd><ul class="simple">
+<li><p>implement the following functions:</p></li>
+</ul>
+<p>-&gt; __init__()
+-&gt;</p>
+<dl class="method">
+<dt id="pst.view.PstPlotter.PstPlotter.compute_contours">
+<em class="property">static </em><code class="sig-name descname">compute_contours</code><span class="sig-paren">(</span><em class="sig-param">proportions</em>, <em class="sig-param">samples</em>, <em class="sig-param">nside=64</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.compute_contours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot containment contour around desired level.
+E.g 90% containment of a PDF on a healpix map</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pst.view.PstPlotter.PstPlotter.galaxies">
+<code class="sig-name descname">galaxies</code><span class="sig-paren">(</span><em class="sig-param">pstgalaxies</em>, <em class="sig-param">nest=None</em>, <em class="sig-param">coord=None</em>, <em class="sig-param">colors=None</em>, <em class="sig-param">fignum=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.galaxies" title="Permalink to this definition">¶</a></dt>
+<dd><p>galaxy dot plots:
+pstgalaxies: 
+1. PstGetGalaxies obj
+2. PstGetGalaxies obj list
+color: list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pst.view.PstPlotter.PstPlotter.notes">
+<code class="sig-name descname">notes</code><span class="sig-paren">(</span><em class="sig-param">psttrigger=None</em>, <em class="sig-param">tellist=None</em>, <em class="sig-param">coord=None</em>, <em class="sig-param">obstime=None</em>, <em class="sig-param">fignum=1</em>, <em class="sig-param">contours=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.notes" title="Permalink to this definition">¶</a></dt>
+<dd><p>show specific coordiantes in healpy plots</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pst.view.PstPlotter.PstPlotter.obstime">
+<em class="property">static </em><code class="sig-name descname">obstime</code><span class="sig-paren">(</span><em class="sig-param">t=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.obstime" title="Permalink to this definition">¶</a></dt>
+<dd><p>define observing time
+t: None, or float, unit in sec, or astropy.time</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pst.view.PstPlotter.PstPlotter.plot_sky">
+<em class="property">static </em><code class="sig-name descname">plot_sky</code><span class="sig-paren">(</span><em class="sig-param">tellist</em>, <em class="sig-param">coord</em>, <em class="sig-param">obstime=None</em>, <em class="sig-param">fignum=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.plot_sky" title="Permalink to this definition">¶</a></dt>
+<dd><p>tellist: list of PstGetTilings obj or PstGetGalaxies obj</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pst.view.PstPlotter.PstPlotter.triggershow">
+<code class="sig-name descname">triggershow</code><span class="sig-paren">(</span><em class="sig-param">psttrigger</em>, <em class="sig-param">theta=None</em>, <em class="sig-param">phi=None</em>, <em class="sig-param">psi=None</em>, <em class="sig-param">contours=None</em>, <em class="sig-param">nest=None</em>, <em class="sig-param">coord=None</em>, <em class="sig-param">norm=None</em>, <em class="sig-param">vmin=None</em>, <em class="sig-param">vmax=None</em>, <em class="sig-param">fignum=1</em>, <em class="sig-param">ptype=None</em>, <em class="sig-param">cbar=None</em>, <em class="sig-param">nside=None</em>, <em class="sig-param">title='sky localization'</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.triggershow" title="Permalink to this definition">¶</a></dt>
+<dd><p>2d trigger healpix map</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">pstools</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">pstools tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../pipeline.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pipeline</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../view.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">view</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../circulate.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">circulate</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interface.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">interface</span></code></a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">Licenses</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;CC/BY/4.0/International.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/generated/PstPlotter.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
