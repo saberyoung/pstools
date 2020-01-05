@@ -1,0 +1,6 @@
+meander
+astropy
+numpy
+healpy
+matplotlib
+astroquery

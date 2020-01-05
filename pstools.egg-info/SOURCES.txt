@@ -4,8 +4,6 @@ LICENSE
 README.md
 pst.bash
 setup.py
-setup_full.py
-setup_full.py~
 docs/Makefile
 docs/circulate.rst
 docs/conf.py
@@ -179,6 +177,7 @@ pstools.egg-info/PKG-INFO
 pstools.egg-info/SOURCES.txt
 pstools.egg-info/dependency_links.txt
 pstools.egg-info/not-zip-safe
+pstools.egg-info/requires.txt
 pstools.egg-info/top_level.txt
 todo/configure.py
 todo/default.py
