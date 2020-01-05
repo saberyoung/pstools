@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# healpy documentation build configuration file, created by
+# pstools documentation build configuration file, created by
 # sphinx-quickstart on Fri Nov 21 13:06:27 2008.
 #
 # This file is execfile()d with the current directory set to its containing dir.

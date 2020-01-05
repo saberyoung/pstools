@@ -43,8 +43,7 @@ class PstPlotter():
         self.run_config(defconf)
         
         self.colors_contour = ['b','g','k','y','c','m']
-        self.colors_field = ['b','g','k','y','c','m']    
-        self.figsize = (15,10)
+        self.colors_field = ['b','g','k','y','c','m']       
     
     def run_config(self, defconf):
                      
@@ -52,15 +51,18 @@ class PstPlotter():
             'contours':    [.5,.9],     # 2D contours to show for triggers
             'obstime':     None,        # observing time
             'theta':       0,           # longtitude, theta = pi/2 - decl, unit in deg
-            'phi':         0,           # latitude, phi = ra, unit in deg            
+            'phi':         0,           # latitude, phi = ra, unit in deg
+            'psi':         0,           # 
             'nest':        False,       # healpix ordering
+            'cbar':        False,       # healpix color bar
             'norm':        'None',      # normalization, options:
                                         # hist: histagram / log: logarithmic / None: linear
             'coord':       'C',         # coordinate system, options: C, E, G               
             'vmin':        0,           # minimum range value for 2d normalized map
             'vmax':        1e-4,        # maximum range value for 2d normalized map
             'ptype':       'm',         # healpix plot type
-            'nside':       64           # healpix resolution for contour view
+            'nside':       64,          # healpix resolution for contour view
+            'figsize':     (15, 10)     # default figure size
         }
         
         if defconf is None: return        
@@ -69,51 +71,81 @@ class PstPlotter():
                 self.conf[_k] = defconf[_k]
             else:
                 self.logger.info ('### Warning: use default value for %s'%_k)
-
-    def initfig(self):
+    
+    def locshow(self, psttrigger=None, psttilings=None, pstgalaxies=None,
+                tellist=None, theta=None, phi=None, psi=None, figsize=None,
+                contours=None, nest=None, coord=None, norm=None, vmin=None,
+                vmax=None, fignum=1, ptype=None, cbar=None, obstime=None,
+                nside=None, title='sky localization'):
 
         # create figure
-        fig = plt.figure(fignum, figsize=figsize)
-    
-    def locshow(self, psttrigger, theta=None, phi=None, nest=None,
-                coord=None, norm=None, vmin=None, vmax=None,
-                fignum=1, ptype=None, title='sky localization'):
+        if figsize is None:
+            figsize = self.conf['fogsize']
+        else:
+            try:
+                fig = plt.figure(fignum, figsize=figsize)
+            except:
+                self.logger.info ('### Error: wrong figsize')
+                fig = plt.figure(fignum, figsize=self.conf['fogsize'])
+                
+        # create figures
+        if not psttrigger is None:
+            self.triggershow(psttrigger, theta=theta, phi=phi, psi=psi, title=title,
+                        contours=contours, nest=nest, coord=coord, norm=norm, vmin=vmin,
+                        vmax=vmax, fignum=fignum, ptype=ptype, cbar=cbar, nside=nside)
+        if not psttilings is None:
+            self.tilingshow(psttilings)
+        if not pstgalaxies is None:
+            self.galaxyshow(pstgalaxies)
 
-        """ 2d trigger healpix map
-        """        
+        # others
+        # Set grid lines
+        hp.graticule(dpar=None, dmer=None, coord=coord)
+        plt.legend()
         
+    def triggershow(self, psttrigger, theta=None, phi=None, psi=None,
+            contours=None, nest=None, coord=None, norm=None, vmin=None,
+            vmax=None, fignum=1, ptype=None, cbar=None, nside=None,
+            title='sky localization'):
+        """ 
+        2d trigger healpix map
+        """                
         from pst.cookbook import is_seq, is_seq_of_seq
         if is_seq_of_seq(psttrigger.data['hpmap']):
             (hpx, hpd1, hpd2, hpd3) = psttrigger.data['hpmap']
         elif is_seq(psttrigger.data['hpmap']):
             hpx = psttrigger.data['hpmap']
-        else: return        
+        else:
+            self.logger.info ('### Warning: failed to load healpix map')
+            return
         
         # read parameters        
-        if theta is None:    theta    =  self.conf['theta']
-        if phi is None:      phi      =  self.conf['phi']        
-        if nest is None:     nest     =  self.conf['nest']        
+        if theta is None:    theta    =  float(self.conf['theta'])
+        if phi is None:      phi      =  float(self.conf['phi'])
+        if psi is None:      psi      =  float(self.conf['psi'])
+        if nest is None:     nest     =  self.conf['nest']
+        if cbar is None:     cbar     =  self.conf['cbar']    
         if coord is None:    coord    =  self.conf['coord']
         if norm is None:     norm     =  self.conf['norm']        
         if vmin is None:     vmin     =  self.conf['vmin']
         if vmax is None:     vmax     =  self.conf['vmax']        
-        if ptype is None:    ptype    =  self.conf['ptype']   
-       
+        if ptype is None:    ptype    =  self.conf['ptype'] 
         
         # Choose color map and set background to white
         cmap = cm.YlOrRd
         cmap.set_under("w")
 
-        # Plot GW skymap in Mollweide projection
+        # Plot GW skymap
         if ptype == 'm':
-            hp.mollview(map=hpx, fig=fignum, rot=[theta,phi], coord=coord, \
-                    unit='', xsize=800, title=title, nest=nest, min=vmin, max=vmax, \
-                    flip='astro', remove_dip=False, remove_mono=False, gal_cut=0, \
-                    format='%g', format2='%g', cbar=False, cmap=cmap, notext=False, \
-                    norm=norm, hold=True, margins=None, sub=None, \
-                    return_projected_map=False)      
+            hp.mollview(map=hpx, fig=fignum, rot=[theta,phi,psi], coord=coord, \
+                    unit=r'Probability', xsize=800, title=title, \
+                    nest=nest, min=vmin, max=vmax, flip='astro', \
+                    remove_dip=False, remove_mono=False, gal_cut=0, \
+                    format='%g', format2='%g', cbar=cbar, cmap=cmap, \
+                    notext=False, norm=norm, hold=True, margins=None, \
+                    sub=None, return_projected_map=False)      
         elif ptype == 'g':
-            hp.gnomview(map=hpx, fig=fignum, rot=[theta,phi], coord=coord,\
+            hp.gnomview(map=hpx, fig=fignum, rot=[theta,phi,psi], coord=coord,\
                     unit='', xsize=5000, ysize=None, reso=1.5, title=title, \
                     nest=nest, remove_dip=False, remove_mono=False, gal_cut=0, \
                     min=vmin, max=vmax, flip='astro', format='%.3g', cbar=False, \
@@ -121,7 +153,7 @@ class PstPlotter():
                     hold=True, sub=None, margins=None, notext=False, \
                     return_projected_map=False, no_plot=False)
         elif ptype == 'c':
-            hp.cartview(map=hpx, fig=fignum, rot=[theta,phi], \
+            hp.cartview(map=hpx, fig=fignum, rot=[theta,phi,psi], \
                     zat=None, coord=coord, unit='', xsize=800, ysize=None, \
                     lonra=None, latra=None, title=title, nest=nest, \
                     remove_dip=False, remove_mono=False, gal_cut=0, \
@@ -130,7 +162,7 @@ class PstPlotter():
                     norm=norm, aspect=None, hold=False, sub=None, margins=None, \
                     notext=False, return_projected_map=False)
         elif ptype == 'o':
-            hp.orthview(map=hpx, fig=fignum, rot=[theta,phi], coord=coord, \
+            hp.orthview(map=hpx, fig=fignum, rot=[theta,phi,psi], coord=coord, \
                     unit='', xsize=800, half_sky=False, title=title, nest=nest, \
                     min=vmin, max=vmax, flip='astro', remove_dip=False, \
                     remove_mono=False, gal_cut=0, format='%g', format2='%g', \
@@ -140,174 +172,192 @@ class PstPlotter():
         else:
             self.logger.info ('### Error: wrong option for ptype [m, g, c, o]')
             return
-        
-        # Set grid lines
-        hp.graticule(dpar=None, dmer=None, coord=coord)        
 
-    def contshow(self, psttrigger, contours=None, theta=None, phi=None,
-                 nest=None, coord=None, nside=None, fignum=1):
-
-        """ 2d trigger healpix map, contours
-        """        
-        
-        from pst.cookbook import is_seq, is_seq_of_seq
-        if is_seq_of_seq(psttrigger.data['hpmap']):
-            (hpx, hpd1, hpd2, hpd3) = psttrigger.data['hpmap']
-        elif is_seq(psttrigger.data['hpmap']):
-            hpx = psttrigger.data['hpmap']
-        else: return        
-        
-        # read parameters        
-        if theta is None:    theta    =  self.conf['theta']
-        if phi is None:      phi      =  self.conf['phi']        
-        if nest is None:     nest     =  self.conf['nest']        
-        if coord is None:    coord    =  self.conf['coord']                   
+        """
+        show trigger contours
+        """       
+        # read parameters                
         if contours is None: contours =  self.conf['contours']
-        if nside is None:    nside    =  self.conf['nside']
-        
-        # contour plots
-        from pst.cookbook import is_seq, is_seq_of_seq
+        if nside is None:    nside    =  int(self.conf['nside'])        
         if is_seq(contours):
             theta_contour, phi_contour = self.compute_contours(contours,hpx,nside=nside)
             for ndd,dd in enumerate(theta_contour):                
                 _theta_contour, _phi_contour = theta_contour[dd], phi_contour[dd]        
                 for i in range(len(_theta_contour)):                    
-                    if len(_theta_contour[i])==0:continue
-                    hp.projplot(_theta_contour[i],_phi_contour[i],rot=[90-theta,phi],
-                                coord=coord, linewidth=1, c=self.colors_contour[ndd])
+                    if len(_theta_contour[i])==0:continue                    
+                    hp.projplot(_theta_contour[i],_phi_contour[i], coord=coord,
+                                    linewidth=1, c=self.colors_contour[ndd])
+                    
+    def notes(self):
+        """
+        show specific coordiantes in healpy plots
+        """        
+        self.plot_coord(coord)        
 
-    def ss(self):
-        
-        # coordinate
-        self.plot_coord(theta,phi,coord=coord)
+        """
+        plot the sky: 
+        sun, moon, horizon, galactic plane,
+        """
+        if obstime is None:    obstime    =  self.conf['obstime'] 
+        obstime = self.obstime(obstime)
+        self.plot_sky(tellist,coord,obstime,fignum)
 
-        input('...here')
-        
         # write labels
         xx,yy = -2.,1.
         plt.text(xx, .9, 'sun: $\odot$',fontsize=20,\
                  ha="center", va="center", color='y')
         plt.text(xx, 1., 'moon: $\oplus$',fontsize=20,\
                  ha="center", va="center", color='b')        
-        for ndd in range(len(colors)):                       
-            yy+=.1
-            try: plt.text(xx, yy, list(distinfo.values())[ndd],\
-                          ha="center", va="center", color=colors[ndd],\
-                          fontsize=20)
-            except:pass
 
-        # plot the sky: sun, moon, horizon, galactic plane, ...
-        plot_sky(_r,tellist,coord,timenow,1)
-        return fig
+        # contou informations
+        if is_seq(contours):
+            area = psttrigger.calc_area(contours)            
+            for ii,cc in enumerate(contours):
+                yy+=.1
+                info = '%.2f%% area: %.2f deg^2' % (cc*100, area[cc])
+                plt.text(xx, yy, info, ha="center", va="center",
+                         color=self.colors_contour[ii], fontsize=20)        
+   
+    def galaxies(self, pstgalaxies, nest=None, coord=None, colors=None, fignum=1):
+        """ galaxy dot plots:
+        pstgalaxies: 
+        1. PstGetGalaxies obj
+        2. PstGetGalaxies obj list
+        color: list
+        """
+        from pst.cookbook import is_seq, is_seq_of_seq
+        if coord is None:    coord    =  self.conf['coord']
+        if nest is None:     nest     =  self.conf['nest']        
+        if colors is None:
+            colors = self.colors_field
+        else:
+            if not is_seq(colors):
+                self.logger.info('### Error: colors should be a list')
+                return
+            if len(colors) < len(pstgalaxies):
+                self.logger.info('### Error: not enough colors')
+                return 
+        if is_seq(pstgalaxies):
+            for pstgalaxy, color in zip(pstgalaxies, colors):
+                self.galaxy(pstgalaxy, nest=nest, coord=coord,
+                            color=color, fignum=fignum)
+        else:
+            self.galaxy(pstgalaxies, nest=nest, coord=coord,
+                        color=colors[0], fignum=fignum)
+
+    def galaxy(self, pstgalaxy, nest=None, coord=None, color=None, fignum=1):
+
+        if coord is None:    coord    =  self.conf['coord']
+        if nest is None:     nest     =  self.conf['nest']     
+        if pstgalaxy.data['ra'] is None or pstgalaxy.data['dec'] is None:                    
+            self.logger.info('### Warning: fields not found, skipped for %s'%pstgalaxy.name)
+            return
+        ra  =  pstgalaxy.data['ra']
+        dec =  pstgalaxy.data['dec']        
+        ms=4
+
+        # switch figure
+#        plt.figure(fignum)
+
+        # Set grid lines
+        hp.graticule(dpar=None, dmer=None, coord=coord)
+
+        # points plot
+        theta, phi = np.pi/2.-np.radians(dec),np.radians(ra)                
+        hp.projplot(theta[0],phi[0],'x', color =color,
+                    coord=coord, ms = ms, label='%s: %i galaxies'%(pstgalaxy.name, len(ra)))
+        hp.projplot(theta,phi,'x', color =color,
+                    coord=coord, ms = ms)
+        plt.legend()
 
     @staticmethod
-    def plot_coord(theta,phi,coord):
-        """
-        show specific coordiantes in healpy plots
-        """             
+    def plot_coord(coord):
+
         for _t in [60,120,180,240,300,360]:
-            
             # deg to hms
             c= astropy.coordinates.SkyCoord(ra=_t*u.degree,
                                 dec=0*u.degree, frame='icrs')          
-        
+    
             # visualization
-            hp.projtext(theta,phi, '%ih'%c.ra.hms.h,
-                        coord=coord, lonlat=True, rot=[theta, phi])
+            hp.projtext(_t, 0, '%ih'%c.ra.hms.h, lonlat=True, coord=coord)
 
         for _p in [30,60,-30,-60]:       
         
             # visualization
-            hp.projtext(theta,phi, '%.f$^\circ$'%_p,
-                        coord=coord, lonlat=True, rot=[theta, phi])
+            hp.projtext(0, _p, '%.f$^\circ$'%_p, lonlat=True, coord=coord)
 
-    def plot_sky(r,optlist,coord,obstime=None,fignum=1):
-
+    @staticmethod
+    def plot_sky(tellist,coord,obstime=None,fignum=1):
+        '''
+        tellist: list of PstGetTilings obj or PstGetGalaxies obj
+        '''
+        
         _colorlist = ['b','g','k','y','c','m']
-        plt.figure(fignum)
+#        plt.figure(fignum)
 
-        # plot the horizon
-        for _st in optlist:
-            for _ntt,_tt in enumerate(optlist[_st]):
-                # for each telescope
-                _tt,_hlat,_hlon,_halt = _tt['telescope']['name'],\
-                    _tt['telescope']['lat'],\
-                    _tt['telescope']['lon'],\
-                    _tt['telescope']['alt']       
-                observatory = astropy.coordinates.EarthLocation(lat=float(_hlat)*u.deg, \
-                                                                lon=float(_hlon)*u.deg, \
-                                                                height=float(_halt)*u.m)
+        if not tellist is None:
+            # plot the horizon for each telescopes
+            for nt, tel in enumerate(tellist):
+                name, lat, lon, alt = tel.name, tel.conf['lat'], tel.conf['lon'], tel.conf['alt']
+                # define observatory
+                observatory = astropy.coordinates.EarthLocation(lat=lat*u.deg,
+                                                    lon=lon*u.deg, height=alt*u.m)
                 _smlabel=True
-                for _timeplus in np.arange(0,360,1):
-                    # define observatory
-                    # sometimes finals2000A is needed by astropy.utils.iers.iers, however blocked
-                    # download from: ftp://ftp.iers.org/products/eop/rapid/standard/finals2000A.all
-                    newAltAzcoordiantes = astropy.coordinates.SkyCoord(alt = 0*u.deg, \
-                                                            az = 0*u.deg + _timeplus*u.deg, \
-                                                            obstime = timenow, frame = 'altaz', \
-                                                                       location = observatory)
-
-                    # transform to theta phi
-                    _htheta,_hphi = pst.RadecToThetaphi(newAltAzcoordiantes.icrs.ra.deg, \
-                                                        newAltAzcoordiantes.icrs.dec.deg)
-
-                    _htheta,_hphi = r(_htheta,_hphi)
-
-                    # plot
+                for _timedelta in np.arange(0,360,1):                               
+                    AltAzcoordiantes = astropy.coordinates.SkyCoord(alt = 0*u.deg, 
+                                    az = 0*u.deg + _timedelta*u.deg, obstime = obstime,
+                                    frame = 'altaz', location = observatory)
+                    ra,dec = AltAzcoordiantes.icrs.ra.deg, AltAzcoordiantes.icrs.dec.deg
+                    theta, phi = np.pi/2.-np.radians(dec),np.radians(ra)                
                     if _smlabel:
-                        hp.projplot(_htheta,_hphi,'.', color = _colorlist[_ntt], \
-                                    coord=coord, ms = 2, label='%s horizon now'%_tt)
+                        hp.projplot(theta,phi,'.', color = _colorlist[nt], \
+                                    coord=coord, ms = 2, label='%s horizon now'%name)
                         _smlabel=False
                     else:
-                        hp.projplot(_htheta,_hphi,'.', color = _colorlist[_ntt], \
+                        hp.projplot(theta,phi,'.', color = _colorlist[nt], \
                                     coord=coord, ms = 2)
 
         # plot the galactic plane        
-        _hral = np.arange(0,360,10)
-        _hdecl = np.zeros(len(_hral))
+        ra = np.arange(0,360,10)
+        dec = np.zeros(len(ra))
         _smlabel=True
-        for _hra,_hdec in zip(_hral,_hdecl):
+        for _ra,_dec in zip(ra,dec):
         
             # from galactic coordinates to equatorial
-            _hradecs = astropy.coordinates.SkyCoord(l=_hra*u.deg, \
-                                                    b=_hdec*u.deg, frame='galactic')                
+            _radecs = astropy.coordinates.SkyCoord(l=_ra*u.deg,
+                                        b=_dec*u.deg, frame='galactic')                
 
             # transform to theta phi
-            _htheta,_hphi = pst.RadecToThetaphi(_hradecs.icrs.ra.deg,\
-                                                _hradecs.icrs.dec.deg)
-            _htheta,_hphi = r(_htheta,_hphi)
+            _ra,_dec = _radecs.icrs.ra.deg, _radecs.icrs.dec.deg
+            _theta,_phi = np.pi/2.-np.radians(_dec),np.radians(_ra)            
 
             # plot
             if _smlabel:
-                hp.projplot(_htheta,_hphi,'x', color = 'k', \
+                hp.projplot(_theta,_phi,'x', color = 'k', 
                             coord=coord, ms = 10, label='galactic plane')
                 _smlabel=False
             else:
-                hp.projplot(_htheta,_hphi,'x', color = 'k', \
+                hp.projplot(_theta,_phi,'x', color = 'k', 
                             coord=coord, ms = 10)
 
         # plot the sun
-        _sra,_sdec = astropy.coordinates.get_sun(timenow).\
-            ra.deg,astropy.coordinates.get_sun(timenow).dec.deg
-        _stheta,_sphi = pst.RadecToThetaphi(_sra,_sdec)    
-        _stheta,_sphi = r(_stheta,_sphi)
-        hp.projtext(_stheta,_sphi,'$\odot$', color = 'y', \
+        _sra,_sdec = astropy.coordinates.get_sun(obstime).ra.deg,\
+            astropy.coordinates.get_sun(obstime).dec.deg
+        _stheta,_sphi = np.pi/2.-np.radians(_sdec),np.radians(_sra)        
+        hp.projtext(_stheta,_sphi,'$\odot$', color = 'y',
                     coord=coord,fontsize=20)     
 
         # plot the moon lasting 5 days
         for _nd in np.arange(0,5,1):
             _timeplus = _nd*24
-            timelater = timenow + astropy.time.TimeDelta(_timeplus*3600, \
-                                                         format='sec')
-            _mra,_mdec = astropy.coordinates.get_moon(timelater).\
-                ra.deg,astropy.coordinates.get_moon(timelater).dec.deg
-            _mtheta,_mphi = pst.RadecToThetaphi(_mra,_mdec)        
-            _mtheta,_mphi = r(_mtheta,_mphi)          
-            hp.projtext(_mtheta,_mphi,'$\oplus$', color = 'b', \
+            timelater = obstime + astropy.time.TimeDelta(_timeplus*3600, format='sec')
+            _mra,_mdec = astropy.coordinates.get_moon(timelater).ra.deg,\
+                astropy.coordinates.get_moon(timelater).dec.deg
+            _mtheta,_mphi = np.pi/2.-np.radians(_mdec),np.radians(_mra)            
+            hp.projtext(_mtheta,_mphi,'$\oplus$', color = 'b',
                         coord=coord,fontsize=20)
             hp.projtext(_mtheta,_mphi-.1,'%id'%_nd, color = 'b', \
-                        coord=coord,fontsize=12)
-        plt.legend()
+                        coord=coord,fontsize=12)        
 
     @staticmethod
     def obstime(t=None):
@@ -360,33 +410,6 @@ class PstPlotter():
                 theta_list[_cnt].append(theta)
                 phi_list[_cnt].append(phi)
         return theta_list, phi_list
-
-    
-""" galaxy plots """
-def pointview(pparams):
-   
-    ra=pparams['ra']
-    dec=pparams['dec']
-    rot_phi=pparams['phi']
-    rot_theta=pparams['theta']
-    color=pparams['color']
-    coord=pparams['coord']    
-    label=pparams['label']
-    fignum=pparams['fignum']
-    ms=4
-    if len(ra)>0:pass
-    else:return
-
-    fig = plt.figure(fignum)
-    hp.graticule()
-    _theta,_phi = pst.RadecToThetaphi(ra,dec)
-    _rot = hp.Rotator(deg=True, rot=[rot_phi,rot_theta])
-
-    hp.projplot(_rot(_theta[0],_phi[0]),'x', color =color, coord=coord, ms = ms, label=label)
-    hp.projplot(_rot(_theta,_phi),'x', color =color, coord=coord, ms = ms)
-
-    plt.legend()
-    return fig
 
 def distview(pparams):
 
@@ -673,7 +696,7 @@ def cumshow(pparams):
 
 def interactive_show(func,_pm,_opt):   
     """
-    Usage: intractive(plotfunc,rot_theta,'theta',rot_phi,'phi',[ralist,declist,_fovw,_fovh])
+    Usage: intractive(plotfunc,dict,list)
     """                
     answ = False
     while not answ:

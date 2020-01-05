@@ -29,8 +29,9 @@ class PstGetGalaxies():
         # Static version info
         version = 1.0
    
-        def __init__(self, ra=None, dec=None, distance=None, name=None,
-                     mag=None, index=None, defconf=None, logger=None):
+        def __init__(self, name=None, ra=None, dec=None,
+                     distance=None, gname=None, mag=None,
+                     index=None, defconf=None, logger=None):
                 """
                 generate tiling network
 
@@ -51,11 +52,22 @@ class PstGetGalaxies():
 
                 # ----- set galaxy properties ----- #
                 self.data   =   {'ra':ra, 'dec':dec, 'n':index,
-                                 'dist':distance, 'name':name,
+                                 'dist':distance, 'name':gname,
                                  'mag':mag}
 
                 # ----- define default parameters ----- #
                 self.run_config(defconf)
+
+                # ----- set name for telescope ----- #
+                self.set_name(name)
+                
+        def set_name(self, name):
+                
+                if name is None:
+                        self.name = '%.2f-%.2f-%i' % (self.conf['lon'],
+                                self.conf['lat'], self.conf['alt'])
+                else:
+                        self.name = name
 
         def run_config(self, defconf):
                      

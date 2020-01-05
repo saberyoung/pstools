@@ -30,8 +30,10 @@ class PstGetTilings():
         # Static version info
         version = 1.0
    
-        def __init__(self, ra=None, dec=None, fovra=None, fovdec=None,
-                     index=None, defconf=None, logger=None):
+        def __init__(self, name=None, ra=None, dec=None,
+                     fovra=None, fovdec=None,
+                     index=None, defconf=None,
+                     logger=None):
                 """
                 generate tiling network
 
@@ -60,6 +62,17 @@ class PstGetTilings():
                 # ----- define default parameters ----- #
                 self.run_config(defconf)
 
+                # ----- set name for telescope ----- #
+                self.set_name(name)
+                
+        def set_name(self, name):
+                
+                if name is None:
+                        self.name = '%.2f-%.2f-%i' % (self.conf['lon'],
+                                self.conf['lat'], self.conf['alt'])
+                else:
+                        self.name = name
+                
         def run_config(self, defconf):
                      
                 self.conf = {
@@ -473,11 +486,11 @@ class PstGetTilings():
                 obstime = self.obstime(obstime)
 
                 # observatory
-                if lat is None: lat = self.conf['lat']
-                if lon is None: lon = self.conf['lon']
-                if alt is None: alt = self.conf['alt']     
-                observatory = astropy.coordinates.EarthLocation(lat=lat*u.deg,
-                                                                lon=lon*u.deg, height=alt*u.m)
+                if not lat is None: self.conf['lat'] = lat
+                if not lon is None: self.conf['lon'] = lon
+                if not alt is None: self.conf['alt'] = alt
+                observatory = astropy.coordinates.EarthLocation(lat=self.conf['lat']*u.deg,
+                                lon=self.conf['lon']*u.deg, height=self.conf['alt']*u.m)
                 
                 # ra dec of all fields
                 radecs = astropy.coordinates.SkyCoord(ra=self.data['ra']*u.deg,
@@ -548,7 +561,7 @@ class PstGetTilings():
                 ralist, declist, fovralist, fovdeclist, oblist = [], [], [], [], []
                 _nn = 0
                 for _ra,_dec,_fovw,_fovh in zip(self.data['ra'], self.data['dec'],
-                                                self.data['fovra'], self.data['fovdec']):                        
+                                                self.data['fovra'], self.data['fovdec']):
                         _ra0,_dec0,_fovw0,_fovh0 = self.divide_OB_one(_ra, _dec, _fovw, _fovh,
                                                         self.conf['obra'], self.conf['obdec'])
                         _nn+=1
@@ -631,7 +644,8 @@ class PstGetTilings():
                                [fovh_rad, fovh_rad, -fovh_rad, -fovh_rad]):
                         arg = -i/(np.cos(dec_rad)-j*np.sin(dec_rad))
                         v_ra = np.rad2deg(ra_rad+np.arctan(arg))       
-                        v_dec = np.rad2deg(np.arcsin((np.sin(dec_rad)+j*np.cos(dec_rad))/(1+i**2+j**2)**0.5))
+                        v_dec = np.rad2deg(np.arcsin((np.sin(dec_rad)+\
+                                j*np.cos(dec_rad))/(1+i**2+j**2)**0.5))
                         vert_ra.append(v_ra)
                         vert_dec.append(v_dec)
                 return vert_ra[0], vert_ra[1], vert_ra[3], vert_ra[2], \
