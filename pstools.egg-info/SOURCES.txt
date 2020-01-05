@@ -4,6 +4,7 @@
 LICENSE
 README.md
 pst.bash
+requirements.txt
 setup.py
 upload.py
 docs/Makefile
