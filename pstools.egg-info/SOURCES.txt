@@ -4,6 +4,8 @@ LICENSE
 README.md
 pst.bash
 setup.py
+setup_full.py
+setup_full.py~
 docs/Makefile
 docs/circulate.rst
 docs/conf.py
