@@ -24,7 +24,7 @@ sys.path.append(os.path.abspath("."))
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 
-extensions = ["sphinx.ext.autosummary", "sphinx.ext.autodoc"]
+extensions = ["sphinx.ext.autosummary", "sphinx.ext.autodoc", "numpydoc"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["templates/"]
@@ -43,11 +43,11 @@ copyright = u"CC/BY/4.0/International"
 # other places throughout the built documents.
 #
 # The short X.Y version.
-#import pst
+import pst
 
-#version = pst.__version__
+version = pst.__version__
 # The full version, including alpha/beta/rc tags.
-#release = version
+release = version
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -152,7 +152,7 @@ html_additional_pages = {
 # html_file_suffix = ''
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "pstools-cookbook"
+htmlhelp_basename = "pstools-doc"
 
 
 # Options for LaTeX output

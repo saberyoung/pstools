@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>pst.pipeline.PstGetGalaxies &#8212; pstools  documentation</title>
+    <title>pst.pipeline.PstGetGalaxies &#8212; pstools 0.0.1 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -40,21 +40,86 @@
 </ul>
 <p>-&gt; __init__(self)
 -&gt;</p>
+<p class="rubric">Methods</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pst.pipeline.PstGetGalaxies.PstGetGalaxies.calc_prob_dis" title="pst.pipeline.PstGetGalaxies.PstGetGalaxies.calc_prob_dis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_prob_dis</span></code></a>(self, triggerobj[, nest])</p></td>
+<td><p>triggerobj   PstParseTriggers object</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pst.pipeline.PstGetGalaxies.PstGetGalaxies.calc_prob_loc" title="pst.pipeline.PstGetGalaxies.PstGetGalaxies.calc_prob_loc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_prob_loc</span></code></a>(self, triggerobj[, nest])</p></td>
+<td><p>triggerobj   PstParseTriggers object</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pst.pipeline.PstGetGalaxies.PstGetGalaxies.generate" title="pst.pipeline.PstGetGalaxies.PstGetGalaxies.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(self[, limra, limdec, catalog, …])</p></td>
+<td><p>create galaxies by querying Vizier</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pst.pipeline.PstGetGalaxies.PstGetGalaxies.obstime" title="pst.pipeline.PstGetGalaxies.PstGetGalaxies.obstime"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obstime</span></code></a>([t])</p></td>
+<td><p>define observing time t: None, or float, unit in sec, or astropy.time</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 62%" />
+<col style="width: 38%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>altaz</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>astrotab</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>calc_airmass</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>calc_solar</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>calc_sun</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>checkdata</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>hpmap</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>read</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>readfile</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>run_config</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>save</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>set_name</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="pst.pipeline.PstGetGalaxies.PstGetGalaxies.calc_prob_dis">
-<code class="sig-name descname">calc_prob_dis</code><span class="sig-paren">(</span><em class="sig-param">triggerobj</em>, <em class="sig-param">nest=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstGetGalaxies.PstGetGalaxies.calc_prob_dis" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">calc_prob_dis</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">triggerobj</em>, <em class="sig-param">nest=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstGetGalaxies.PstGetGalaxies.calc_prob_dis" title="Permalink to this definition">¶</a></dt>
 <dd><p>triggerobj   PstParseTriggers object</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pst.pipeline.PstGetGalaxies.PstGetGalaxies.calc_prob_loc">
-<code class="sig-name descname">calc_prob_loc</code><span class="sig-paren">(</span><em class="sig-param">triggerobj</em>, <em class="sig-param">nest=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstGetGalaxies.PstGetGalaxies.calc_prob_loc" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">calc_prob_loc</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">triggerobj</em>, <em class="sig-param">nest=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstGetGalaxies.PstGetGalaxies.calc_prob_loc" title="Permalink to this definition">¶</a></dt>
 <dd><p>triggerobj   PstParseTriggers object</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pst.pipeline.PstGetGalaxies.PstGetGalaxies.generate">
-<code class="sig-name descname">generate</code><span class="sig-paren">(</span><em class="sig-param">limra=None</em>, <em class="sig-param">limdec=None</em>, <em class="sig-param">catalog=None</em>, <em class="sig-param">filtro=None</em>, <em class="sig-param">size=None</em>, <em class="sig-param">limdist=None</em>, <em class="sig-param">limmag=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstGetGalaxies.PstGetGalaxies.generate" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">generate</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">limra=None</em>, <em class="sig-param">limdec=None</em>, <em class="sig-param">catalog=None</em>, <em class="sig-param">filtro=None</em>, <em class="sig-param">size=None</em>, <em class="sig-param">limdist=None</em>, <em class="sig-param">limmag=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstGetGalaxies.PstGetGalaxies.generate" title="Permalink to this definition">¶</a></dt>
 <dd><p>create galaxies by querying Vizier</p>
 </dd></dl>
 

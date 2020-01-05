@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>pst.pipeline.PstPlotter &#8212; pstools  documentation</title>
+    <title>pst.pipeline.PstPlotter &#8212; pstools 0.0.1 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -40,6 +40,53 @@
 </ul>
 <p>-&gt; __init__()
 -&gt;</p>
+<p class="rubric">Methods</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pst.view.PstPlotter.PstPlotter.compute_contours" title="pst.view.PstPlotter.PstPlotter.compute_contours"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_contours</span></code></a>(proportions, samples[, nside])</p></td>
+<td><p>Plot containment contour around desired level.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pst.view.PstPlotter.PstPlotter.galaxies" title="pst.view.PstPlotter.PstPlotter.galaxies"><code class="xref py py-obj docutils literal notranslate"><span class="pre">galaxies</span></code></a>(self, pstgalaxies[, nest, coord, …])</p></td>
+<td><p>galaxy dot plots: pstgalaxies:  1.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pst.view.PstPlotter.PstPlotter.notes" title="pst.view.PstPlotter.PstPlotter.notes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">notes</span></code></a>(self[, psttrigger, tellist, coord, …])</p></td>
+<td><p>show specific coordiantes in healpy plots</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pst.view.PstPlotter.PstPlotter.obstime" title="pst.view.PstPlotter.PstPlotter.obstime"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obstime</span></code></a>([t])</p></td>
+<td><p>define observing time t: None, or float, unit in sec, or astropy.time</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pst.view.PstPlotter.PstPlotter.plot_sky" title="pst.view.PstPlotter.PstPlotter.plot_sky"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_sky</span></code></a>(tellist, coord[, obstime, fignum])</p></td>
+<td><p>tellist: list of PstGetTilings obj or PstGetGalaxies obj</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pst.view.PstPlotter.PstPlotter.triggershow" title="pst.view.PstPlotter.PstPlotter.triggershow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">triggershow</span></code></a>(self, psttrigger[, theta, phi, …])</p></td>
+<td><p>2d trigger healpix map</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 58%" />
+<col style="width: 42%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>galaxy</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>locshow</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>plot_coord</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>run_config</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="pst.view.PstPlotter.PstPlotter.compute_contours">
 <em class="property">static </em><code class="sig-name descname">compute_contours</code><span class="sig-paren">(</span><em class="sig-param">proportions</em>, <em class="sig-param">samples</em>, <em class="sig-param">nside=64</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.compute_contours" title="Permalink to this definition">¶</a></dt>
@@ -49,7 +96,7 @@ E.g 90% containment of a PDF on a healpix map</p>
 
 <dl class="method">
 <dt id="pst.view.PstPlotter.PstPlotter.galaxies">
-<code class="sig-name descname">galaxies</code><span class="sig-paren">(</span><em class="sig-param">pstgalaxies</em>, <em class="sig-param">nest=None</em>, <em class="sig-param">coord=None</em>, <em class="sig-param">colors=None</em>, <em class="sig-param">fignum=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.galaxies" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">galaxies</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">pstgalaxies</em>, <em class="sig-param">nest=None</em>, <em class="sig-param">coord=None</em>, <em class="sig-param">colors=None</em>, <em class="sig-param">fignum=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.galaxies" title="Permalink to this definition">¶</a></dt>
 <dd><p>galaxy dot plots:
 pstgalaxies: 
 1. PstGetGalaxies obj
@@ -59,7 +106,7 @@ color: list</p>
 
 <dl class="method">
 <dt id="pst.view.PstPlotter.PstPlotter.notes">
-<code class="sig-name descname">notes</code><span class="sig-paren">(</span><em class="sig-param">psttrigger=None</em>, <em class="sig-param">tellist=None</em>, <em class="sig-param">coord=None</em>, <em class="sig-param">obstime=None</em>, <em class="sig-param">fignum=1</em>, <em class="sig-param">contours=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.notes" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">notes</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">psttrigger=None</em>, <em class="sig-param">tellist=None</em>, <em class="sig-param">coord=None</em>, <em class="sig-param">obstime=None</em>, <em class="sig-param">fignum=1</em>, <em class="sig-param">contours=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.notes" title="Permalink to this definition">¶</a></dt>
 <dd><p>show specific coordiantes in healpy plots</p>
 </dd></dl>
 
@@ -78,7 +125,7 @@ t: None, or float, unit in sec, or astropy.time</p>
 
 <dl class="method">
 <dt id="pst.view.PstPlotter.PstPlotter.triggershow">
-<code class="sig-name descname">triggershow</code><span class="sig-paren">(</span><em class="sig-param">psttrigger</em>, <em class="sig-param">theta=None</em>, <em class="sig-param">phi=None</em>, <em class="sig-param">psi=None</em>, <em class="sig-param">contours=None</em>, <em class="sig-param">nest=None</em>, <em class="sig-param">coord=None</em>, <em class="sig-param">norm=None</em>, <em class="sig-param">vmin=None</em>, <em class="sig-param">vmax=None</em>, <em class="sig-param">fignum=1</em>, <em class="sig-param">ptype=None</em>, <em class="sig-param">cbar=None</em>, <em class="sig-param">nside=None</em>, <em class="sig-param">title='sky localization'</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.triggershow" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">triggershow</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">psttrigger</em>, <em class="sig-param">theta=None</em>, <em class="sig-param">phi=None</em>, <em class="sig-param">psi=None</em>, <em class="sig-param">contours=None</em>, <em class="sig-param">nest=None</em>, <em class="sig-param">coord=None</em>, <em class="sig-param">norm=None</em>, <em class="sig-param">vmin=None</em>, <em class="sig-param">vmax=None</em>, <em class="sig-param">fignum=1</em>, <em class="sig-param">ptype=None</em>, <em class="sig-param">cbar=None</em>, <em class="sig-param">nside=None</em>, <em class="sig-param">title='sky localization'</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.triggershow" title="Permalink to this definition">¶</a></dt>
 <dd><p>2d trigger healpix map</p>
 </dd></dl>
 

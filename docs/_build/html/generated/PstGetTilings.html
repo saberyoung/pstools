@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>pst.pipeline.PstGetTilings &#8212; pstools  documentation</title>
+    <title>pst.pipeline.PstGetTilings &#8212; pstools 0.0.1 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -44,21 +44,116 @@ defconf=None, logger = None)</p>
 </dd>
 </dl>
 <p>-&gt;</p>
+<p class="rubric">Methods</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pst.pipeline.PstGetTilings.PstGetTilings.calc_prob_dis" title="pst.pipeline.PstGetTilings.PstGetTilings.calc_prob_dis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_prob_dis</span></code></a>(self, triggerobj[, nest, limdist])</p></td>
+<td><p>triggerobj   PstParseTriggers object</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pst.pipeline.PstGetTilings.PstGetTilings.calc_prob_loc" title="pst.pipeline.PstGetTilings.PstGetTilings.calc_prob_loc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_prob_loc</span></code></a>(self, triggerobj[, nest])</p></td>
+<td><p>triggerobj   PstParseTriggers object</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pst.pipeline.PstGetTilings.PstGetTilings.calc_prob_mass" title="pst.pipeline.PstGetTilings.PstGetTilings.calc_prob_mass"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calc_prob_mass</span></code></a>(self, galaxyobj[, nside, nest])</p></td>
+<td><p>galaxyobj   PstGetGalaxies object</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pst.pipeline.PstGetTilings.PstGetTilings.divide_OB_one" title="pst.pipeline.PstGetTilings.PstGetTilings.divide_OB_one"><code class="xref py py-obj docutils literal notranslate"><span class="pre">divide_OB_one</span></code></a>(rac, decc, fovw, fovh, nobw, nobh)</p></td>
+<td><p>divide a pointing to a list of sub-pointings</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pst.pipeline.PstGetTilings.PstGetTilings.generate" title="pst.pipeline.PstGetTilings.PstGetTilings.generate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate</span></code></a>(self[, limra, limdec, fovra, …])</p></td>
+<td><p>create pointings by tiling sky</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pst.pipeline.PstGetTilings.PstGetTilings.generate_mc" title="pst.pipeline.PstGetTilings.PstGetTilings.generate_mc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">generate_mc</span></code></a>(self, skymap, num[, limra, …])</p></td>
+<td><p>create pointings by tiling sky monte carlo approach to maxmize trigger probability with num pointings</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pst.pipeline.PstGetTilings.PstGetTilings.ipix_in_box" title="pst.pipeline.PstGetTilings.PstGetTilings.ipix_in_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ipix_in_box</span></code></a>(ra, dec, width, height, nside, nest)</p></td>
+<td><p>Finding the healpix indices of a given box</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pst.pipeline.PstGetTilings.PstGetTilings.obstime" title="pst.pipeline.PstGetTilings.PstGetTilings.obstime"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obstime</span></code></a>([t])</p></td>
+<td><p>define observing time t: None, or float, unit in sec, or astropy.time</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pst.pipeline.PstGetTilings.PstGetTilings.vertices" title="pst.pipeline.PstGetTilings.PstGetTilings.vertices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vertices</span></code></a>(ra, dec, fovw, fovh)</p></td>
+<td><p>Finding the vertices of a FoV given the central location (ra[deg], dec[deg]) and the FoV size (fovw [deg], fovh [deg]).</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 69%" />
+<col style="width: 31%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>OACAPI</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>altaz</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>astrotab</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>calc_airmass</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>calc_solar</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>calc_sun</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>checkdata</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>divide_OB</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>lightcurve</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>overlapregion</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>read</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>readfile</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>remove_fields_file</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>remove_fileds_coo</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>run_config</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>save</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>set_name</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
 <dl class="method">
 <dt id="pst.pipeline.PstGetTilings.PstGetTilings.calc_prob_dis">
-<code class="sig-name descname">calc_prob_dis</code><span class="sig-paren">(</span><em class="sig-param">triggerobj</em>, <em class="sig-param">nest=None</em>, <em class="sig-param">limdist=400</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstGetTilings.PstGetTilings.calc_prob_dis" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">calc_prob_dis</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">triggerobj</em>, <em class="sig-param">nest=None</em>, <em class="sig-param">limdist=400</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstGetTilings.PstGetTilings.calc_prob_dis" title="Permalink to this definition">¶</a></dt>
 <dd><p>triggerobj   PstParseTriggers object</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pst.pipeline.PstGetTilings.PstGetTilings.calc_prob_loc">
-<code class="sig-name descname">calc_prob_loc</code><span class="sig-paren">(</span><em class="sig-param">triggerobj</em>, <em class="sig-param">nest=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstGetTilings.PstGetTilings.calc_prob_loc" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">calc_prob_loc</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">triggerobj</em>, <em class="sig-param">nest=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstGetTilings.PstGetTilings.calc_prob_loc" title="Permalink to this definition">¶</a></dt>
 <dd><p>triggerobj   PstParseTriggers object</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pst.pipeline.PstGetTilings.PstGetTilings.calc_prob_mass">
-<code class="sig-name descname">calc_prob_mass</code><span class="sig-paren">(</span><em class="sig-param">galaxyobj</em>, <em class="sig-param">nside=None</em>, <em class="sig-param">nest=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstGetTilings.PstGetTilings.calc_prob_mass" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">calc_prob_mass</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">galaxyobj</em>, <em class="sig-param">nside=None</em>, <em class="sig-param">nest=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstGetTilings.PstGetTilings.calc_prob_mass" title="Permalink to this definition">¶</a></dt>
 <dd><p>galaxyobj   PstGetGalaxies object</p>
 </dd></dl>
 
@@ -70,13 +165,13 @@ defconf=None, logger = None)</p>
 
 <dl class="method">
 <dt id="pst.pipeline.PstGetTilings.PstGetTilings.generate">
-<code class="sig-name descname">generate</code><span class="sig-paren">(</span><em class="sig-param">limra=None</em>, <em class="sig-param">limdec=None</em>, <em class="sig-param">fovra=None</em>, <em class="sig-param">fovdec=None</em>, <em class="sig-param">shiftra=None</em>, <em class="sig-param">shiftdec=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstGetTilings.PstGetTilings.generate" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">generate</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">limra=None</em>, <em class="sig-param">limdec=None</em>, <em class="sig-param">fovra=None</em>, <em class="sig-param">fovdec=None</em>, <em class="sig-param">shiftra=None</em>, <em class="sig-param">shiftdec=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstGetTilings.PstGetTilings.generate" title="Permalink to this definition">¶</a></dt>
 <dd><p>create pointings by tiling sky</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pst.pipeline.PstGetTilings.PstGetTilings.generate_mc">
-<code class="sig-name descname">generate_mc</code><span class="sig-paren">(</span><em class="sig-param">skymap</em>, <em class="sig-param">num</em>, <em class="sig-param">limra=None</em>, <em class="sig-param">limdec=None</em>, <em class="sig-param">fovra=None</em>, <em class="sig-param">fovdec=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstGetTilings.PstGetTilings.generate_mc" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">generate_mc</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">skymap</em>, <em class="sig-param">num</em>, <em class="sig-param">limra=None</em>, <em class="sig-param">limdec=None</em>, <em class="sig-param">fovra=None</em>, <em class="sig-param">fovdec=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstGetTilings.PstGetTilings.generate_mc" title="Permalink to this definition">¶</a></dt>
 <dd><p>create pointings by tiling sky
 monte carlo approach to maxmize trigger probability with num pointings</p>
 </dd></dl>

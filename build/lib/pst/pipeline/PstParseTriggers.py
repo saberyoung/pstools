@@ -96,7 +96,20 @@ class PstParseTriggers():
         self.run_config(defconf)
 
     def run_config(self, defconf):
+        """ 
+        read default value for parameters
 
+        Parameters
+        ----------
+        defconf :      `dict`
+          input parameter settings, if None, use default
+
+        Examples
+        --------    
+        >>> 
+        >>> .run_config()
+        """
+        
         self.conf = {
             'wdir':      '/tmp/',   # `str`   working directory
             'savefits':  None,      # `str`   save file or not
