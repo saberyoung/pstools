@@ -34,8 +34,6 @@ Welcome to the pstools documentation
 
    pipeline
    view
-   circulate
-   interface
 
 Indices and tables
 ==================

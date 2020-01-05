@@ -26,10 +26,3 @@ Galaxies
    :toctree: generated/
 
    PstGetGalaxies
-
-Prioritization
------------------------------------
-.. autosummary::
-   :toctree: generated/
-
-   PstPrioritization

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>pst.pipeline.PstParseTriggers &#8212; pstools 0.0.1 documentation</title>
+    <title>pst.pipeline.PstParseTriggers &#8212; pstools 0.5.1.1 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -110,10 +110,13 @@ Usual numpy broadcasting rules apply.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#pst.pipeline.PstParseTriggers.PstParseTriggers.root" title="pst.pipeline.PstParseTriggers.PstParseTriggers.root"><code class="xref py py-obj docutils literal notranslate"><span class="pre">root</span></code></a>(self, root[, wdir, savefits, nside, coord])</p></td>
 <td><p>apply parser on root element of the XML document, parsed by lxml.etree</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pst.pipeline.PstParseTriggers.PstParseTriggers.url" title="pst.pipeline.PstParseTriggers.PstParseTriggers.url"><code class="xref py py-obj docutils literal notranslate"><span class="pre">url</span></code></a>(self, url[, wdir, savefits])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pst.pipeline.PstParseTriggers.PstParseTriggers.run_config" title="pst.pipeline.PstParseTriggers.PstParseTriggers.run_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_config</span></code></a>(self, defconf)</p></td>
+<td><p>read default value for parameters</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pst.pipeline.PstParseTriggers.PstParseTriggers.url" title="pst.pipeline.PstParseTriggers.PstParseTriggers.url"><code class="xref py py-obj docutils literal notranslate"><span class="pre">url</span></code></a>(self, url[, wdir, savefits])</p></td>
 <td><p>apply parser on skymap url</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pst.pipeline.PstParseTriggers.PstParseTriggers.xml" title="pst.pipeline.PstParseTriggers.PstParseTriggers.xml"><code class="xref py py-obj docutils literal notranslate"><span class="pre">xml</span></code></a>(self, xml[, wdir, savefits, nside, coord])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pst.pipeline.PstParseTriggers.PstParseTriggers.xml" title="pst.pipeline.PstParseTriggers.PstParseTriggers.xml"><code class="xref py py-obj docutils literal notranslate"><span class="pre">xml</span></code></a>(self, xml[, wdir, savefits, nside, coord])</p></td>
 <td><p>apply parser on voenevt XML file</p></td>
 </tr>
 </tbody>
@@ -160,10 +163,7 @@ Usual numpy broadcasting rules apply.</p>
 <tr class="row-even"><td><p><strong>resetall</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><strong>run_config</strong></p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><strong>set</strong></p></td>
+<tr class="row-odd"><td><p><strong>set</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -224,6 +224,25 @@ obtain hpmap</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="pst.pipeline.PstParseTriggers.PstParseTriggers.run_config">
+<code class="sig-name descname">run_config</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">defconf</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstParseTriggers.PstParseTriggers.run_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>read default value for parameters</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>defconf</strong><span class="classifier"><cite>dict</cite></span></dt><dd><p>input parameter settings, if None, use default</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="o">.</span><span class="n">run_config</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
 <dt id="pst.pipeline.PstParseTriggers.PstParseTriggers.url">
 <code class="sig-name descname">url</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">url</em>, <em class="sig-param">wdir=None</em>, <em class="sig-param">savefits=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.pipeline.PstParseTriggers.PstParseTriggers.url" title="Permalink to this definition">¶</a></dt>
 <dd><p>apply parser on skymap url</p>
@@ -265,8 +284,6 @@ obtain hpmap</p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../pipeline.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pipeline</span></code></a></li>
 <li class="toctree-l1"><a class="reference internal" href="../view.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">view</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="../circulate.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">circulate</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="../interface.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">interface</span></code></a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>
