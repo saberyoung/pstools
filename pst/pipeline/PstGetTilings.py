@@ -841,6 +841,7 @@ class PstGetTilings():
                 >>> b.url('https://gracedb.ligo.org/api/superevents/S190510g/files/bayestar.fits.gz')
                 >>> c = a.cut_contours(b, cls=[.9])
                 """
+                
                 if cls is None:      cls  = triggerobj.conf['cls']
                 if nest is None:     nest = self.conf['nest'] 
                 
@@ -850,24 +851,56 @@ class PstGetTilings():
                         (hpx, hpd1, hpd2, hpd3) = triggerobj.data['hpmap']
                 elif is_seq(triggerobj.data['hpmap']):
                         hpx = triggerobj.data['hpmap']
-                else: return                                
+                else: return
+                
                 nside = hp.get_nside(hpx)
                 areasingle =  hp.nside2pixarea(nside, degrees=True)
-                _data =  {}
-                for cc in idlist:                        
+
+                _data =  {}                                                        
+                for cc in idlist:
                         _data[cc] =  {'n':np.array([]), 'ra':np.array([]), 'dec':np.array([]),
                                       'fovra':np.array([]), 'fovdec':np.array([])}
                         idhpx = idlist[cc]
-                        for n, ra, dec, fovra, fovdec in zip(self.data['n'], self.data['ra'],
-                                        self.data['dec'], self.data['fovra'],self.data['fovdec']):                                
-                                _idx = PstGetTilings.ipix_in_box(ra, dec, fovra, fovdec, nside, nest)
-                                _frac = len(set(_idx) & set(idhpx))*areasingle/fovra/fovdec
-                                if _frac > frac:
-                                        _data[cc]['n']=np.append(_data[cc]['n'], n)
-                                        _data[cc]['ra']=np.append(_data[cc]['ra'], ra)
-                                        _data[cc]['dec']=np.append(_data[cc]['dec'], dec)
-                                        _data[cc]['fovra']=np.append(_data[cc]['fovra'], fovra)
-                                        _data[cc]['fovdec']=np.append(_data[cc]['fovdec'], fovdec)                                
+                        '''
+                        if frac <= 0.5:
+                                # check if the center is located in the CL region
+                                _index = hp.ang2pix(nside,np.radians(-self.data['dec']+90.),
+                                                  np.radians(360.-self.data['ra']))
+                                for _idx, n, ra, dec, fovra, fovdec  in zip(_index,
+                                        self.data['n'], self.data['ra'], self.data['dec'],
+                                        self.data['fovra'],self.data['fovdec']):
+                                        if _idx in idhpx:
+                                                _data[cc]['n']=np.append(_data[cc]['n'], n)
+                                                _data[cc]['ra']=np.append(_data[cc]['ra'], ra)
+                                                _data[cc]['dec']=np.append(_data[cc]['dec'], dec)
+                                                _data[cc]['fovra']=np.append(_data[cc]['fovra'], fovra)
+                                                _data[cc]['fovdec']=np.append(_data[cc]['fovdec'], fovdec)
+                                        else:
+                                                _idx = PstGetTilings.ipix_in_box(ra, dec, fovra, fovdec, nside, nest)
+                                                _frac = len(set(_idx) & set(idhpx))*areasingle/fovra/fovdec
+                                                if _frac > frac:
+                                                        _data[cc]['n']=np.append(_data[cc]['n'], n)
+                                                        _data[cc]['ra']=np.append(_data[cc]['ra'], ra)
+                                                        _data[cc]['dec']=np.append(_data[cc]['dec'], dec)
+                                                        _data[cc]['fovra']=np.append(_data[cc]['fovra'], fovra)
+                                                        _data[cc]['fovdec']=np.append(_data[cc]['fovdec'], fovdec)
+                        else:
+                        '''
+                        print (self.data['n'])
+                        if True:
+                                # check the overlap region
+                                # will take time
+                                for n, ra, dec, fovra, fovdec in zip(self.data['n'], self.data['ra'],
+                                        self.data['dec'], self.data['fovra'],self.data['fovdec']):
+                                        print (n))
+                                        _idx = PstGetTilings.ipix_in_box(ra, dec, fovra, fovdec, nside, nest)
+                                        _frac = len(set(_idx) & set(idhpx))*areasingle/fovra/fovdec
+                                        if _frac > frac:
+                                                _data[cc]['n']=np.append(_data[cc]['n'], n)
+                                                _data[cc]['ra']=np.append(_data[cc]['ra'], ra)
+                                                _data[cc]['dec']=np.append(_data[cc]['dec'], dec)
+                                                _data[cc]['fovra']=np.append(_data[cc]['fovra'], fovra)
+                                                _data[cc]['fovdec']=np.append(_data[cc]['fovdec'], fovdec)
                 return _data
                 
         

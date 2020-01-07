@@ -180,6 +180,7 @@ pst/pipeline/__pycache__/tilings.cpython-36.pyc
 pst/pipeline/__pycache__/triggers.cpython-36.pyc
 pst/pipeline/__pycache__/triggers.cpython-37.pyc
 pst/view/PstPlotter.py
+pst/view/__pycache__/PstPlotter.cpython-36.pyc
 pstools.egg-info/PKG-INFO
 pstools.egg-info/SOURCES.txt
 pstools.egg-info/dependency_links.txt
