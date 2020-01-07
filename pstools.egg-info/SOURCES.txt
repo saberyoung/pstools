@@ -172,6 +172,9 @@ pst/pipeline/PstGetTilings.py
 pst/pipeline/PstParseTriggers.py
 pst/pipeline/PstParseTriggers.py~
 pst/pipeline/PstPrioritization.py
+pst/pipeline/__pycache__/PstGetGalaxies.cpython-36.pyc
+pst/pipeline/__pycache__/PstGetTilings.cpython-36.pyc
+pst/pipeline/__pycache__/PstParseTriggers.cpython-36.pyc
 pst/pipeline/__pycache__/galaxies.cpython-36.pyc
 pst/pipeline/__pycache__/tilings.cpython-36.pyc
 pst/pipeline/__pycache__/triggers.cpython-36.pyc

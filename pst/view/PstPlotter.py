@@ -97,32 +97,73 @@ class PstPlotter():
                 contours=None, nest=None, coord=None, norm=None, vmin=None,
                 vmax=None, fignum=1, ptype=None, cbar=None, obstime=None,
                 nside=None, title='sky localization'):
-        """read default value for parameters
+        """show 2d localization plot for trigger, galaxies, tilings
 
         Parameters
         ----------
-        defconf :      `dict`
-          input parameter settings, if None, use default
+        psttrigger :       `class`
+           PstParseTriggers object
+        psttilings :       `class`
+           PstGetTilings object
+        pstgalaxies :      `class`
+           PstGetGalaxies object
+        tellist :          sequence of `class`
+           list of PstGetTilings obj or PstGetGalaxies obj
+           to be used to define the observatory so that plot the horizon lines        
+        theta :            `class` between 0 and 360
+           rotate along the healpix theta directions, unit in deg
+        phi :              `class` between 0 and 360
+           rotate along the healpix phi directions, unit in deg
+        psi :              `class` between 0 and 360
+           rotate along the healpix psi directions, unit in deg
+        figsize :          `tuple`
+           define the size of figures
+        contours :         `list`
+           list of confidence level, e.g. [.5, .9]
+        nest :             `bool`
+           healpix ordering options: 
+           if True, healpix map use `nest` ordering, otherwise, use `ring` instead 
+        coord :             sequence of character
+           Either one of ‘G’, ‘E’ or ‘C’ to describe the coordinate system of the map, 
+           or a sequence of 2 of these to rotate the map from the first to the 
+           second coordinate system.
+        norm :              `hist`, `log`, None
+           Color normalization, hist= histogram equalized color mapping, log= logarithmic color mapping, 
+           default: None (linear color mapping)
+        vmin :              `float`
+           The minimum range value for mollview/gnomview/etc
+        vmax :              `float`
+           The maximum range value for mollview/gnomview/etc
+        fignum :            `int`
+           The figure number of generated matplotlib plot
+        ptype :             `string`
+           type of trigger plots: `m` = mollview, `g` = gnomview, `c` = cartview, and `o` = orthview
+        cbar :              `bool`
+           Display the colorbar
+        obstime :           `float` or None or astropy.time obj
+           observing time.
+           None for now; `float` number (unit in seconds) represents how much time before (negative) or after (positive) now; 
+           `astropy.time` set specific observing time  
+        nside :             `int`
+           healpix nside parameter, must be a power of 2, less than 2**30
+        title :             `string`
+           figure title of the plot
 
         Examples
         --------    
         >>> from pst.view.PstPlotter import PstPlotter
-        >>> a = PstPlotter()
-        >>> dict = {'theta': '90', 'obstime': 3600*2}
-        >>> a.run_config(dict)
+        >>> a = PstPlotter()       
         """
         
         # create figure
-        if figsize is None:
-            figsize = self.conf['fogsize']
-        else:
-            try:
-                fig = plt.figure(fignum, figsize=figsize)
-            except:
-                self.logger.info ('### Error: wrong figsize')
-                fig = plt.figure(fignum, figsize=self.conf['fogsize'])
-                
-        # create figures
+        if not figsize is None: self.conf['figsize'] = figsize               
+        try:
+            fig = plt.figure(fignum, figsize=self.conf['figsize'])
+        except:
+            self.logger.info ('### Error: wrong figsize or fignum')
+            return        
+
+        # plot
         if not psttrigger is None:
             self.triggershow(psttrigger, theta=theta, phi=phi, psi=psi, title=title,
                         contours=contours, nest=nest, coord=coord, norm=norm, vmin=vmin,
@@ -139,10 +180,10 @@ class PstPlotter():
         hp.graticule(dpar=None, dmer=None, coord=coord)
         plt.legend()
         
-    def triggershow(self, psttrigger, theta=None, phi=None, psi=None,
-            contours=None, nest=None, coord=None, norm=None, vmin=None,
-            vmax=None, fignum=1, ptype=None, cbar=None, nside=None,
-            title='sky localization'):
+    def triggershow(self, psttrigger, contours=None, nside=None,
+            theta=None, phi=None, psi=None, nest=None, coord=None,
+            norm=None, vmin=None, vmax=None, fignum=1, ptype=None,
+            cbar=None, title='sky localization'):
         """ 
         2d trigger healpix map
         """                
@@ -209,21 +250,42 @@ class PstPlotter():
             self.logger.info ('### Error: wrong option for ptype [m, g, c, o]')
             return
 
-        """
+        """ 
         show trigger contours
-        """       
+        """               
         # read parameters                
         if contours is None: contours =  self.conf['contours']
-        if nside is None:    nside    =  int(self.conf['nside'])        
+        if nside is None:    nside    =  self.conf['nside']
         if is_seq(contours):
             theta_contour, phi_contour = self.compute_contours(contours,hpx,nside=nside)
             for ndd,dd in enumerate(theta_contour):                
                 _theta_contour, _phi_contour = theta_contour[dd], phi_contour[dd]        
                 for i in range(len(_theta_contour)):                    
                     if len(_theta_contour[i])==0:continue                    
-                    hp.projplot(_theta_contour[i],_phi_contour[i], coord=coord,
-                                    linewidth=1, c=self.colors_contour[ndd])
-                    
+                    hp.projplot(_theta_contour[i],_phi_contour[i],
+                                coord=coord, linewidth=1,
+                                c=self.colors_contour[ndd])
+
+    def tilingshow(self, psttilings, theta=None, phi=None, psi=None,
+                   color=None, label=None, nest=None, coord=None, fignum=1):
+
+        n, ra, dec, fovra, fovdec = psttilings.data['n'], psttilings.data['ra'], \
+            psttilings.data['dec'], psttilings.data['fovra'], psttilings.data['fovdec']
+        if len(ra) >0:
+            pass
+        else:
+            self.logger.info ('### Warning: skipping tilingshow since tilings are not parsed')
+            return
+        if color is None:    color    =  self.colors_field[0]
+        if label is None:    label    =  psttilings.name
+        if coord is None:    coord    =  self.conf['coord']
+        if fignum is None:   fignum   =  1               
+
+        fig = plt.figure(fignum)                               
+        self.plot_lines(ra, dec, fovra, fovdec,
+                        coord=coord, color=color,label=label)        
+        return fig        
+    
     def notes(self, psttrigger=None, tellist=None,
               coord=None, obstime=None, fignum=1,
               contours=None):
@@ -513,57 +575,6 @@ class PstPlotter():
         plt.legend()     
         return fig
 
-    def verticeview(pparams):
-
-        ralist=pparams['ra']
-        declist=pparams['dec']
-        _fovw=pparams['fovw']
-        _fovh=pparams['fovh']
-        color=pparams['color']
-        label=pparams['label']
-        rot_phi=float(pparams['phi'])
-        rot_theta=float(pparams['theta'])
-        coord=pparams['coord']
-        fignum=pparams['fignum']
-        
-        if len(ralist)>0:pass
-        else:return
-
-        fig = plt.figure(fignum)
-        hp.graticule()
-        
-        try:
-            float(_fovw)
-            float(_fovh)
-            plot=1
-        except:
-            plot=2
-
-        if plot==1:
-            ''' fov is a number '''
-            print ('fov num')
-            plot_lines(ralist,declist,float(_fovw),float(_fovh),\
-                       rot_phi=rot_phi,rot_theta=rot_theta,\
-                       coord=coord,color=color,label=label)
-        elif plot==2:
-            ''' fov is a list '''
-            print ('fov list')
-            for nm,(ra,dec,fovw,fovh) in enumerate(zip(ralist,declist,_fovw,_fovh)):
-                if nm==0:_label=label
-                else:_label=None
-                plot_lines([ra],[dec],float(fovw),float(fovh),\
-                           rot_phi=rot_phi,rot_theta=rot_theta,coord=coord,\
-                           color=color,label=_label)
-        try:
-            _rank = pparams['rank']
-            theta1,phi1 = pst.RadecToThetaphi(ralist,declist) 
-            theta1,phi1 = r(theta1,phi1)  
-            hp.projtext(theta1,phi1, str(_rank))
-        except:
-            pass
-        plt.legend()
-        return fig
-
     def routeview(pparams):
         
         ralist=pparams['ra']
@@ -597,23 +608,24 @@ class PstPlotter():
         plt.legend()
         return fig
 
-    def plot_lines(ra,dec,hh,ww,rot_theta=0,rot_phi=0,\
+    def plot_lines(self, ra, dec, hh, ww,
+                   rot_theta=0,rot_phi=0,
                    color='k',coord='C',label=None):
-
-        r = hp.Rotator(deg=True, rot=[rot_phi,rot_theta])
+        from pst.pipeline.PstGetTilings import PstGetTilings
+        
+#        r = hp.Rotator(deg=True, rot=[rot_theta,rot_phi,rot_psi]) #rot=[rot_phi,rot_theta])
         if not label is None: _smlabel=True
         else: _smlabel=False
-        for _ra,_dec in zip(ra,dec):
-            v1_ra,v2_ra,v3_ra,v4_ra,v1_dec,v2_dec,v3_dec,v4_dec=pst.vertices(_ra,_dec,hh,ww)
+        for _ra,_dec,_hh,_ww in zip(ra,dec,hh,ww):
+            v1_ra,v2_ra,v3_ra,v4_ra,v1_dec,v2_dec,v3_dec,v4_dec = PstGetTilings.vertices(_ra,_dec,_hh,_ww)
             ra_vertices, dec_vertices = ([v1_ra, v2_ra, v4_ra, v3_ra, v1_ra], \
                                          [v1_dec, v2_dec, v4_dec, v3_dec, v1_dec])
-            theta,phi = pst.RadecToThetaphi(ra_vertices,dec_vertices)
+            theta, phi = np.pi/2.-np.radians(dec_vertices),np.radians(ra_vertices)
             if _smlabel:
-                hp.projplot(r(theta,phi),color=color,\
-                            coord=coord,label=label)
+                hp.projplot(theta,phi, color=color, coord=coord,label=label)
                 _smlabel=False
-            else:hp.projplot(r(theta,phi),coord=coord,\
-                             color=color)
+            else:
+                hp.projplot(theta,phi,coord=coord, color=color)
 
     def cumshow(pparams):
 

@@ -814,7 +814,62 @@ class PstGetTilings():
                         _probs = hpx[ipix_poly].sum()
                         probs.append(_probs)
                         ns.append(_n)
-                return Table([ns, probs], names=('n', 'prob'))  
+                return Table([ns, probs], names=('n', 'prob'))
+        
+        def cut_contours(self, triggerobj, cls=None, nest=None, frac=0):                
+                """remove tilings the probability that can cover targeting sources
+                
+                Parameters
+                ------------         
+                triggerobj :       `class`
+                  PstParseTriggers object
+                cls :         `list`
+                  list of confidence level, default: [.5, .9]
+                nest :       `bool`
+                  healpix ordering options: 
+                  if True, healpix map use `nest` ordering, otherwise, use `ring` instead                   
+                frac :   `float` between 0 and 1
+                  fraction, tiling would be remained when its fraction that covered by a CL region is larger than `float`
+
+                Examples
+                --------                
+                >>> from pst.pipeline.PstGetTilings import PstGetTilings
+                >>> a = PstGetTilings()
+                >>> a.generate(limdec=[-20,90])               
+                >>> from pst.pipeline.PstParseTriggers import PstParseTriggers
+                >>> b = PstParseTriggers()   
+                >>> b.url('https://gracedb.ligo.org/api/superevents/S190510g/files/bayestar.fits.gz')
+                >>> c = a.cut_contours(b, cls=[.9])
+                """
+                if cls is None:      cls  = triggerobj.conf['cls']
+                if nest is None:     nest = self.conf['nest'] 
+                
+                idlist = triggerobj.calc_contours(cls=cls)
+                from pst.cookbook import is_seq, is_seq_of_seq
+                if is_seq_of_seq(triggerobj.data['hpmap']):
+                        (hpx, hpd1, hpd2, hpd3) = triggerobj.data['hpmap']
+                elif is_seq(triggerobj.data['hpmap']):
+                        hpx = triggerobj.data['hpmap']
+                else: return                                
+                nside = hp.get_nside(hpx)
+                areasingle =  hp.nside2pixarea(nside, degrees=True)
+                _data =  {}
+                for cc in idlist:                        
+                        _data[cc] =  {'n':np.array([]), 'ra':np.array([]), 'dec':np.array([]),
+                                      'fovra':np.array([]), 'fovdec':np.array([])}
+                        idhpx = idlist[cc]
+                        for n, ra, dec, fovra, fovdec in zip(self.data['n'], self.data['ra'],
+                                        self.data['dec'], self.data['fovra'],self.data['fovdec']):                                
+                                _idx = PstGetTilings.ipix_in_box(ra, dec, fovra, fovdec, nside, nest)
+                                _frac = len(set(_idx) & set(idhpx))*areasingle/fovra/fovdec
+                                if _frac > frac:
+                                        _data[cc]['n']=np.append(_data[cc]['n'], n)
+                                        _data[cc]['ra']=np.append(_data[cc]['ra'], ra)
+                                        _data[cc]['dec']=np.append(_data[cc]['dec'], dec)
+                                        _data[cc]['fovra']=np.append(_data[cc]['fovra'], fovra)
+                                        _data[cc]['fovdec']=np.append(_data[cc]['fovdec'], fovdec)                                
+                return _data
+                
         
         def calc_prob_dis(self, triggerobj, nest=None, limdist=400):               
                 """calculate each tilings the probability that can reach targeting sources
