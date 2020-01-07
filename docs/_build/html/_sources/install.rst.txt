@@ -5,11 +5,13 @@ Requirements
 ------------
 
 PSTools depends on several python libraries, e.g. `healpy <https://healpy.readthedocs.io/en/latest/>`_, 
-`matplotlib <https://matplotlib.org/>`_, `astropy <https://www.astropy.org/>`_, etc. 
-If you use setup installation, pip would install them automatically so you do not need to 
-install them yourself. 
-If you adopt pip approach, you need to do: pip install healpy --user, 
+`matplotlib <https://matplotlib.org/>`_, `astropy <https://www.astropy.org/>`_, etc
+(see `full list <https://github.com/saberyoung/pstools/blob/master/requirements.txt>`_).
+If you adopt pip approach, you need to do: pip install pstools --user, 
 all the libraries that needed by PSTools can be installed via pip.
+If you use source setup installation, you can do: pip install -r requirements.txt,
+and pip would install them automatically so you do not need to 
+install them yourself.
 If you prefer bash to the setup, `astrocond <https://astroconda.readthedocs.io/en/latest/>`_ 
 is suggested, and then you need to install a few libraries if needed.
 
@@ -43,8 +45,8 @@ After you source your bash file, you can then initial pstools by::
 This approach would not install the pipeline, but instead call python via envirnmental defination,
 which is light and easy.
 
-Source installation with Pip
------------------------------
+Source installation with Pypi
+-------------------------------
 
 It is possible to build the latest ``pstools`` with `pip <http://www.pip-installer.org>`_ ::
 
@@ -69,6 +71,9 @@ and build it with::
     tar -xzf pstools-0.0.3.tar.gz    
     python setup.py install --user
 
+Check
+-----
+
 If everything goes fine, you can test it::
 
     python
@@ -85,14 +90,15 @@ then run::
 
     python setup.py clean --all
 
-Check
------
+Uninstall
+-----------
 
-PSTools would provide two excutable command, i.e. pstools/slack, if you installed 
-it correctly. To check if they're working:
+For uninstallation, one can easily delete the files directly.
+In order to know the file path, you should start python in correct environment and do::
 
-``pstools``:
-    pstools -h
+>>> import pst
+>>> pst.__path__
 
-``slack``:
-    after a proper `setup <https://pstool-cookbook.readthedocs.io/en/latest/usage.html#slack>`_ process, go and type sth in the specific slack channel by mentioning the slack bot, e.g. @gwhelp status. If there're sth return in slack chat, it's alive, and you can then follow its instructions.
+Another approach is to remove via pip::
+
+    pip uninstall pstools

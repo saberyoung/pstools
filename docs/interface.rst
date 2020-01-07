@@ -3,8 +3,8 @@
 .. currentmodule:: pst.interface
 
 
-:mod:`interface`
-=========================
+:mod:`interface` -- interface tools
+====================================
 
 Gui
 --------------------

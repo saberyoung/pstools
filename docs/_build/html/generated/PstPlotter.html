@@ -34,12 +34,19 @@
 <h1>pst.pipeline.PstPlotter<a class="headerlink" href="#pst-pipeline-pstplotter" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="pst.view.PstPlotter.PstPlotter">
-<em class="property">class </em><code class="sig-prename descclassname">pst.view.PstPlotter.</code><code class="sig-name descname">PstPlotter</code><span class="sig-paren">(</span><em class="sig-param">interactive=True</em>, <em class="sig-param">plot_dir=None</em>, <em class="sig-param">plot_name_tmpl='{objectId}.png'</em>, <em class="sig-param">defconf=None</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter" title="Permalink to this definition">¶</a></dt>
-<dd><ul class="simple">
-<li><p>implement the following functions:</p></li>
-</ul>
-<p>-&gt; __init__()
--&gt;</p>
+<em class="property">class </em><code class="sig-prename descclassname">pst.view.PstPlotter.</code><code class="sig-name descname">PstPlotter</code><span class="sig-paren">(</span><em class="sig-param">defconf=None</em>, <em class="sig-param">logger=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter" title="Permalink to this definition">¶</a></dt>
+<dd><p>PstGetGalaxies: Generate, read and process galaxies</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>defconf</strong><span class="classifier"><cite>dict</cite></span></dt><dd><p>default configure, if any PstGetGalaxies parameter was included in defconf dictionary, 
+then its default value would be applied</p>
+</dd>
+<dt><strong>logger</strong><span class="classifier"><cite>class</cite></span></dt><dd><p>logging object</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Methods</p>
 <table class="longtable docutils align-default">
 <colgroup>
@@ -53,14 +60,20 @@
 <tr class="row-even"><td><p><a class="reference internal" href="#pst.view.PstPlotter.PstPlotter.galaxies" title="pst.view.PstPlotter.PstPlotter.galaxies"><code class="xref py py-obj docutils literal notranslate"><span class="pre">galaxies</span></code></a>(self, pstgalaxies[, nest, coord, …])</p></td>
 <td><p>galaxy dot plots: pstgalaxies:  1.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pst.view.PstPlotter.PstPlotter.notes" title="pst.view.PstPlotter.PstPlotter.notes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">notes</span></code></a>(self[, psttrigger, tellist, coord, …])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pst.view.PstPlotter.PstPlotter.locshow" title="pst.view.PstPlotter.PstPlotter.locshow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">locshow</span></code></a>(self[, psttrigger, psttilings, …])</p></td>
+<td><p>read default value for parameters</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pst.view.PstPlotter.PstPlotter.notes" title="pst.view.PstPlotter.PstPlotter.notes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">notes</span></code></a>(self[, psttrigger, tellist, coord, …])</p></td>
 <td><p>show specific coordiantes in healpy plots</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#pst.view.PstPlotter.PstPlotter.obstime" title="pst.view.PstPlotter.PstPlotter.obstime"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obstime</span></code></a>([t])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pst.view.PstPlotter.PstPlotter.obstime" title="pst.view.PstPlotter.PstPlotter.obstime"><code class="xref py py-obj docutils literal notranslate"><span class="pre">obstime</span></code></a>([t])</p></td>
 <td><p>define observing time t: None, or float, unit in sec, or astropy.time</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#pst.view.PstPlotter.PstPlotter.plot_sky" title="pst.view.PstPlotter.PstPlotter.plot_sky"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_sky</span></code></a>(tellist, coord[, obstime, fignum])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#pst.view.PstPlotter.PstPlotter.plot_sky" title="pst.view.PstPlotter.PstPlotter.plot_sky"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_sky</span></code></a>(tellist, coord[, obstime, fignum])</p></td>
 <td><p>tellist: list of PstGetTilings obj or PstGetGalaxies obj</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pst.view.PstPlotter.PstPlotter.run_config" title="pst.view.PstPlotter.PstPlotter.run_config"><code class="xref py py-obj docutils literal notranslate"><span class="pre">run_config</span></code></a>(self, defconf)</p></td>
+<td><p>read default value for parameters</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#pst.view.PstPlotter.PstPlotter.triggershow" title="pst.view.PstPlotter.PstPlotter.triggershow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">triggershow</span></code></a>(self, psttrigger[, theta, phi, …])</p></td>
 <td><p>2d trigger healpix map</p></td>
@@ -69,20 +82,32 @@
 </table>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 58%" />
-<col style="width: 42%" />
+<col style="width: 60%" />
+<col style="width: 40%" />
 </colgroup>
 <tbody>
+<tr class="row-odd"><td><p><strong>cumshow</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>distview</strong></p></td>
+<td></td>
+</tr>
 <tr class="row-odd"><td><p><strong>galaxy</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>locshow</strong></p></td>
+<tr class="row-even"><td><p><strong>lumsview</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p><strong>plot_coord</strong></p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><strong>run_config</strong></p></td>
+<tr class="row-even"><td><p><strong>plot_lines</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>routeview</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>verticeview</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -105,6 +130,27 @@ color: list</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="pst.view.PstPlotter.PstPlotter.locshow">
+<code class="sig-name descname">locshow</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">psttrigger=None</em>, <em class="sig-param">psttilings=None</em>, <em class="sig-param">pstgalaxies=None</em>, <em class="sig-param">tellist=None</em>, <em class="sig-param">theta=None</em>, <em class="sig-param">phi=None</em>, <em class="sig-param">psi=None</em>, <em class="sig-param">figsize=None</em>, <em class="sig-param">contours=None</em>, <em class="sig-param">nest=None</em>, <em class="sig-param">coord=None</em>, <em class="sig-param">norm=None</em>, <em class="sig-param">vmin=None</em>, <em class="sig-param">vmax=None</em>, <em class="sig-param">fignum=1</em>, <em class="sig-param">ptype=None</em>, <em class="sig-param">cbar=None</em>, <em class="sig-param">obstime=None</em>, <em class="sig-param">nside=None</em>, <em class="sig-param">title='sky localization'</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.locshow" title="Permalink to this definition">¶</a></dt>
+<dd><p>read default value for parameters</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>defconf</strong><span class="classifier"><cite>dict</cite></span></dt><dd><p>input parameter settings, if None, use default</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pst.view.PstPlotter</span> <span class="kn">import</span> <span class="n">PstPlotter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">PstPlotter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="s1">&#39;90&#39;</span><span class="p">,</span> <span class="s1">&#39;obstime&#39;</span><span class="p">:</span> <span class="mi">3600</span><span class="o">*</span><span class="mi">2</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">run_config</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
 <dt id="pst.view.PstPlotter.PstPlotter.notes">
 <code class="sig-name descname">notes</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">psttrigger=None</em>, <em class="sig-param">tellist=None</em>, <em class="sig-param">coord=None</em>, <em class="sig-param">obstime=None</em>, <em class="sig-param">fignum=1</em>, <em class="sig-param">contours=None</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.notes" title="Permalink to this definition">¶</a></dt>
 <dd><p>show specific coordiantes in healpy plots</p>
@@ -121,6 +167,27 @@ t: None, or float, unit in sec, or astropy.time</p>
 <dt id="pst.view.PstPlotter.PstPlotter.plot_sky">
 <em class="property">static </em><code class="sig-name descname">plot_sky</code><span class="sig-paren">(</span><em class="sig-param">tellist</em>, <em class="sig-param">coord</em>, <em class="sig-param">obstime=None</em>, <em class="sig-param">fignum=1</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.plot_sky" title="Permalink to this definition">¶</a></dt>
 <dd><p>tellist: list of PstGetTilings obj or PstGetGalaxies obj</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pst.view.PstPlotter.PstPlotter.run_config">
+<code class="sig-name descname">run_config</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">defconf</em><span class="sig-paren">)</span><a class="headerlink" href="#pst.view.PstPlotter.PstPlotter.run_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>read default value for parameters</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>defconf</strong><span class="classifier"><cite>dict</cite></span></dt><dd><p>input parameter settings, if None, use default</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pst.view.PstPlotter</span> <span class="kn">import</span> <span class="n">PstPlotter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">PstPlotter</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;theta&#39;</span><span class="p">:</span> <span class="s1">&#39;90&#39;</span><span class="p">,</span> <span class="s1">&#39;obstime&#39;</span><span class="p">:</span> <span class="mi">3600</span><span class="o">*</span><span class="mi">2</span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">run_config</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -157,8 +224,8 @@ t: None, or float, unit in sec, or astropy.time</p>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial.html">pstools tutorial</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../pipeline.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pipeline</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="../view.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">view</span></code></a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pipeline.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">pipeline</span></code> – tools dealing with trigger map, tilings and galaxies</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../view.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">view</span></code> – tools for visulazation</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions</a></li>

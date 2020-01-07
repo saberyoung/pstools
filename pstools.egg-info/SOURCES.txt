@@ -18,7 +18,6 @@ docs/license.rst
 docs/make.bat
 docs/pipeline.rst
 docs/tutorial.rst
-docs/tutorial.rst~
 docs/view.rst
 docs/_build/doctrees/circulate.doctree
 docs/_build/doctrees/environment.pickle
@@ -146,7 +145,6 @@ notebook/test_galaxies.ipynb
 notebook/test_plot.ipynb
 notebook/test_tilings.ipynb
 notebook/test_tilings.py
-notebook/test_tilings.py~
 notebook/test_triggers.ipynb
 notebook/.ipynb_checkpoints/test_galaxies-checkpoint.ipynb
 notebook/.ipynb_checkpoints/test_plot-checkpoint.ipynb
@@ -160,7 +158,10 @@ pst/__pycache__/__init__.cpython-37.pyc
 pst/__pycache__/__version__.cpython-36.pyc
 pst/__pycache__/__version__.cpython-37.pyc
 pst/__pycache__/cookbook.cpython-36.pyc
-pst/circulate/PstCirculateInfos.py
+pst/circulate/PstEmail.py
+pst/circulate/PstP2.py
+pst/circulate/PstSlack.py
+pst/circulate/PstSsh.py
 pst/circulate/link.py
 pst/circulate/p2api.py
 pst/interface/PstInitGui.py

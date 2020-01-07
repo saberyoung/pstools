@@ -3,8 +3,8 @@
 .. currentmodule:: pst.pipeline
 
 
-:mod:`pipeline`
-=========================
+:mod:`pipeline` -- tools dealing with trigger map, tilings and galaxies
+==========================================================================
 
 Triggers
 --------------------

@@ -3,8 +3,8 @@
 .. currentmodule:: pst.view
 
 
-:mod:`view`
-=========================
+:mod:`view` -- tools for visulazation
+======================================
 
 make figure
 --------------------

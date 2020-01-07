@@ -19,18 +19,24 @@ import astropy.units as u
 __all__ = ('PstPlotter')
 
 class PstPlotter():
-    """
-    * implement the following functions:
-    -> __init__()
-    -> 
+    """PstGetGalaxies: Generate, read and process galaxies
+
+    Parameters
+    ----------
+    defconf :    `dict`           
+      default configure, if any PstGetGalaxies parameter was included in defconf dictionary, 
+      then its default value would be applied
+    logger :     `class`
+      logging object
     """        
 
     # Static version info
     version = 1.0
         
-    def __init__(self, interactive=True, plot_dir=None,
-                 plot_name_tmpl="{objectId}.png",
-                 defconf=None, logger = None):
+    def __init__(self, defconf=None, logger = None):
+        """
+        initialize
+        """
 
         # ----- define logger ----- #
         if logger is None:
@@ -46,7 +52,21 @@ class PstPlotter():
         self.colors_field = ['b','g','k','y','c','m']       
     
     def run_config(self, defconf):
-                     
+        """read default value for parameters
+
+        Parameters
+        ----------
+        defconf :      `dict`
+          input parameter settings, if None, use default
+
+        Examples
+        --------    
+        >>> from pst.view.PstPlotter import PstPlotter
+        >>> a = PstPlotter()
+        >>> dict = {'theta': '90', 'obstime': 3600*2}
+        >>> a.run_config(dict)
+        """
+         
         self.conf = {
             'contours':    [.5,.9],     # 2D contours to show for triggers
             'obstime':     None,        # observing time
@@ -77,7 +97,21 @@ class PstPlotter():
                 contours=None, nest=None, coord=None, norm=None, vmin=None,
                 vmax=None, fignum=1, ptype=None, cbar=None, obstime=None,
                 nside=None, title='sky localization'):
+        """read default value for parameters
 
+        Parameters
+        ----------
+        defconf :      `dict`
+          input parameter settings, if None, use default
+
+        Examples
+        --------    
+        >>> from pst.view.PstPlotter import PstPlotter
+        >>> a = PstPlotter()
+        >>> dict = {'theta': '90', 'obstime': 3600*2}
+        >>> a.run_config(dict)
+        """
+        
         # create figure
         if figsize is None:
             figsize = self.conf['fogsize']
@@ -416,288 +450,287 @@ class PstPlotter():
                 phi_list[_cnt].append(phi)
         return theta_list, phi_list
 
-def distview(pparams):
-
-    _distmin=float(pparams['distmin'])
-    _distmax=float(pparams['distmax'])
-    dist0=pparams['dist']
-    color1=pparams['color1']
-    color2=pparams['color2']    
-    try:nbin=int(pparams['nbin'])
-    except:
-        return ('!!! Warning: nbin should be an integer')            
-    _figsize = (int(pparams['figsize'].split(',')[0]),\
-                int(pparams['figsize'].split(',')[1]))    
-    label=pparams['label']
-    fignum=pparams['fignum']
-    scale=pparams['scale']
-
-    # cut dist
-    dist0 = dist0[np.logical_and(dist0>_distmin,
-                                 dist0<_distmax)]
-    fig = plt.figure(fignum, _figsize)
-    for nii,ii in enumerate(np.arange(_distmin,_distmax,abs(_distmax-_distmin)/nbin)):                 
-        cum = len(dist0[np.logical_and(dist0<ii,dist0>_distmin)])
-        pl.text(ii,-2,cum,color=color1)
-    pl.hist(dist0,nbin,label=label,histtype='stepfilled',color=color2)
-    if scale=='log': plt.yscale('log')
-    plt.xlabel('Distance (Mpc)')
-    plt.ylabel('Nuber of galaxies')
-    plt.legend()
-    return fig
-
-def lumsview(pparams):
-
-    _distmin=float(pparams['distmin'])
-    _distmax=float(pparams['distmax'])    
-    dist0=pparams['dist']   
-    mag0=pparams['mag']
-    color1=pparams['color1']  
-    color2=pparams['color2']      
-    nbin=int(pparams['nbin'])   
-    label=pparams['label']
-    fignum=pparams['fignum']
-    scale=pparams['scale']    
-    _figsize = (int(pparams['figsize'].split(',')[0]),\
-                int(pparams['figsize'].split(',')[1]))
-    fig = plt.figure(fignum, _figsize)
-    Lums = 10**((4.74-mag0)/2.5)
-    ticks,Lcum,Lbin = [],[],[]
-    for ii in np.arange(_distmin,_distmax,nbin):
-        ticks.append((ii+.5)*nbin)
-        Lbin.append(sum(Lums[np.logical_and(dist0<ii,dist0>ii-nbin)]))
-        Lcum.append(sum(Lums[np.logical_and(dist0<ii,dist0>_distmin)]))            
-    pl.plot(ticks,Lbin,drawstyle="steps",\
-            label='binned luminosity',color=color1)
-    pl.plot(ticks,Lcum,drawstyle="steps",\
-            label='cumulative luminosity',color=color2)
-    pl.fill_between(ticks,Lbin,step="pre", alpha=1,color=color1)
-    pl.title(label)   
-    if scale=='log': plt.yscale('log')
-    plt.xlabel('Distance (Mpc)')
-    plt.ylabel('$L_{sun}$')
-    plt.legend()     
-    return fig
-
-""" tilings plot """
-def verticeview(pparams):
-
-    ralist=pparams['ra']
-    declist=pparams['dec']
-    _fovw=pparams['fovw']
-    _fovh=pparams['fovh']
-    color=pparams['color']
-    label=pparams['label']
-    rot_phi=float(pparams['phi'])
-    rot_theta=float(pparams['theta'])
-    coord=pparams['coord']
-    fignum=pparams['fignum']
+    def distview(pparams):
         
-    if len(ralist)>0:pass
-    else:return
+        _distmin=float(pparams['distmin'])
+        _distmax=float(pparams['distmax'])
+        dist0=pparams['dist']
+        color1=pparams['color1']
+        color2=pparams['color2']    
+        try:nbin=int(pparams['nbin'])
+        except:
+            return ('!!! Warning: nbin should be an integer')            
+        _figsize = (int(pparams['figsize'].split(',')[0]),\
+                    int(pparams['figsize'].split(',')[1]))    
+        label=pparams['label']
+        fignum=pparams['fignum']
+        scale=pparams['scale']
 
-    fig = plt.figure(fignum)
-    hp.graticule()
+        # cut dist
+        dist0 = dist0[np.logical_and(dist0>_distmin,
+                                 dist0<_distmax)]
+        fig = plt.figure(fignum, _figsize)
+        for nii,ii in enumerate(np.arange(_distmin,_distmax,abs(_distmax-_distmin)/nbin)):                 
+            cum = len(dist0[np.logical_and(dist0<ii,dist0>_distmin)])
+            pl.text(ii,-2,cum,color=color1)
+        pl.hist(dist0,nbin,label=label,histtype='stepfilled',color=color2)
+        if scale=='log': plt.yscale('log')
+        plt.xlabel('Distance (Mpc)')
+        plt.ylabel('Nuber of galaxies')
+        plt.legend()
+        return fig
 
-    try:
-        float(_fovw)
-        float(_fovh)
-        plot=1
-    except:
-        plot=2
+    def lumsview(pparams):
+        
+        _distmin=float(pparams['distmin'])
+        _distmax=float(pparams['distmax'])    
+        dist0=pparams['dist']   
+        mag0=pparams['mag']
+        color1=pparams['color1']  
+        color2=pparams['color2']      
+        nbin=int(pparams['nbin'])   
+        label=pparams['label']
+        fignum=pparams['fignum']
+        scale=pparams['scale']    
+        _figsize = (int(pparams['figsize'].split(',')[0]),\
+                    int(pparams['figsize'].split(',')[1]))
+        fig = plt.figure(fignum, _figsize)
+        Lums = 10**((4.74-mag0)/2.5)
+        ticks,Lcum,Lbin = [],[],[]
+        for ii in np.arange(_distmin,_distmax,nbin):
+            ticks.append((ii+.5)*nbin)
+            Lbin.append(sum(Lums[np.logical_and(dist0<ii,dist0>ii-nbin)]))
+            Lcum.append(sum(Lums[np.logical_and(dist0<ii,dist0>_distmin)]))            
+        pl.plot(ticks,Lbin,drawstyle="steps",\
+                label='binned luminosity',color=color1)
+        pl.plot(ticks,Lcum,drawstyle="steps",\
+                label='cumulative luminosity',color=color2)
+        pl.fill_between(ticks,Lbin,step="pre", alpha=1,color=color1)
+        pl.title(label)   
+        if scale=='log': plt.yscale('log')
+        plt.xlabel('Distance (Mpc)')
+        plt.ylabel('$L_{sun}$')
+        plt.legend()     
+        return fig
 
-    if plot==1:
-        ''' fov is a number '''
-        print ('fov num')
-        plot_lines(ralist,declist,float(_fovw),float(_fovh),\
-                   rot_phi=rot_phi,rot_theta=rot_theta,\
-                   coord=coord,color=color,label=label)
-    elif plot==2:
-        ''' fov is a list '''
-        print ('fov list')
-        for nm,(ra,dec,fovw,fovh) in enumerate(zip(ralist,declist,_fovw,_fovh)):
-            if nm==0:_label=label
-            else:_label=None
-            plot_lines([ra],[dec],float(fovw),float(fovh),\
-                rot_phi=rot_phi,rot_theta=rot_theta,coord=coord,\
-                color=color,label=_label)
-    try:
-        _rank = pparams['rank']
-        theta1,phi1 = pst.RadecToThetaphi(ralist,declist) 
-        theta1,phi1 = r(theta1,phi1)  
-        hp.projtext(theta1,phi1, str(_rank))
-    except:
-        pass
-    plt.legend()
-    return fig
+    def verticeview(pparams):
 
-def routeview(pparams):
+        ralist=pparams['ra']
+        declist=pparams['dec']
+        _fovw=pparams['fovw']
+        _fovh=pparams['fovh']
+        color=pparams['color']
+        label=pparams['label']
+        rot_phi=float(pparams['phi'])
+        rot_theta=float(pparams['theta'])
+        coord=pparams['coord']
+        fignum=pparams['fignum']
+        
+        if len(ralist)>0:pass
+        else:return
 
-    ralist=pparams['ra']
-    declist=pparams['dec']
-    _time=pparams['time']
-    color=pparams['color']
-    label=pparams['label']
-    rot_phi=float(pparams['phi'])
-    rot_theta=float(pparams['theta'])
-    fignum=pparams['fignum']
-    coord=pparams['coord']
-    ms = 4
+        fig = plt.figure(fignum)
+        hp.graticule()
+        
+        try:
+            float(_fovw)
+            float(_fovh)
+            plot=1
+        except:
+            plot=2
 
-    if len(ralist)>0:pass
-    else:return
+        if plot==1:
+            ''' fov is a number '''
+            print ('fov num')
+            plot_lines(ralist,declist,float(_fovw),float(_fovh),\
+                       rot_phi=rot_phi,rot_theta=rot_theta,\
+                       coord=coord,color=color,label=label)
+        elif plot==2:
+            ''' fov is a list '''
+            print ('fov list')
+            for nm,(ra,dec,fovw,fovh) in enumerate(zip(ralist,declist,_fovw,_fovh)):
+                if nm==0:_label=label
+                else:_label=None
+                plot_lines([ra],[dec],float(fovw),float(fovh),\
+                           rot_phi=rot_phi,rot_theta=rot_theta,coord=coord,\
+                           color=color,label=_label)
+        try:
+            _rank = pparams['rank']
+            theta1,phi1 = pst.RadecToThetaphi(ralist,declist) 
+            theta1,phi1 = r(theta1,phi1)  
+            hp.projtext(theta1,phi1, str(_rank))
+        except:
+            pass
+        plt.legend()
+        return fig
 
-    fig = plt.figure(fignum)
-    hp.graticule()
+    def routeview(pparams):
+        
+        ralist=pparams['ra']
+        declist=pparams['dec']
+        _time=pparams['time']
+        color=pparams['color']
+        label=pparams['label']
+        rot_phi=float(pparams['phi'])
+        rot_theta=float(pparams['theta'])
+        fignum=pparams['fignum']
+        coord=pparams['coord']
+        ms = 4
 
-    # start point
-    _rot = hp.Rotator(deg=True, rot=[rot_phi,rot_theta])
-    _theta,_phi = pst.RadecToThetaphi(ralist[0],declist[0])
-    hp.projplot(_rot(_theta,_phi),'*', color=color, \
-                coord=coord, ms = ms)
+        if len(ralist)>0:pass
+        else:return
 
-    # routes
-    theta,phi = pst.RadecToThetaphi(ralist,declist)
-    hp.projplot(_rot(theta,phi),color=color,\
-                coord=coord) #,label=label)
+        fig = plt.figure(fignum)
+        hp.graticule()
 
-    plt.legend()
-    return fig
+        # start point
+        _rot = hp.Rotator(deg=True, rot=[rot_phi,rot_theta])
+        _theta,_phi = pst.RadecToThetaphi(ralist[0],declist[0])
+        hp.projplot(_rot(_theta,_phi),'*', color=color, \
+                    coord=coord, ms = ms)
 
-def plot_lines(ra,dec,hh,ww,rot_theta=0,rot_phi=0,\
-               color='k',coord='C',label=None):
+        # routes
+        theta,phi = pst.RadecToThetaphi(ralist,declist)
+        hp.projplot(_rot(theta,phi),color=color,\
+                    coord=coord) #,label=label)
 
-    r = hp.Rotator(deg=True, rot=[rot_phi,rot_theta])
-    if not label is None: _smlabel=True
-    else: _smlabel=False
-    for _ra,_dec in zip(ra,dec):
-        v1_ra,v2_ra,v3_ra,v4_ra,v1_dec,v2_dec,v3_dec,v4_dec=pst.vertices(_ra,_dec,hh,ww)
-        ra_vertices, dec_vertices = ([v1_ra, v2_ra, v4_ra, v3_ra, v1_ra], \
-                                     [v1_dec, v2_dec, v4_dec, v3_dec, v1_dec])
-        theta,phi = pst.RadecToThetaphi(ra_vertices,dec_vertices)
-        if _smlabel:
-            hp.projplot(r(theta,phi),color=color,\
-                        coord=coord,label=label)
-            _smlabel=False
-        else:hp.projplot(r(theta,phi),coord=coord,\
-                         color=color)
+        plt.legend()
+        return fig
 
-def cumshow(pparams):
+    def plot_lines(ra,dec,hh,ww,rot_theta=0,rot_phi=0,\
+                   color='k',coord='C',label=None):
 
-    # arg params
-    full=pparams['full']
-    fignum=pparams['fignum']
-    select=pparams['select']    
-    _figsize = (int(pparams['figsize'].split(',')[0]),\
-                int(pparams['figsize'].split(',')[1]))
+        r = hp.Rotator(deg=True, rot=[rot_phi,rot_theta])
+        if not label is None: _smlabel=True
+        else: _smlabel=False
+        for _ra,_dec in zip(ra,dec):
+            v1_ra,v2_ra,v3_ra,v4_ra,v1_dec,v2_dec,v3_dec,v4_dec=pst.vertices(_ra,_dec,hh,ww)
+            ra_vertices, dec_vertices = ([v1_ra, v2_ra, v4_ra, v3_ra, v1_ra], \
+                                         [v1_dec, v2_dec, v4_dec, v3_dec, v1_dec])
+            theta,phi = pst.RadecToThetaphi(ra_vertices,dec_vertices)
+            if _smlabel:
+                hp.projplot(r(theta,phi),color=color,\
+                            coord=coord,label=label)
+                _smlabel=False
+            else:hp.projplot(r(theta,phi),coord=coord,\
+                             color=color)
 
-    # opt params
-    try: nameloc=float(pparams['nameloc'])
-    except: 
-        print ('### Error: nameloc should be a float')
-        return
-    try: number=int(pparams['number'])
-    except: 
-        print ('### Error: number should be an interger')
-        return
-    try: showname=eval(pparams['showname'])
-    except: 
-        print ('### Error: showname should be True/False')
-        return
+    def cumshow(pparams):
 
-    # initialize plot
-    fig = plt.figure(fignum, figsize=_figsize)
-    ax1=pl.axes([.1,.10,.4,.3])
-    ax2=pl.axes([.1,.40,.4,.55])
-    ax11=pl.axes([.5,.10,.35,.3])
-    ax22=pl.axes([.5,.40,.35,.55])
-    ax1.set_xlim([0,number+1])
-    ax2.set_xlim([0,number+1])
-    ax1.set_ylim([10**(-8),.3])
-    ax1.set_yticks([10**(-8),.3])
-    ax2.set_ylim([.01,1])
-    ax1.set_yscale('log')
-    ax1.set_xlabel(' '*50+'$N_{gal}$')      
-    ax1.set_ylabel('Score')
-    ax2.set_ylabel('Cumulative Score')
-    ax2.tick_params(labelbottom=False) 
-    ax11.set_ylim([10**(-8),.3])   
-    ax22.set_ylim([.01,1])   
-    ax11.set_yscale('log')
-    ax11.set_xscale('log')    
-    ax22.set_xscale('log')
-    ax22.tick_params(labelbottom=False) 
-    ax22.tick_params(labelleft=False) 
-    ax11.tick_params(labelleft=False) 
+        # arg params
+        full=pparams['full']
+        fignum=pparams['fignum']
+        select=pparams['select']    
+        _figsize = (int(pparams['figsize'].split(',')[0]),\
+                    int(pparams['figsize'].split(',')[1]))
 
-    # plot
-    _cc = 0
-    _color = ['b','g','y','c','d']
-    color1 = 'r'
-    color2 = 'k'
-    for _nt,_tt in enumerate(full):
+        # opt params
+        try: nameloc=float(pparams['nameloc'])
+        except: 
+            print ('### Error: nameloc should be a float')
+            return
+        try: number=int(pparams['number'])
+        except: 
+            print ('### Error: number should be an interger')
+            return
+        try: showname=eval(pparams['showname'])
+        except: 
+            print ('### Error: showname should be True/False')
+            return
+
+        # initialize plot
+        fig = plt.figure(fignum, figsize=_figsize)
+        ax1=pl.axes([.1,.10,.4,.3])
+        ax2=pl.axes([.1,.40,.4,.55])
+        ax11=pl.axes([.5,.10,.35,.3])
+        ax22=pl.axes([.5,.40,.35,.55])
+        ax1.set_xlim([0,number+1])
+        ax2.set_xlim([0,number+1])
+        ax1.set_ylim([10**(-8),.3])
+        ax1.set_yticks([10**(-8),.3])
+        ax2.set_ylim([.01,1])
+        ax1.set_yscale('log')
+        ax1.set_xlabel(' '*50+'$N_{gal}$')      
+        ax1.set_ylabel('Score')
+        ax2.set_ylabel('Cumulative Score')
+        ax2.tick_params(labelbottom=False) 
+        ax11.set_ylim([10**(-8),.3])   
+        ax22.set_ylim([.01,1])   
+        ax11.set_yscale('log')
+        ax11.set_xscale('log')    
+        ax22.set_xscale('log')
+        ax22.tick_params(labelbottom=False) 
+        ax22.tick_params(labelleft=False) 
+        ax11.tick_params(labelleft=False) 
+
+        # plot
+        _cc = 0
+        _color = ['b','g','y','c','d']
+        color1 = 'r'
+        color2 = 'k'
+        for _nt,_tt in enumerate(full):
        
-        ##### full part
-        scorei = np.array(pst.decomposit(_tt['score']))
-        rai = np.array(pst.decomposit(_tt['ra']))
-        deci = np.array(pst.decomposit(_tt['dec']))
-        try: namei = np.array(pst.decomposit(_tt['name']))
-        except: namei = np.array(pst.decomposit(_tt['ra']))
+            ##### full part
+            scorei = np.array(pst.decomposit(_tt['score']))
+            rai = np.array(pst.decomposit(_tt['ra']))
+            deci = np.array(pst.decomposit(_tt['dec']))
+            try: namei = np.array(pst.decomposit(_tt['name']))
+            except: namei = np.array(pst.decomposit(_tt['ra']))
 
-        # sort score
-        idx = np.argsort(np.asarray(scorei))[::-1]
+            # sort score
+            idx = np.argsort(np.asarray(scorei))[::-1]
 
-        scorei = scorei[idx]
-        rai = rai[idx]
-        deci = deci[idx]
-        namei = namei[idx]
+            scorei = scorei[idx]
+            rai = rai[idx]
+            deci = deci[idx]
+            namei = namei[idx]
 
-        # show only interesting fields
-        _nm = 5
-        score = scorei[:number*_nm]
-        ra = rai[:number*_nm]
-        dec = deci[:number*_nm]
-        name = namei[:number*_nm]
+            # show only interesting fields
+            _nm = 5
+            score = scorei[:number*_nm]
+            ra = rai[:number*_nm]
+            dec = deci[:number*_nm]
+            name = namei[:number*_nm]
 
-        ax1.plot(np.arange(len(score))+1,score,color1+'.')
-        ax2.plot(np.arange(len(score))+1,\
+            ax1.plot(np.arange(len(score))+1,score,color1+'.')
+            ax2.plot(np.arange(len(score))+1,\
                 [sum(score[:y]) for y in range(1, len(score) + 1)],\
                  color1+'.')   
-        if showname:
-            for i, txt in enumerate(name):
-                ax2.annotate(txt, (i+1, \
-                    sum(score[:i+1])+nameloc),\
-                    fontsize=6,rotation=90)
+            if showname:
+                for i, txt in enumerate(name):
+                    ax2.annotate(txt, (i+1, \
+                                sum(score[:i+1])+nameloc),\
+                                 fontsize=6,rotation=90)
 
-        ax11.plot(np.arange(len(score))+1,score,color1+'.')
-        ax22.plot(np.arange(len(score))+1,[sum(score[:y]) \
-            for y in range(1, len(score) + 1)],color1+'.') 
-        ax11.set_xlim([number+1,len(score)])    
-        ax22.set_xlim([number+1,len(score)])
-        ax11.set_xticks([number+1,len(score)])  
-
-        ##### for selected dots
-        tellist = None
-        for _weight in select:
-            for _ntt in select[_weight]:
-                if select[_weight][_ntt]['name'] ==\
-                   _tt['telescope']['name']:
-                    tellist = select[_weight][_ntt]
-        if not tellist is None:
-            # for one telescope
-            _title = '%i pointings with %.2f %% probability'%\
-                     (number, sum(score[:number])*100)
-            for _ra,_dec in zip(tellist['ra'],tellist['dec']):
-                s,t = np.where(rai == _ra),\
-                      np.where(deci == _dec)
-                ids = np.intersect1d(s, t)                
-                ax1.plot(ids+1,scorei[ids],_color[_cc]+'x')
-                ax2.plot(ids+1,np.cumsum(scorei)[ids],_color[_cc]+'x')
-            _title += '\n%s: %s'%\
-                      (tellist['name'],_color[_cc])
-            _cc+=1
-    plt.title(_title)
-    return fig
+            ax11.plot(np.arange(len(score))+1,score,color1+'.')
+            ax22.plot(np.arange(len(score))+1,[sum(score[:y]) \
+                                for y in range(1, len(score) + 1)],color1+'.') 
+            ax11.set_xlim([number+1,len(score)])    
+            ax22.set_xlim([number+1,len(score)])
+            ax11.set_xticks([number+1,len(score)])  
+            
+            ##### for selected dots
+            tellist = None
+            for _weight in select:
+                for _ntt in select[_weight]:
+                    if select[_weight][_ntt]['name'] ==\
+                       _tt['telescope']['name']:
+                        tellist = select[_weight][_ntt]
+            if not tellist is None:
+                # for one telescope
+                _title = '%i pointings with %.2f %% probability'%\
+                    (number, sum(score[:number])*100)
+                for _ra,_dec in zip(tellist['ra'],tellist['dec']):
+                    s,t = np.where(rai == _ra),\
+                        np.where(deci == _dec)
+                    ids = np.intersect1d(s, t)                
+                    ax1.plot(ids+1,scorei[ids],_color[_cc]+'x')
+                    ax2.plot(ids+1,np.cumsum(scorei)[ids],_color[_cc]+'x')
+                _title += '\n%s: %s'%\
+                    (tellist['name'],_color[_cc])
+                _cc+=1
+        plt.title(_title)
+        return fig
 
 def interactive_show(func,_pm,_opt):   
     """

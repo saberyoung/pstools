@@ -5,20 +5,21 @@ Welcome to the pstools documentation
 
 `pstools` provides utilities to:
 
+* handle and evaluate trigger (e.g. GW, GRB, or AMON) map via `Healpy/HEALPix <https://healpy.readthedocs.io/en/latest/index.html>`_.
 * generate pointing list for specific telescope, depending on its searching strategy, i.e. tiling or galaxy monitoring search.
-* evaluate trigger HEALPix map via `Healpy/HEALPix <https://pstools-documentation.readthedocs.io/en/latest/index.html#>`_, i.e. GW, GRB, or AMON.
-* optimize observing strategy in order to cover effective the trigger probability, the local luminous mass, visibility, and the detection efficiency.
+* optimize observing strategy in order to effectively cover trigger volume, with inclusion of visibility, and the detection efficiency.
+* visualize the above process, circulate to users via various of approaches.
+  
 
-
-   Installation
-------------
+Installation
+----------------
 
 .. toctree::
    :maxdepth: 1
 
    install
 
-   Tutorial
+Tutorial
 ------------
 
 .. toctree::
@@ -26,8 +27,8 @@ Welcome to the pstools documentation
 
    tutorial
    
-   Reference
----------
+Reference
+-------------
 
 .. toctree::
    :maxdepth: 2
@@ -51,7 +52,7 @@ FAQ
    faq
 
 License
--------
+---------
 
 .. toctree::
    :maxdepth: 1
